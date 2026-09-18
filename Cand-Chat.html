@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Canned Tool</title>
+<link rel="icon" href="https://plain-eeur-prod-public.komododecks.com/202609/12/H3vBRmNp8wGDD51Me9fw/image.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   CANNED TOOL — v7.0
+   Aesthetic: developer / IDE-terminal, tuned for Arabic RTL.
+   Problem: support agents need to find & copy the right
+   canned reply fast — this reads like a code editor full of
+   ready-made "snippets" filed by category.
+   Memorable device: every snippet is a tiny code file — a
+   file-tab, a line-number gutter, a monospace path — and
+   copying one plays out like a terminal confirmation.
+   ============================================================ */
+
+*{box-sizing:border-box;}
+
+:root{
+  --font-arabic:'IBM Plex Sans Arabic', sans-serif;
+  --font-mono:'IBM Plex Mono', monospace;
+
+  --acc-violet:#b18cff;
+  --acc-cyan:#6fe3d9;
+  --acc-amber:#ffb454;
+  --acc-rose:#ff8fab;
+  --acc-blue:#7aa2f7;
+
+  --header-h:46px;
+  --footer-h:32px;
+  --sidebar-w:272px;
+  --radius:10px;
+}
+
+[data-theme="dark"]{
+  --bg:#0d0e17;
+  --bg-grid:rgba(177,140,255,.05);
+  --panel:#12141f;
+  --panel-2:#171a29;
+  --inset:#0a0b12;
+  --line:#262a3d;
+  --line-soft:rgba(255,255,255,.06);
+  --ink:#e9eaf7;
+  --ink-dim:#8a8fac;
+  --ink-faint:#585d78;
+  --success:#8fdc9a;
+  --danger:#ff8095;
+  --shadow:0 18px 40px -18px rgba(0,0,0,.65);
+  --glow:0 0 0 1px rgba(177,140,255,.16), 0 14px 34px -14px rgba(177,140,255,.22);
+}
+[data-theme="light"]{
+  --bg:#eef0f8;
+  --bg-grid:rgba(109,63,214,.05);
+  --panel:#ffffff;
+  --panel-2:#f7f8fd;
+  --inset:#eef0f8;
+  --line:#dbdfef;
+  --line-soft:rgba(20,20,50,.06);
+  --ink:#171a2b;
+  --ink-dim:#5b6082;
+  --ink-faint:#9296b3;
+  --success:#1f8f4c;
+  --danger:#c22c46;
+  --shadow:0 18px 40px -20px rgba(30,30,70,.25);
+  --glow:0 0 0 1px rgba(109,63,214,.14), 0 14px 30px -16px rgba(109,63,214,.20);
+}
+
+html,body{height:100%;margin:0;}
+body{
+  font-family:var(--font-arabic);
+  background:var(--bg);
+  color:var(--ink-dim);
+  -webkit-font-smoothing:antialiased;
+  transition:background .25s ease,color .25s ease;
+  background-image:
+    linear-gradient(var(--bg-grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--bg-grid) 1px,transparent 1px);
+  background-size:34px 34px;
+  background-position:-1px -1px;
+}
+[data-theme="dark"] body::before{
+  content:"";
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:radial-gradient(circle at 82% 6%,rgba(177,140,255,.09),transparent 40%),
+                    radial-gradient(circle at 4% 96%,rgba(111,227,217,.07),transparent 38%);
+}
+::selection{background:var(--acc-violet);color:#100c1c;}
+
+/* scrollbars */
+*{scrollbar-width:thin;scrollbar-color:var(--line) transparent;}
+*::-webkit-scrollbar{width:8px;height:8px;}
+*::-webkit-scrollbar-track{background:transparent;}
+*::-webkit-scrollbar-thumb{background:var(--line);border-radius:20px;}
+*::-webkit-scrollbar-thumb:hover{background:var(--ink-faint);}
+
+button{font-family:inherit;}
+
+/* ---------- shared window chrome ---------- */
+.dots{display:inline-flex;gap:6px;direction:ltr;}
+.dots i{width:9px;height:9px;border-radius:50%;display:block;}
+.dots i:nth-child(1){background:#ff6167;}
+.dots i:nth-child(2){background:#ffbd2e;}
+.dots i:nth-child(3){background:#28c840;}
+
+/* ============ LOGIN — embossed / neumorphic ============ */
+#loginOverlay{
+  position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+  background:#15161f;
+  padding:20px;
+  animation:fadeIn .35s ease both;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.login-circle{
+  position:relative;
+  width:min(90vw,420px);aspect-ratio:1/1;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:#15161f;
+  box-shadow:-24px -24px 54px rgba(255,255,255,.035), 26px 26px 60px rgba(0,0,0,.6);
+  animation:riseIn .5s cubic-bezier(.19,1,.22,1) both;
+}
+@keyframes riseIn{from{opacity:0;transform:translateY(18px) scale(.96)}to{opacity:1;transform:none}}
+
+.login-inner{
+  width:min(64%,270px);display:flex;flex-direction:column;align-items:center;text-align:center;gap:13px;
+  transition:opacity .3s ease, transform .3s ease;
+}
+.login-inner.hide{opacity:0;transform:scale(.94);pointer-events:none;}
+
+.login-mark{
+  width:54px;height:54px;border-radius:16px;display:grid;place-items:center;margin-bottom:2px;
+  font-family:var(--font-mono);font-weight:700;font-size:22px;color:#0c0d16;
+  background:linear-gradient(135deg,#6fe3d9,#b18cff);
+  box-shadow:-6px -6px 12px rgba(255,255,255,.04), 6px 6px 16px rgba(0,0,0,.55);
+}
+.login-circle h3{margin:0;font-size:17px;font-weight:700;color:#e9eaf7;font-family:var(--font-arabic);}
+.login-sub{margin:0;font-size:12px;color:#7c81a0;font-family:var(--font-arabic);}
+
+.neu-input{
+  width:100%;border:none;outline:none;border-radius:999px;
+  padding:15px 20px;background:#15161f;color:#e9eaf7;
+  font-family:var(--font-arabic);font-size:13.5px;font-weight:600;
+  box-shadow:inset 6px 6px 12px rgba(0,0,0,.6), inset -6px -6px 12px rgba(255,255,255,.03);
+  direction:ltr !important;text-align:left !important;unicode-bidi:normal !important;
+  transition:box-shadow .2s ease;
+}
+.neu-input:focus{box-shadow:inset 5px 5px 10px rgba(0,0,0,.55), inset -5px -5px 10px rgba(255,255,255,.03), 0 0 0 3px rgba(177,140,255,.16);}
+.neu-input::placeholder{color:#565b78;font-weight:500;}
+.neu-input:-webkit-autofill,
+.neu-input:-webkit-autofill:hover,
+.neu-input:-webkit-autofill:focus,
+.neu-input:-webkit-autofill:active{
+  -webkit-text-fill-color:#e9eaf7;
+  -webkit-box-shadow:0 0 0 1000px #15161f inset, inset 6px 6px 12px rgba(0,0,0,.6), inset -6px -6px 12px rgba(255,255,255,.03);
+  box-shadow:0 0 0 1000px #15161f inset, inset 6px 6px 12px rgba(0,0,0,.6), inset -6px -6px 12px rgba(255,255,255,.03);
+  caret-color:#e9eaf7;
+  transition:background-color 9999s ease-in-out 0s;
+}
+
+.neu-btn{
+  width:100%;border:none;border-radius:999px;padding:15px;cursor:pointer;margin-top:2px;
+  font-family:var(--font-arabic);font-weight:800;font-size:14px;color:#0c0d16;
+  background:linear-gradient(135deg,#6fe3d9,#b18cff);
+  box-shadow:-6px -6px 14px rgba(255,255,255,.04), 6px 6px 18px rgba(0,0,0,.55);
+  transition:transform .15s ease, box-shadow .15s ease, filter .15s ease;
+}
+.neu-btn:hover{filter:brightness(1.06);}
+.neu-btn:active{transform:translateY(1px);box-shadow:inset 4px 4px 10px rgba(0,0,0,.4);}
+
+#loginMsg{min-height:14px;font-size:11.5px;color:var(--danger);font-family:var(--font-arabic);font-weight:600;}
+
+.login-success{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  opacity:0;transform:scale(.9);pointer-events:none;
+  transition:opacity .35s ease, transform .35s ease;
+}
+.login-success.show{opacity:1;transform:scale(1);pointer-events:auto;}
+.success-check{
+  width:60px;height:60px;border-radius:50%;display:grid;place-items:center;margin-bottom:2px;
+  background:linear-gradient(135deg,#a6ecb0,#4fb86a);color:#0c1f12;font-size:26px;font-weight:900;
+  box-shadow:-6px -6px 12px rgba(255,255,255,.04), 6px 6px 16px rgba(0,0,0,.55);
+  animation:popIn .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes popIn{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+
+.login-footnote{font-size:11px;color:#565b78;font-family:var(--font-arabic);}
+
+#protectedApp{display:none;opacity:0;transition:opacity .5s ease;}
+
+/* ============ SPLASH — boot sequence ============ */
+.splash{
+  position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;
+  background:var(--bg);transition:opacity .4s ease;
+}
+.splash-box{
+  font-family:var(--font-arabic);font-weight:600;color:var(--ink-dim);font-size:14px;
+  display:flex;flex-direction:column;gap:7px;direction:rtl;text-align:right;min-width:230px;
+}
+.splash-box .ok{color:var(--acc-cyan);}
+.splash-box .load-line{opacity:0;animation:typeIn .35s ease forwards;}
+.splash-box .load-line:nth-child(1){animation-delay:.05s;}
+.splash-box .load-line:nth-child(2){animation-delay:.30s;}
+.splash-box .load-line:nth-child(3){animation-delay:.55s;}
+@keyframes typeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ============ HEADER (title bar) ============ */
+.header-wrap{
+  position:fixed;top:0;left:0;right:0;height:var(--header-h);z-index:200;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:0 18px;
+  background:var(--panel);border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand .mark{
+  width:28px;height:28px;border-radius:7px;display:grid;place-items:center;
+  font-family:var(--font-mono);font-weight:700;font-size:13px;color:#0c0d16;
+  background:linear-gradient(135deg,var(--acc-cyan),var(--acc-violet));
+}
+.brand .name{font-family:var(--font-mono);font-size:14px;font-weight:600;color:var(--ink);letter-spacing:-.01em;}
+.brand .name em{font-style:normal;color:var(--acc-violet);}
+
+.ticker{flex:1;min-width:0;overflow:hidden;position:relative;height:var(--header-h);display:flex;align-items:center;}
+.ticker-track{
+  display:inline-block;white-space:nowrap;width:max-content;
+  font-family:var(--font-arabic);font-weight:600;font-size:12px;color:var(--acc-amber);
+  animation:tickerOnce 15s linear 1 forwards;
+}
+@keyframes tickerOnce{
+  from{transform:translateX(100%)}
+  to{transform:translateX(-100%)}
+}
+
+.theme-toggle{
+  flex:0 0 auto;width:30px;height:30px;border-radius:8px;
+  border:1px solid var(--line);background:var(--panel-2);color:var(--ink);
+  cursor:pointer;font-size:14px;display:grid;place-items:center;
+  transition:background .2s ease, border-color .2s ease, transform .2s ease;
+}
+.theme-toggle:hover{border-color:var(--acc-violet);transform:translateY(-1px);}
+
+/* ============ APP LAYOUT ============ */
+.app{
+  display:grid;
+  grid-template-columns:var(--sidebar-w) 1fr;
+  gap:18px;
+  max-width:1560px;margin:0 auto;
+  padding:calc(var(--header-h) + 16px) 20px calc(var(--footer-h) + 20px);
+  position:relative;z-index:1;
+  align-items:start;
+}
+
+/* ---------- sidebar: file explorer ---------- */
+.sidebar{
+  position:sticky;top:calc(var(--header-h) + 16px);
+  height:calc(100vh - var(--header-h) - var(--footer-h) - 32px);
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow);
+}
+.sidebar-top{padding:14px 14px 10px;border-bottom:1px solid var(--line-soft);}
+.sidebar-title{display:flex;align-items:center;justify-content:space-between;}
+.sidebar-title .label{
+  font-family:var(--font-arabic);font-weight:700;font-size:12px;color:var(--ink-dim);
+}
+.tool-count{
+  font-family:var(--font-mono);font-size:10.5px;color:var(--acc-violet);
+  background:rgba(177,140,255,.12);border:1px solid rgba(177,140,255,.25);
+  padding:2px 8px;border-radius:20px;
+}
+.search-box{
+  margin:12px 12px 4px;display:flex;align-items:center;gap:8px;
+  background:var(--inset);border:1px solid var(--line);border-radius:8px;padding:0 10px;
+  transition:border-color .2s ease, box-shadow .2s ease;
+}
+.search-box:focus-within{border-color:var(--acc-cyan);box-shadow:0 0 0 3px rgba(111,227,217,.12);}
+.search-icon{font-size:14px;color:var(--acc-cyan);opacity:.9;font-family:var(--font-mono);}
+.search-box input{
+  flex:1;border:0;outline:0;background:transparent;color:var(--ink);
+  font-size:13.5px;font-weight:600;padding:11px 2px;font-family:var(--font-arabic);
+}
+.search-box input::placeholder{color:var(--ink-faint);font-weight:500;}
+
+.sheet-list{flex:1;overflow-y:auto;padding:8px 10px 16px;display:flex;flex-direction:column;gap:3px;}
+.sheet-item{
+  --accent:var(--acc-violet);
+  display:flex;align-items:center;gap:9px;
+  padding:9px 10px;border-radius:8px;cursor:pointer;
+  color:var(--ink);font-size:13.5px;font-weight:600;
+  border:1px solid transparent;
+  transition:background .15s ease, border-color .15s ease;
+}
+.sheet-item .chip{
+  width:6px;height:6px;border-radius:50%;flex:0 0 auto;background:var(--accent);
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.sheet-item .label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sheet-item:hover{background:var(--panel-2);}
+.sheet-item.active{
+  background:color-mix(in srgb, var(--accent) 12%, var(--panel));
+  border-color:color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.sheet-item.active .label{color:var(--accent);}
+
+/* ---------- main: editor pane ---------- */
+.main{min-width:0;}
+.main-head{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  margin-bottom:16px;padding:0 2px;
+}
+.main-head-copy{display:flex;align-items:baseline;gap:10px;min-width:0;}
+.main-head-copy .hash{font-family:var(--font-mono);color:var(--acc-cyan);font-size:16px;}
+.main-head-copy h1{
+  margin:0;font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.01em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.main-badge{
+  flex:0 0 auto;font-family:var(--font-arabic);font-weight:600;font-size:12px;color:var(--ink-dim);
+  border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:7px 11px;
+}
+.main-badge b{color:var(--ink);font-size:13px;}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(248px,1fr));
+  gap:14px;
+}
+
+.card{
+  --accent:var(--acc-violet);
+  background:var(--panel);border:1px solid var(--line);border-radius:11px;
+  display:flex;flex-direction:column;overflow:hidden;cursor:pointer;
+  min-height:206px;
+  opacity:0;transform:translateY(8px);
+  transition:opacity .35s ease, transform .35s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.card.visible{opacity:1;transform:translateY(0);}
+.card:hover{border-color:color-mix(in srgb, var(--accent) 45%, var(--line));box-shadow:var(--glow);}
+
+.card-title{
+  display:flex;align-items:center;gap:8px;
+  padding:11px 13px;border-bottom:1px solid var(--line-soft);
+}
+.card-title .ext{
+  font-family:var(--font-arabic);font-size:10.5px;font-weight:700;
+  color:var(--accent);background:color-mix(in srgb, var(--accent) 14%, transparent);
+  border:1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-radius:5px;padding:2px 6px;flex:0 0 auto;
+}
+.card-title .t{
+  font-weight:700;font-size:14.5px;color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;
+}
+
+.card-content{flex:1;display:flex;padding:11px;overflow:hidden;}
+.frame{
+  flex:1;min-width:0;background:var(--inset);border:1px solid var(--line-soft);border-radius:7px;
+  padding:11px 12px;color:var(--ink);font-size:13.5px;line-height:1.9;overflow:hidden;
+  display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;text-overflow:ellipsis;
+}
+
+.card-footer{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:9px 13px;border-top:1px solid var(--line-soft);
+  font-family:var(--font-arabic);font-weight:600;font-size:11.5px;color:var(--ink-faint);
+}
+.card-footer .path{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.card-footer .cmd{color:var(--accent);flex:0 0 auto;}
+.card-footer.copied{
+  background:color-mix(in srgb, var(--success) 14%, transparent);
+  color:var(--success);justify-content:center;font-weight:700;
+}
+.card-footer.copied .cmd{display:none;}
+
+.empty{
+  grid-column:1/-1;text-align:center;padding:54px 24px;
+  background:var(--panel);border:1px dashed var(--line);border-radius:var(--radius);
+  color:var(--ink-dim);font-size:14px;
+}
+.empty b{color:var(--ink);}
+
+/* ============ FOOTER — status bar ============ */
+.footer-wrapper{
+  position:fixed;left:0;right:0;bottom:0;z-index:100;height:var(--footer-h);
+  background:linear-gradient(90deg,#5b32b8,#3f6fce);
+  display:flex;align-items:center;justify-content:center;
+  gap:12px;
+  padding:0 16px;font-family:var(--font-arabic);font-weight:600;font-size:11px;color:#fff;
+  box-shadow:0 -8px 20px rgba(0,0,0,.18);
+}
+.footer-wrapper .fseg{display:flex;align-items:center;gap:6px;}
+.footer-wrapper .dot{width:6px;height:6px;border-radius:50%;background:#7ee2a8;box-shadow:0 0 0 3px rgba(126,226,168,.25);}
+.footer-wrapper .sep{opacity:.5;}
+
+/* ============ responsive ============ */
+@media(max-width:980px){
+  :root{--sidebar-w:100%;}
+  .app{grid-template-columns:1fr;padding-top:calc(var(--header-h) + 78px);}
+  .ticker{position:absolute;top:var(--header-h);left:0;right:0;height:32px;background:var(--panel-2);border-bottom:1px solid var(--line);padding:0 14px;}
+  .sidebar{position:relative;top:auto;height:auto;max-height:360px;}
+  .sheet-list{max-height:230px;}
+}
+@media(max-width:640px){
+  .brand .name span.tag{display:none;}
+  .card{min-height:190px;}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));}
+  .main-head-copy h1{font-size:17px;}
+}
+</style>
+</head>
+<body data-theme="dark">
+
+<!-- Login Overlay -->
+<div id="loginOverlay">
+  <div class="login-circle" id="loginCircle">
+    <div class="login-inner" id="loginFormContent">
+      <div class="login-mark">C</div>
+      <h3>Canned Tool</h3>
+      <p class="login-sub">Protected By Password</p>
+      <input id="loginPwd" class="neu-input" type="password" placeholder="Enter password" autocomplete="off" dir="ltr">
+      <button id="loginBtn" class="neu-btn">Login</button>
+      <div id="loginMsg"></div>
+    </div>
+    <div class="login-success" id="loginSuccess">
+      <div class="success-check">✓</div>
+      <h3>Welcome Back!</h3>
+      <p class="login-sub">Login Successful</p>
+    </div>
+  </div>
+  <div class="login-footnote">For internal use only — Digital Chat Team</div>
+</div>
+
+<div id="protectedApp">
+
+<!-- Splash Screen -->
+<div class="splash" id="splash">
+  <div class="splash-box">
+    <div class="load-line"><span class="ok">✓</span> جارٍ تجهيز الأداة</div>
+    <div class="load-line"><span class="ok">✓</span> جارٍ تحميل الكندات</div>
+    <div class="load-line">لحظات...<span class="cursor-blink"></span></div>
+  </div>
+</div>
+
+<!-- Header -->
+<div class="header-wrap">
+  <div class="brand">
+    <span class="mark">C</span>
+    <span class="name">canned<em>.</em>tool</span>
+  </div>
+  <div class="ticker" aria-label="تنبيه">
+    <div class="ticker-track">⚠️ تذكر دائماً: استخدامك لهذه الأداة على مسؤوليتك الشخصية، ويجب التأكد من الويكي.</div>
+  </div>
+  <button class="theme-toggle" id="themeToggle" title="تغيير المظهر">🌙</button>
+</div>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <div class="sidebar-title">
+        <span class="label">القائمة</span>
+        <span class="tool-count" id="toolCount">0</span>
+      </div>
+      <div class="search-box">
+        <span class="search-icon">⌕</span>
+        <input type="text" id="searchInput" placeholder="ابحث عن كاند..." autocomplete="off">
+      </div>
+    </div>
+    <div class="sheet-list" id="sheetList"></div>
+  </aside>
+
+  <main class="main">
+    <div class="main-head">
+      <div class="main-head-copy">
+        <span class="hash">#</span>
+        <h1 id="sectionTitle">اختر شيت للبدء</h1>
+      </div>
+      <div class="main-badge"><b id="resultCount">0</b> كاند</div>
+    </div>
+    <div class="grid" id="cardsGrid"><div class="empty">جارٍ تحميل البيانات... ⏳</div></div>
+  </main>
+</div>
+
+<div class="footer-wrapper">
+  <span class="fseg"><span class="dot"></span> Ready</span>
+  <span class="sep">·</span>
+  <span class="fseg">version 7<span class="sep">·</span>Developed By : Geek</span>
+</div>
+
+<!-- Click sound -->
+<audio id="clickSound" preload="auto">
+  <source src="data:audio/mp3;base64,//uQZAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCA..." type="audio/mp3">
+</audio>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  // --- LOGIN LOGIC ---
+  const FIXED_PASSWORD = 'Chat2025';
+  const overlay = document.getElementById('loginOverlay');
+  const btn = document.getElementById('loginBtn');
+  const pwd = document.getElementById('loginPwd');
+  const msg = document.getElementById('loginMsg');
+  const app = document.getElementById('protectedApp');
+  const formContent = document.getElementById('loginFormContent');
+  const successMsg = document.getElementById('loginSuccess');
+
+  pwd.focus();
+  function unlock() {
+    if (pwd.value === FIXED_PASSWORD) {
+      formContent.classList.add('hide');
+      successMsg.classList.add('show');
+      setTimeout(() => {
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.style.display = 'none', 400);
+        app.style.display = 'block';
+        setTimeout(() => app.style.opacity = '1', 50);
+      }, 900);
+      sessionStorage.setItem('candat_unlocked', '1');
+    } else {
+      msg.textContent = 'كلمة المرور غير صحيحة، حاول مرة أخرى';
+      pwd.value = '';
+      pwd.focus();
+    }
+  }
+  btn.addEventListener('click', unlock);
+  pwd.addEventListener('keydown', (e) => { if (e.key === 'Enter') unlock(); });
+  if (sessionStorage.getItem('candat_unlocked') === '1') {
+    overlay.style.display = 'none';
+    app.style.display = 'block';
+    app.style.opacity = '1';
+  }
+
+  // --- APP LOGIC ---
+  const splash = document.getElementById("splash");
+  const sheetList = document.getElementById("sheetList");
+  const cardsGrid = document.getElementById("cardsGrid");
+  const searchInput = document.getElementById("searchInput");
+  const clickSound = document.getElementById("clickSound");
+  const themeToggle = document.getElementById("themeToggle");
+  const toolCount = document.getElementById("toolCount");
+  const sectionTitle = document.getElementById("sectionTitle");
+  const resultCount = document.getElementById("resultCount");
+
+  let workbookData = {};
+  let currentSheet = null;
+
+  const PALETTE = ['var(--acc-violet)','var(--acc-cyan)','var(--acc-amber)','var(--acc-rose)','var(--acc-blue)'];
+  function accentFor(name){
+    let h = 0;
+    for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+    return PALETTE[h % PALETTE.length];
+  }
+
+  const savedTheme = localStorage.getItem('candat_theme') || 'dark';
+  document.body.setAttribute('data-theme', savedTheme);
+  themeToggle.textContent = savedTheme === 'dark' ? '🌙' : '☀️';
+
+  setTimeout(() => splash.style.opacity = "0", 750);
+  setTimeout(() => splash.style.display = "none", 1150);
+
+  themeToggle.addEventListener("click", () => {
+    const next = document.body.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    document.body.setAttribute("data-theme", next);
+    themeToggle.textContent = next === "dark" ? "🌙" : "☀️";
+    localStorage.setItem('candat_theme', next);
+  });
+
+  fetch('candat_data.xlsx')
+    .then(resp => { if (!resp.ok) throw new Error("File not found"); return resp.arrayBuffer(); })
+    .then(buffer => { const wb = XLSX.read(buffer, { type: "array" }); handleWorkbook(wb); })
+    .catch(error => {
+      cardsGrid.innerHTML = '<div class="empty">⚠️ لم يتم العثور على ملف البيانات <b>candat_data.xlsx</b>.</div>';
+      console.error("Error loading data file:", error);
+    });
+
+  function handleWorkbook(wb) {
+    workbookData = {};
+    let total = 0;
+    wb.SheetNames.forEach(name => {
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1 });
+      const items = [];
+      for (let i = 1; i < rows.length; i++) {
+        if (rows[i] && rows[i][0] && rows[i][1]) items.push({ name:String(rows[i][0]), content:String(rows[i][1]), sheet:name });
+      }
+      workbookData[name] = items;
+      total += items.length;
+    });
+    toolCount.textContent = wb.SheetNames.length;
+    renderSheetList(wb.SheetNames);
+    if (wb.SheetNames.length) showSheet(wb.SheetNames[0]);
+    else cardsGrid.innerHTML = '<div class="empty">الملف فارغ أو لا يحتوي على شيتات قابلة للعرض.</div>';
+  }
+
+  function renderSheetList(names) {
+    sheetList.innerHTML = '';
+    names.forEach(name => {
+      const btn = document.createElement('div');
+      btn.className = 'sheet-item';
+      btn.style.setProperty('--accent', accentFor(name));
+      btn.innerHTML = `<span class="chip"></span><span class="label">${escapeHtml(name)}</span>`;
+      btn.addEventListener('click', () => showSheet(name));
+      sheetList.appendChild(btn);
+    });
+  }
+
+  function showSheet(name) {
+    window.scrollTo({top:0,behavior:'smooth'});
+    currentSheet = name;
+    searchInput.value = '';
+    document.querySelectorAll('.sheet-item').forEach(el => {
+      const isActive = el.querySelector('.label').textContent === name;
+      el.classList.toggle('active', isActive);
+    });
+    sectionTitle.textContent = name;
+    renderCards(workbookData[name] || []);
+  }
+
+  function renderCards(items) {
+    cardsGrid.innerHTML = '';
+    const query = searchInput.value.trim();
+    resultCount.textContent = `${items.length} نتيجة`;
+    if (!items || !items.length) {
+      cardsGrid.innerHTML = `<div class="empty">${query ? `لا توجد نتائج مطابقة لبحثك عن: <b>"${escapeHtml(query)}"</b> 🔍` : 'اختر شيت من القائمة للبدء 🚀'}</div>`;
+      return;
+    }
+    items.forEach((item,index) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.setProperty('--accent', accentFor(item.sheet));
+      const displayContent = escapeHtml(item.content).replace(/\n/g,'<br>');
+      card.innerHTML = `
+        <div class="card-title">
+          <span class="ext">رد</span>
+          <span class="t">${escapeHtml(item.name)}</span>
+        </div>
+        <div class="card-content">
+          <div class="frame">${displayContent}</div>
+        </div>
+        <div class="card-footer" data-original-text="${escapeHtml(item.sheet)}">
+          <span class="path">${escapeHtml(item.sheet)}</span>
+          <span class="cmd">انسخ ↗</span>
+        </div>`;
+      card.addEventListener('click', () => {
+        const contentToCopy = item.content.replace(/\n/g, "\n<p>&nbsp;</p>\n");
+        copyText(contentToCopy);
+        playClick();
+        const footer = card.querySelector('.card-footer');
+        const original = footer.getAttribute('data-original-text');
+        footer.innerHTML = ' تم النسخ ✅';
+        footer.classList.add('copied');
+        setTimeout(() => {
+          footer.innerHTML = `<span class="path">${original}</span><span class="cmd">انسخ ↗</span>`;
+          footer.classList.remove('copied');
+        }, 1500);
+      });
+      cardsGrid.appendChild(card);
+      setTimeout(() => card.classList.add('visible'), 35 + index*20);
+    });
+  }
+
+  function escapeHtml(value){ return String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+
+  function copyText(text) {
+    navigator.clipboard.writeText(text).catch(() => {
+      const temp=document.createElement('textarea'); temp.value=text; document.body.appendChild(temp); temp.select(); document.execCommand('copy'); temp.remove();
+    });
+  }
+  function playClick(){ clickSound.currentTime=0; clickSound.play().catch(()=>{}); }
+
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.trim().toLowerCase();
+    if (!q) { if (currentSheet) showSheet(currentSheet); return; }
+    document.querySelectorAll('.sheet-item').forEach(el => el.classList.remove('active'));
+    const results=[];
+    Object.keys(workbookData).forEach(sheetName => (workbookData[sheetName] || []).forEach(item => {
+      const hay=(item.name+' '+item.content).toLowerCase();
+      if(hay.includes(q)) results.push({...item,sheet:sheetName});
+    }));
+    sectionTitle.textContent='نتائج البحث';
+    renderCards(results);
+  });
+
+});
+</script>
+
+</div>
+  <!-- #################### START: Anti-Developer Protection Code #################### -->
+<script disable-devtool-auto src='https://cdn.jsdelivr.net/npm/disable-devtool@latest'></script>
+<script>
+! function (e, t) { "object" == typeof exports && "undefined" != typeof module ? module.exports = t() : "function" == typeof define && define.amd ? define(t) : (e = "undefined" != typeof globalThis ? globalThis : e || self).DisableDevtool = t() }(this, function () { "use strict"; function i(e) { return (i = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (e) { return typeof e } : function (e) { return e && "function" == typeof Symbol && e.constructor === Symbol && e !== Symbol.prototype ? "symbol" : typeof e })(e) } function o(e, t) { if (!(e instanceof t)) throw new TypeError("Cannot call a class as a function") } function r(e, t) { for (var n = 0; n < t.length; n++) { var o = t[n]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, o.key, o) } } function u(e, t, n) { t && r(e.prototype, t), n && r(e, n), Object.defineProperty(e, "prototype", { writable: !1 }) } function e(e, t, n) { t in e ? Object.defineProperty(e, t, { value: n, enumerable: !0, configurable: !0, writable: !0 }) : e[t] = n } function n(e, t) { if ("function" != typeof t && null !== t) throw new TypeError("Super expression must either be null or a function"); e.prototype = Object.create(t && t.prototype, { constructor: { value: e, writable: !0, configurable: !0 } }), Object.defineProperty(e, "prototype", { writable: !1 }), t && a(e, t) } function c(e) { return (c = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function (e) { return e.__proto__ || Object.getPrototypeOf(e) })(e) } function a(e, t) { return (a = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function (e, t) { return e.__proto__ = t, e })(e, t) } function q(e, t) { if (t && ("object" == typeof t || "function" == typeof t)) return t; if (void 0 !== t) throw new TypeError("Derived constructors may only return object or undefined"); t = e; if (void 0 === t) throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); return t } function l(n) { var o = function () { if ("undefined" == typeof Reflect || !Reflect.construct) return !1; if (Reflect.construct.sham) return !1; if ("function" == typeof Proxy) return !0; try { return Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () { })), !0 } catch (e) { return !1 } }(); return function () { var e, t = c(n); return q(this, o ? (e = c(this).constructor, Reflect.construct(t, arguments, e)) : t.apply(this, arguments)) } } function f(e, t) { (null == t || t > e.length) && (t = e.length); for (var n = 0, o = new Array(t); n < t; n++)o[n] = e[n]; return o } function s(e, t) { var n, o = "undefined" != typeof Symbol && e[Symbol.iterator] || e["@@iterator"]; if (!o) { if (Array.isArray(e) || (o = function (e, t) { if (e) { if ("string" == typeof e) return f(e, t); var n = Object.prototype.toString.call(e).slice(8, -1); return "Map" === (n = "Object" === n && e.constructor ? e.constructor.name : n) || "Set" === n ? Array.from(e) : "Arguments" === n || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n) ? f(e, t) : void 0 } }(e)) || t && e && "number" == typeof e.length) return o && (e = o), n = 0, { s: t = function () { }, n: function () { return n >= e.length ? { done: !0 } : { done: !1, value: e[n++] } }, e: function (e) { throw e }, f: t }; throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.") } var i, r = !0, u = !1; return { s: function () { o = o.call(e) }, n: function () { var e = o.next(); return r = e.done, e }, e: function (e) { u = !0, i = e }, f: function () { try { r || null == o.return || o.return() } finally { if (u) throw i } } } } var d = !1, t = {}; function v(e) { t[e] = !1 } function z() { for (var e in t) if (t[e]) return d = !0; return d = !1 } function h() { return (new Date).getTime() } function B(e) { var t = h(); return e(), h() - t } function W(n, o) { function e(t) { return function () { n && n(); var e = t.apply(void 0, arguments); return o && o(), e } } var t = window.alert, i = window.confirm, r = window.prompt; try { window.alert = e(t), window.confirm = e(i), window.prompt = e(r) } catch (e) { } } var p = { iframe: !1, pc: !1, qqBrowser: !1, firefox: !1, macos: !1, edge: !1, oldEdge: !1, ie: !1, iosChrome: !1, iosEdge: !1, chrome: !1, seoBot: !1 }; function U() { function e(e) { return -1 !== t.indexOf(e) } var t = navigator.userAgent.toLowerCase(), n = !!window.top && window !== window.top, o = !/(iphone|ipad|ipod|ios|android)/i.test(t), i = e("qqbrowser"), r = e("firefox"), u = e("macintosh"), c = e("edge"), a = c && !e("chrome"), l = a || e("trident") || e("msie"), f = e("crios"), s = e("edgios"), d = e("chrome") || f, v = /(googlebot|baiduspider|bingbot|applebot|petalbot|yandexbot|bytespider|chrome\-lighthouse)/i.test(t); Object.assign(p, { iframe: n, pc: o, qqBrowser: i, firefox: r, macos: u, edge: c, oldEdge: a, ie: l, iosChrome: f, iosEdge: s, chrome: d, seoBot: v }) } function H() { for (var e = function () { for (var e = {}, t = 0; t < 500; t++)e["".concat(t)] = "".concat(t); return e }(), t = [], n = 0; n < 50; n++)t.push(e); return t } var K = "", V = !1; function F() { var e = b.ignore; if (e) { if ("function" == typeof e) return e(); if (0 !== e.length) { var t = location.href; if (K === t) return V; K = t; var n, o = !1, i = s(e); try { for (i.s(); !(n = i.n()).done;) { var r = n.value; if ("string" == typeof r) { if (-1 !== t.indexOf(r)) { o = !0; break } } else if (r.test(t)) { o = !0; break } } } catch (e) { i.e(e) } finally { i.f() } return V = o } } } var M = 0, X = 0, N = [], $ = 0; function G(i) { function e() { l = !0 } function t() { l = !1 } var n, o, r, u, c, a, l = !1; function f() { (a[u] === r ? o : n)() } W(e, t), n = t, o = e, void 0 !== (a = document).hidden ? (r = "hidden", c = "visibilitychange", u = "visibilityState") : void 0 !== a.mozHidden ? (r = "mozHidden", c = "mozvisibilitychange", u = "mozVisibilityState") : void 0 !== a.msHidden ? (r = "msHidden", c = "msvisibilitychange", u = "msVisibilityState") : void 0 !== a.webkitHidden && (r = "webkitHidden", c = "webkitvisibilitychange", u = "webkitVisibilityState"), a.removeEventListener(c, f, !1), a.addEventListener(c, f, !1), M = window.setInterval(function () { if (!(i.isSuspend || l || F())) { var e, t, n = s(N); try { for (n.s(); !(e = n.n()).done;) { var o = e.value; v(o.type), o.detect($++) } } catch (e) { n.e(e) } finally { n.f() } T(), "function" == typeof b.ondevtoolclose && (t = d, !z() && t && b.ondevtoolclose()) } }, b.interval), X = setTimeout(function () { p.pc || y() }, b.stopIntervalTime) } function y() { window.clearInterval(M) } function Y() { if (b.url) window.location.href = b.url; else { try { window.opener = null, window.open("", "_self"), window.close(), window.history.back() } catch (e) { console.log(e) } setTimeout(function () { window.location.href = "https://theajack.github.io/disable-devtool/404.html?h=".concat(encodeURIComponent(location.host)) }, 500) } } var b = { md5: "", ondevtoolopen: Y, ondevtoolclose: null, url: "", tkName: "ddtk", interval: 200, disableMenu: !0, stopIntervalTime: 5e3, clearIntervalWhenDevOpenTrigger: !1, detectors: "all", clearLog: !0, disableSelect: !1, disableCopy: !1, disableCut: !1, disablePaste: !1, ignore: null, disableIframeParents: !0, seo: !0 }, J = ["detectors", "ondevtoolclose", "ignore"]; function Q(e) { var t, n = 0 < arguments.length && void 0 !== e ? e : {}; for (t in b) { var o = t; void 0 === n[o] || i(b[o]) !== i(n[o]) && -1 === J.indexOf(o) || (b[o] = n[o]) } "function" == typeof b.ondevtoolclose && !0 === b.clearIntervalWhenDevOpenTrigger && (b.clearIntervalWhenDevOpenTrigger = !1, console.warn("【DISABLE-DEVTOOL】clearIntervalWhenDevOpenTrigger 在使用 ondevtoolclose 时无效")) } var w, g, Z, m = window.console || { log: function () { }, table: function () { }, clear: function () { } }; function T() { b.clearLog && Z() } var ee = function () { return !1 }; function O(n) { var e, o = 74, i = 73, r = 85, u = 83, c = 123, a = p.macos ? function (e, t) { return e.metaKey && e.altKey && (t === i || t === o) } : function (e, t) { return e.ctrlKey && e.shiftKey && (t === i || t === o) }, l = p.macos ? function (e, t) { return e.metaKey && e.altKey && t === r || e.metaKey && t === u } : function (e, t) { return e.ctrlKey && (t === u || t === r) }; n.addEventListener("keydown", function (e) { var t = (e = e || n.event).keyCode || e.which; if (t === c || a(e, t) || l(e, t)) return te(n, e) }, !0), e = n, b.disableMenu && D(e, "contextmenu"), e = n, b.disableSelect && D(e, "selectstart"), e = n, b.disableCopy && D(e, "copy"), e = n, b.disableCut && D(e, "cut"), e = n, b.disablePaste && D(e, "paste") } function D(t, e) { t.addEventListener(e, function (e) { return te(t, e) }) } function te(e, t) { if (!F() && !ee()) return (t = t || e.event).returnValue = !1, t.preventDefault(), !1 } var S = 8; function ne(e) { for (var t = function (e, t) { e[t >> 5] |= 128 << t % 32, e[14 + (t + 64 >>> 9 << 4)] = t; for (var n = 1732584193, o = -271733879, i = -1732584194, r = 271733878, u = 0; u < e.length; u += 16) { var c = n, a = o, l = i, f = r; n = P(n, o, i, r, e[u + 0], 7, -680876936), r = P(r, n, o, i, e[u + 1], 12, -389564586), i = P(i, r, n, o, e[u + 2], 17, 606105819), o = P(o, i, r, n, e[u + 3], 22, -1044525330), n = P(n, o, i, r, e[u + 4], 7, -176418897), r = P(r, n, o, i, e[u + 5], 12, 1200080426), i = P(i, r, n, o, e[u + 6], 17, -1473231341), o = P(o, i, r, n, e[u + 7], 22, -45705983), n = P(n, o, i, r, e[u + 8], 7, 1770035416), r = P(r, n, o, i, e[u + 9], 12, -1958414417), i = P(i, r, n, o, e[u + 10], 17, -42063), o = P(o, i, r, n, e[u + 11], 22, -1990404162), n = P(n, o, i, r, e[u + 12], 7, 1804603682), r = P(r, n, o, i, e[u + 13], 12, -40341101), i = P(i, r, n, o, e[u + 14], 17, -1502002290), o = P(o, i, r, n, e[u + 15], 22, 1236535329), n = x(n, o, i, r, e[u + 1], 5, -165796510), r = x(r, n, o, i, e[u + 6], 9, -1069501632), i = x(i, r, n, o, e[u + 11], 14, 643717713), o = x(o, i, r, n, e[u + 0], 20, -373897302), n = x(n, o, i, r, e[u + 5], 5, -701558691), r = x(r, n, o, i, e[u + 10], 9, 38016083), i = x(i, r, n, o, e[u + 15], 14, -660478335), o = x(o, i, r, n, e[u + 4], 20, -405537848), n = x(n, o, i, r, e[u + 9], 5, 568446438), r = x(r, n, o, i, e[u + 14], 9, -1019803690), i = x(i, r, n, o, e[u + 3], 14, -187363961), o = x(o, i, r, n, e[u + 8], 20, 1163531501), n = x(n, o, i, r, e[u + 13], 5, -1444681467), r = x(r, n, o, i, e[u + 2], 9, -51403784), i = x(i, r, n, o, e[u + 7], 14, 1735328473), o = x(o, i, r, n, e[u + 12], 20, -1926607734), n = j(n, o, i, r, e[u + 5], 4, -378558), r = j(r, n, o, i, e[u + 8], 11, -2022574463), i = j(i, r, n, o, e[u + 11], 16, 1839030562), o = j(o, i, r, n, e[u + 14], 23, -35309556), n = j(n, o, i, r, e[u + 1], 4, -1530992060), r = j(r, n, o, i, e[u + 4], 11, 1272893353), i = j(i, r, n, o, e[u + 7], 16, -155497632), o = j(o, i, r, n, e[u + 10], 23, -1094730640), n = j(n, o, i, r, e[u + 13], 4, 681279174), r = j(r, n, o, i, e[u + 0], 11, -358537222), i = j(i, r, n, o, e[u + 3], 16, -722521979), o = j(o, i, r, n, e[u + 6], 23, 76029189), n = j(n, o, i, r, e[u + 9], 4, -640364487), r = j(r, n, o, i, e[u + 12], 11, -421815835), i = j(i, r, n, o, e[u + 15], 16, 530742520), o = j(o, i, r, n, e[u + 2], 23, -995338651), n = I(n, o, i, r, e[u + 0], 6, -198630844), r = I(r, n, o, i, e[u + 7], 10, 1126891415), i = I(i, r, n, o, e[u + 14], 15, -1416354905), o = I(o, i, r, n, e[u + 5], 21, -57434055), n = I(n, o, i, r, e[u + 12], 6, 1700485571), r = I(r, n, o, i, e[u + 3], 10, -1894986606), i = I(i, r, n, o, e[u + 10], 15, -1051523), o = I(o, i, r, n, e[u + 1], 21, -2054922799), n = I(n, o, i, r, e[u + 8], 6, 1873313359), r = I(r, n, o, i, e[u + 15], 10, -30611744), i = I(i, r, n, o, e[u + 6], 15, -1560198380), o = I(o, i, r, n, e[u + 13], 21, 1309151649), n = I(n, o, i, r, e[u + 4], 6, -145523070), r = I(r, n, o, i, e[u + 11], 10, -1120210379), i = I(i, r, n, o, e[u + 2], 15, 718787259), o = I(o, i, r, n, e[u + 9], 21, -343485551), n = E(n, c), o = E(o, a), i = E(i, l), r = E(r, f) } return Array(n, o, i, r) }(function (e) { for (var t = Array(), n = (1 << S) - 1, o = 0; o < e.length * S; o += S)t[o >> 5] |= (e.charCodeAt(o / S) & n) << o % 32; return t }(e), e.length * S), n = "0123456789abcdef", o = "", i = 0; i < 4 * t.length; i++)o += n.charAt(t[i >> 2] >> i % 4 * 8 + 4 & 15) + n.charAt(t[i >> 2] >> i % 4 * 8 & 15); return o } function k(e, t, n, o, i, r) { return E((t = E(E(t, e), E(o, r))) << i | t >>> 32 - i, n) } function P(e, t, n, o, i, r, u) { return k(t & n | ~t & o, e, t, i, r, u) } function x(e, t, n, o, i, r, u) { return k(t & o | n & ~o, e, t, i, r, u) } function j(e, t, n, o, i, r, u) { return k(t ^ n ^ o, e, t, i, r, u) } function I(e, t, n, o, i, r, u) { return k(n ^ (t | ~o), e, t, i, r, u) } function E(e, t) { var n = (65535 & e) + (65535 & t); return (e >> 16) + (t >> 16) + (n >> 16) << 16 | 65535 & n } (C = _ = _ || {})[C.Unknown = -1] = "Unknown", C[C.RegToString = 0] = "RegToString", C[C.DefineId = 1] = "DefineId", C[C.Size = 2] = "Size", C[C.DateToString = 3] = "DateToString", C[C.FuncToString = 4] = "FuncToString", C[C.Debugger = 5] = "Debugger", C[C.Performance = 6] = "Performance", C[C.DebugLib = 7] = "DebugLib"; var _, A = function () { function n(e) { var t = e.type, e = e.enabled, e = void 0 === e || e; o(this, n), this.type = _.Unknown, this.enabled = !0, this.type = t, this.enabled = e, this.enabled && (t = this, N.push(t), this.init()) } return u(n, [{ key: "onDevToolOpen", value: function () { var e; console.warn("You ar not allow to use DEVTOOL! 【type = ".concat(this.type, "】")), b.clearIntervalWhenDevOpenTrigger && y(), window.clearTimeout(X), b.ondevtoolopen(this.type, Y), e = this.type, t[e] = !0 } }, { key: "init", value: function () { } }]), n }(), C = function () { n(t, A); var e = l(t); function t() { return o(this, t), e.call(this, { type: _.RegToString, enabled: p.qqBrowser || p.firefox }) } return u(t, [{ key: "init", value: function () { var t = this; this.lastTime = 0, this.reg = /./, w(this.reg), this.reg.toString = function () { var e; return p.qqBrowser ? (e = (new Date).getTime(), t.lastTime && e - t.lastTime < 100 ? t.onDevToolOpen() : t.lastTime = e) : p.firefox && t.onDevToolOpen(), "" } } }, { key: "detect", value: function () { w(this.reg) } }]), t }(), oe = function () { n(t, A); var e = l(t); function t() { return o(this, t), e.call(this, { type: _.DefineId }) } return u(t, [{ key: "init", value: function () { var e = this; this.div = document.createElement("div"), this.div.__defineGetter__("id", function () { e.onDevToolOpen() }), Object.defineProperty(this.div, "id", { get: function () { e.onDevToolOpen() } }) } }, { key: "detect", value: function () { w(this.div) } }]), t }(), ie = function () { n(t, A); var e = l(t); function t() { return o(this, t), e.call(this, { type: _.Size, enabled: !p.iframe && !p.edge }) } return u(t, [{ key: "init", value: function () { var e = this; this.checkWindowSizeUneven(), window.addEventListener("resize", function () { setTimeout(function () { e.checkWindowSizeUneven() }, 100) }, !0) } }, { key: "detect", value: function () { } }, { key: "checkWindowSizeUneven", value: function () { var e = function () { if (re(window.devicePixelRatio)) return window.devicePixelRatio; var e = window.screen; return !(re(e) || !e.deviceXDPI || !e.logicalXDPI) && e.deviceXDPI / e.logicalXDPI }(); if (!1 !== e) { var t = 200 < window.outerWidth - window.innerWidth * e, e = 300 < window.outerHeight - window.innerHeight * e; if (t || e) return this.onDevToolOpen(), !1; v(this.type) } return !0 } }]), t }(); function re(e) { return null != e } var R, ue = function () { n(t, A); var e = l(t); function t() { return o(this, t), e.call(this, { type: _.DateToString, enabled: !p.iosChrome && !p.iosEdge }) } return u(t, [{ key: "init", value: function () { var e = this; this.count = 0, this.date = new Date, this.date.toString = function () { return e.count++, "" } } }, { key: "detect", value: function () { this.count = 0, w(this.date), T(), 2 <= this.count && this.onDevToolOpen() } }]), t }(), ce = function () { n(t, A); var e = l(t); function t() { return o(this, t), e.call(this, { type: _.FuncToString, enabled: !p.iosChrome && !p.iosEdge }) } return u(t, [{ key: "init", value: function () { var e = this; this.count = 0, this.func = function () { }, this.func.toString = function () { return e.count++, "" } } }, { key: "detect", value: function () { this.count = 0, w(this.func), T(), 2 <= this.count && this.onDevToolOpen() } }]), t }(), ae = function () { n(t, A); var e = l(t); function t() { return o(this, t), e.call(this, { type: _.Debugger, enabled: p.iosChrome || p.iosEdge }) } return u(t, [{ key: "detect", value: function () { var e = h(); 100 < h() - e && this.onDevToolOpen() } }]), t }(), le = function () { n(t, A); var e = l(t); function t() { return o(this, t), e.call(this, { type: _.Performance, enabled: p.chrome }) } return u(t, [{ key: "init", value: function () { this.maxPrintTime = 0, this.largeObjectArray = H() } }, { key: "detect", value: function () { var e = this, t = B(function () { g(e.largeObjectArray) }), n = B(function () { w(e.largeObjectArray) }); if (this.maxPrintTime = Math.max(this.maxPrintTime, n), T(), 0 === t || 0 === this.maxPrintTime) return !1; t > 10 * this.maxPrintTime && this.onDevToolOpen() } }]), t }(), fe = function () { n(t, A); var e = l(t); function t() { return o(this, t), e.call(this, { type: _.DebugLib }) } return u(t, [{ key: "init", value: function () { } }, { key: "detect", value: function () { var e; (!0 === (null == (e = null == (e = window.eruda) ? void 0 : e._devTools) ? void 0 : e._isShow) || window._vcOrigConsole && window.document.querySelector("#__vconsole.vc-toggle")) && this.onDevToolOpen() } }]), t }(), se = (e(R = {}, _.RegToString, C), e(R, _.DefineId, oe), e(R, _.Size, ie), e(R, _.DateToString, ue), e(R, _.FuncToString, ce), e(R, _.Debugger, ae), e(R, _.Performance, le), e(R, _.DebugLib, fe), R); var L = Object.assign(function (e) { if (U(), Z = p.ie ? (w = function () { return m.log.apply(m, arguments) }, g = function () { return m.table.apply(m, arguments) }, function () { return m.clear() }) : (w = m.log, g = m.table, m.clear), Q(e), !(b.md5 && ne(function (e) { var t = window.location.search, n = window.location.hash; if ("" !== (t = "" === t && "" !== n ? "?".concat(n.split("?")[1]) : t) && void 0 !== t) { n = new RegExp("(^|&)" + e + "=([^&]*)(&|$)", "i"), e = t.substr(1).match(n); if (null != e) return unescape(e[2]) } return "" }(b.tkName)) === b.md5 || b.seo && p.seoBot)) { L.isRunning = !0, G(L); var t = L, n = (ee = function () { return t.isSuspend }, window.top), o = window.parent; if (O(window), b.disableIframeParents && n && o && n !== window) { for (; o !== n;)O(o), o = o.parent; O(n) } ("all" === b.detectors ? Object.keys(se) : b.detectors).forEach(function (e) { new se[e] }) } }, { isRunning: !1, isSuspend: !1, md5: ne, version: "0.3.4", DetectorType: _, isDevToolOpened: z }); C = function () { if (!window || !window.document) return null; var n = document.querySelector("[disable-devtool-auto]"); if (!n) return null; var o = ["disable-menu", "disable-select", "disable-copy", "disable-cut", "disable-paste", "clear-log"], i = ["interval"], r = {}; return ["md5", "url", "tk-name", "detectors"].concat(o, i).forEach(function (e) { var t = n.getAttribute(e); null !== t && (-1 !== i.indexOf(e) ? t = parseInt(t) : -1 !== o.indexOf(e) ? t = "false" !== t : "detector" === e && "all" !== t && (t = t.split(" ")), r[function (e) { if (-1 === e.indexOf("-")) return e; var t = !1; return e.split("").map(function (e) { return "-" === e ? (t = !0, "") : t ? (t = !1, e.toUpperCase()) : e }).join("") }(e)] = t) }), r }(); return C && L(C), L }); 
+</script>
+
+<script>
+  DisableDevtool({
+      // 1. URL to redirect to when DevTools is opened
+      url: 'about:blank',
+      // 2. Disable right-click context menu
+      disableMenu: true,
+      // 3. This function is triggered when DevTools is closed
+      ondevtoolclose: () => {
+          // You could show a message or reload the page, for example
+          // alert('Thanks for closing DevTools!');
+          // window.location.reload();
+      },
+  });
+</script>
+<!-- #################### END: Anti-Theft Script (DIRECT ACTION) #################### -->
+</body>
+</html>
