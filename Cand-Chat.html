@@ -455,7 +455,7 @@ button{font-family:inherit;}
   <div class="splash-box">
     <div class="load-line"><span class="ok">✓</span> جارٍ تجهيز الأداة</div>
     <div class="load-line"><span class="ok">✓</span> جارٍ تحميل الكندات</div>
-    <div class="load-line"><span class="ok">✓</span> لحظات...</div>
+    <div class="load-line">لحظات...</div>
   </div>
 </div>
 
@@ -574,20 +574,22 @@ button{font-family:inherit;}
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
-  // حماية صارمة تمنع النقر بزر الماوس الأيمن واختصارات الحفظ والفحص (Ctrl+S, Ctrl+U, F12, إلخ)
+  // حماية صارمة لمنع الحفظ (Ctrl+S)، الطباعة، وفحص العناصر نهائياً
   window.addEventListener('keydown', function(e) {
     if (
       e.key === 'F12' || 
-      (e.ctrlKey && (e.key === 's' || e.key === 'S' || e.key === 'p' || e.key === 'P' || e.key === 'u' || e.key === 'U')) ||
+      (e.ctrlKey && (e.key === 's' || e.key === 'S' || e.key === 'p' || e.key === 'P' || e.key === 'u' || e.key === 'U' || e.key === 'shift')) ||
       (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c'))
     ) {
       e.preventDefault();
+      alert("هذه الصفحة محمية بالكامل لمنع الحفظ أو النسخ 🛡️");
       return false;
     }
   });
 
   window.addEventListener('beforeprint', function(e) {
     e.preventDefault();
+    alert("الطباعة والحفظ معطلان تماماً في هذه الأداة 🛡️");
   });
 
 document.addEventListener("DOMContentLoaded", () => {
