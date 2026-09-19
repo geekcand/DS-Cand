@@ -534,18 +534,18 @@ button{font-family:inherit;}
   <div class="feedback-view show" style="grid-column: 1 / -1;">
     <div class="feedback-box-card">
       <h2>Suggestions & Feedback</h2>
-      <p>شاركنا باقتراحاتك لتطوير الأداة أو أي ملاحظات لتحسين بيئة العمل. يتم إرسال مشاركتك بسرية تامة.</p>
+      <p>شاركنا باقتراحاتك لتطوير الأداة أو أي ملاحظات للتحسين, شكراً لمشاركتك مقدماً.</p>
       
       <form class="feedback-form" id="feedbackForm">
         <div class="form-group">
-          <label for="empName">اسم الموظف أو الكود (اختياري)</label>
-          <input type="text" id="empName" placeholder="اكتب اسمك أو كودك (أو اتركها فارغة للإرسال بسرية)">
+          <label for="empName">اسم الموظف</label>
+          <input type="text" id="empName" placeholder="اكتب اسمك أو اتركه فارغاً">
         </div>
         <div class="form-group">
           <label for="suggType">نوع المشاركة</label>
           <select id="suggType">
             <option value="اقتراح تطوير أداة">اقتراح تطوير أداة</option>
-            <option value="تعديل كاند / ردود">تعديل كاند / ردود</option>
+            <option value="تعديل / اضافه كاند">تعديل / اضافه كاند</option>
             <option value="مشكلة تقنية">مشكلة تقنية</option>
             <option value="أخرى">أخرى</option>
           </select>
@@ -554,7 +554,7 @@ button{font-family:inherit;}
           <label for="suggText">تفاصيل الاقتراح أو الملاحظة *</label>
           <textarea id="suggText" placeholder="اكتب تفاصيل مقترحك هنا..." required></textarea>
         </div>
-        <button type="submit" class="submit-btn" id="submitFeedbackBtn">إرسال الاقتراح بسرية 🚀</button>
+        <button type="submit" class="submit-btn" id="submitFeedbackBtn">إرسال الاقتراح  🚀</button>
       </form>
     </div>
   </div>
@@ -691,7 +691,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }).catch(() => {});
 
     // إظهار رسالة النجاح والانتقال للرئيسية فوراً
-    alert("تم إرسال اقتراحك بنجاح وبسرية تامة، شكراً لك! 🌟");
+    alert("تم إرسال اقتراحك بنجاح ، شكراً لك! 🌟");
     feedbackForm.reset();
     switchTab('main');
   });
