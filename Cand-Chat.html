@@ -428,7 +428,7 @@ button{font-family:inherit;}
 .footer-wrapper a:hover{text-decoration:underline;}
 </style>
 </head>
-<body data-theme="dark">
+<body data-theme="dark" oncontextmenu="return false;">
 
 <div id="loginOverlay">
   <div class="login-circle" id="loginCircle">
@@ -471,7 +471,7 @@ button{font-family:inherit;}
     <a href="https://agent.cand-chat.info/agent" target="_blank" class="link-btn" title="Agent Lite">
       <img src="https://cdn-icons-png.flaticon.com/512/4017/4017991.png" alt="Agent Lite"> Agent Lite
     </a>
-    <button class="about-btn" id="aboutBtn"> About and Contact ℹ️</button>
+    <button class="about-btn" id="aboutBtn">About and Contact ℹ️</button>
     <button class="feed-btn" id="feedBtn">💡 Suggestions & Feedback</button>
     <button class="theme-toggle" id="themeToggle" title="تغيير المظهر">🌙</button>
   </div>
@@ -574,6 +574,22 @@ button{font-family:inherit;}
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
+  // حماية صارمة تمنع النقر بزر الماوس الأيمن واختصارات الحفظ والفحص (Ctrl+S, Ctrl+U, F12, إلخ)
+  window.addEventListener('keydown', function(e) {
+    if (
+      e.key === 'F12' || 
+      (e.ctrlKey && (e.key === 's' || e.key === 'S' || e.key === 'p' || e.key === 'P' || e.key === 'u' || e.key === 'U')) ||
+      (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c'))
+    ) {
+      e.preventDefault();
+      return false;
+    }
+  });
+
+  window.addEventListener('beforeprint', function(e) {
+    e.preventDefault();
+  });
+
 document.addEventListener("DOMContentLoaded", () => {
 
   const FIXED_PASSWORD = 'Chat2025';
@@ -634,7 +650,7 @@ document.addEventListener("DOMContentLoaded", () => {
     aboutViewContainer.style.display = "none";
     feedbackViewContainer.style.display = "none";
 
-    aboutBtn.textContent = "ℹ️ About and Contact";
+    aboutBtn.textContent = "About and Contact ℹ️";
     aboutBtn.style.borderColor = "var(--line)";
     feedBtn.textContent = "💡 Suggestions & Feedback";
     feedBtn.style.borderColor = "var(--line)";
@@ -668,12 +684,9 @@ document.addEventListener("DOMContentLoaded", () => {
   aboutBtn.addEventListener("click", () => switchTab('about'));
   feedBtn.addEventListener("click", () => switchTab('feedback'));
 
-  // تعديل إرسال الاقتراح بحيث يظهر رسالة النجاح فوراً ولا ينتظر استجابة خادم جوجل البطء
   const feedbackForm = document.getElementById("feedbackForm");
   feedbackForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    const submitBtn = document.getElementById("submitFeedbackBtn");
-    
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwanRWJw9hE7qPrO4vuyC2x0p7in3XYyYfJGSevWcKBEXajhog3DXfa8LWqPDVMcF43MQ/exec"; 
 
     const payload = {
@@ -682,7 +695,6 @@ document.addEventListener("DOMContentLoaded", () => {
       suggestionText: document.getElementById("suggText").value.trim()
     };
 
-    // إرسال البيانات في الخلفية دون تعطيل واجهة المستخدم أو انتظار الرد البطيء
     fetch(WEB_APP_URL, {
       method: "POST",
       mode: "no-cors",
@@ -690,7 +702,6 @@ document.addEventListener("DOMContentLoaded", () => {
       body: JSON.stringify(payload)
     }).catch(() => {});
 
-    // إظهار رسالة النجاح والانتقال للرئيسية فوراً
     alert("تم إرسال اقتراحك بنجاح ، شكراً لك! 🌟");
     feedbackForm.reset();
     switchTab('main');
