@@ -199,13 +199,14 @@ button{font-family:inherit;}
 
 .header-actions { display: flex; align-items: center; gap: 8px; }
 
-.about-btn{
+.link-btn, .about-btn{
   background:var(--panel-2); border:1px solid var(--line); color:var(--ink);
   font-family:var(--font-arabic); font-size:12px; font-weight:600; padding:5px 12px;
   border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:6px;
-  transition:border-color .2s ease, transform .2s ease;
+  text-decoration:none; transition:border-color .2s ease, transform .2s ease;
 }
-.about-btn:hover{border-color:var(--acc-violet); transform:translateY(-1px);}
+.link-btn:hover, .about-btn:hover{border-color:var(--acc-violet); transform:translateY(-1px);}
+.link-btn img{width:16px; height:16px; border-radius:3px; object-fit:contain;}
 
 .theme-toggle{
   flex:0 0 auto;width:30px;height:30px;border-radius:8px;
@@ -349,7 +350,6 @@ button{font-family:inherit;}
 }
 .empty b{color:var(--ink);}
 
-/* About Page Overlay View */
 .about-view{
   display:none; width:100%; animation:fadeIn .25s ease;
 }
@@ -446,6 +446,10 @@ button{font-family:inherit;}
     <div class="ticker-track">⚠️ تذكر دائماً: استخدامك لهذه الأداة على مسؤوليتك الشخصية، ويجب التأكد من الويكي.</div>
   </div>
   <div class="header-actions">
+    <!-- زر الأداة الأخرى Agent Lite مع الأيقونة -->
+    <a href="https://agent.cand-chat.info/agent" target="_blank" class="link-btn" title="Agent Lite">
+      <img src="https://cdn-icons-png.flaticon.com/512/4017/4017991.png" alt="Agent Lite"> Agent Lite
+    </a>
     <button class="about-btn" id="aboutBtn">ℹ️ About and Contact</button>
     <button class="theme-toggle" id="themeToggle" title="تغيير المظهر">🌙</button>
   </div>
@@ -483,7 +487,7 @@ button{font-family:inherit;}
   <div class="about-view show" style="grid-column: 1 / -1;">
     <div class="about-box-card">
       <h2>About Canned Tool</h2>
-      <p>نظام ذكي متكامل مصمم خصيصاً لمساعدة وكلاء الدعم الفني في سرعة الوصول إلى الردود الجاهزة وإدارتها بكفاءة عالية.</p>
+      <p>نظام ذكي متكامل مصخص خصيصاً لمساعدة وكلاء الدعم الفني في سرعة الوصول إلى الردود الجاهزة وإدارتها بكفاءة عالية[cite: 9].</p>
       
       <div style="font-size: 13px; font-weight: 700; color: var(--acc-cyan); margin-bottom: 12px; text-align: center;">: Integrated Tools Directory</div>
       <div class="tools-grid-box">
@@ -509,6 +513,8 @@ button{font-family:inherit;}
   <span class="fseg">version 7</span>
   <span class="sep">·</span>
   <span class="fseg">Developed By : Geek</span>
+  <span class="sep">·</span>
+  <span class="fseg">Contact us at: <a href="mailto:contact@cand-chat.info">contact@cand-chat.info</a></span>
 </div>
 
 <audio id="clickSound" preload="auto">
@@ -716,7 +722,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const q = searchInput.value.trim().toLowerCase();
     if (!q) { if (currentSheet) showSheet(currentSheet); return; }
     if(isAboutOpen) aboutBtn.click();
-    document.querySelectorAll('.sheet-item').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.sheet-item').forEach(el => el.el.classList.remove('active'));
     const results=[];
     Object.keys(workbookData).forEach(sheetName => (workbookData[sheetName] || []).forEach(item => {
       const hay=(item.name+' '+item.content).toLowerCase();
