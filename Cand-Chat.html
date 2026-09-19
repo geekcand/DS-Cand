@@ -574,18 +574,21 @@ button{font-family:inherit;}
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
-  // حماية صارمة لمنع الحفظ (Ctrl+S)، الطباعة، وفحص العناصر نهائياً
+  // حماية صارمة لمنع الحفظ (Ctrl+S / Cmd+S)، الطباعة، واختصارات الفحص نهائياً
   window.addEventListener('keydown', function(e) {
+    const key = e.key.toLowerCase();
     if (
       e.key === 'F12' || 
-      (e.ctrlKey && (e.key === 's' || e.key === 'S' || e.key === 'p' || e.key === 'P' || e.key === 'u' || e.key === 'U' || e.key === 'shift')) ||
-      (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c'))
+      (e.ctrlKey && (key === 's' || key === 'p' || key === 'u' || key === 'i' || key === 'j' || key === 'c')) ||
+      (e.metaKey && key === 's') || // لمستخدمي Mac
+      (e.ctrlKey && e.shiftKey)
     ) {
       e.preventDefault();
+      e.stopPropagation();
       alert("هذه الصفحة محمية بالكامل لمنع الحفظ أو النسخ 🛡️");
       return false;
     }
-  });
+  }, true);
 
   window.addEventListener('beforeprint', function(e) {
     e.preventDefault();
