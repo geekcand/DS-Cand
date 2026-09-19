@@ -199,13 +199,13 @@ button{font-family:inherit;}
 
 .header-actions { display: flex; align-items: center; gap: 8px; }
 
-.link-btn, .about-btn{
+.link-btn, .about-btn, .feed-btn{
   background:var(--panel-2); border:1px solid var(--line); color:var(--ink);
   font-family:var(--font-arabic); font-size:12px; font-weight:600; padding:5px 12px;
   border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:6px;
   text-decoration:none; transition:border-color .2s ease, transform .2s ease;
 }
-.link-btn:hover, .about-btn:hover{border-color:var(--acc-violet); transform:translateY(-1px);}
+.link-btn:hover, .about-btn:hover, .feed-btn:hover{border-color:var(--acc-violet); transform:translateY(-1px);}
 .link-btn img{width:16px; height:16px; border-radius:3px; object-fit:contain;}
 
 .theme-toggle{
@@ -350,22 +350,22 @@ button{font-family:inherit;}
 }
 .empty b{color:var(--ink);}
 
-.about-view{
+.about-view, .feedback-view{
   display:none; width:100%; animation:fadeIn .25s ease;
 }
-.about-view.show{display:block;}
+.about-view.show, .feedback-view.show{display:block;}
 
-.about-box-card{
+.about-box-card, .feedback-box-card{
   background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
   padding:30px; max-width:720px; margin:20px auto; width:100%;
   box-shadow:var(--shadow); text-align:center; position:relative; overflow:hidden;
 }
-.about-box-card::before{
+.about-box-card::before, .feedback-box-card::before{
   content:''; position:absolute; top:0; left:0; right:0; height:3px;
   background:linear-gradient(90deg,var(--acc-cyan),var(--acc-violet));
 }
-.about-box-card h2{font-size:21px; font-weight:800; color:var(--ink); margin-bottom:6px;}
-.about-box-card p{font-size:13px; color:var(--ink-dim); margin-bottom:20px;}
+.about-box-card h2, .feedback-box-card h2{font-size:21px; font-weight:800; color:var(--ink); margin-bottom:6px;}
+.about-box-card p, .feedback-box-card p{font-size:13px; color:var(--ink-dim); margin-bottom:20px;}
 
 .tools-grid-box{
   display:grid; grid-template-columns:repeat(2,1fr); gap:10px;
@@ -390,6 +390,28 @@ button{font-family:inherit;}
   color:var(--acc-cyan); text-decoration:none; font-weight:700; font-size:14.5px;
 }
 .contact-footer-box a:hover{text-decoration:underline; color:var(--acc-violet);}
+
+.feedback-form{display:flex; flex-direction:column; gap:14px; text-align:right;}
+.form-group{display:flex; flex-direction:column; gap:6px;}
+.form-group label{font-size:13px; font-weight:700; color:var(--ink);}
+.form-group input, .form-group select, .form-group textarea{
+  background:var(--inset); border:1px solid var(--line); border-radius:8px;
+  padding:11px 14px; color:var(--ink); font-family:var(--font-arabic); font-size:13.5px; outline:none;
+  transition:border-color .2s ease;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus{
+  border-color:var(--acc-cyan);
+}
+.form-group textarea{resize:vertical; min-height:100px;}
+
+.submit-btn{
+  background:linear-gradient(135deg,var(--acc-cyan),var(--acc-violet));
+  border:none; border-radius:999px; padding:12px; cursor:pointer;
+  font-family:var(--font-arabic); font-weight:700; font-size:14px; color:#0c0d16;
+  transition:filter .15s ease, transform .1s ease; margin-top:6px;
+}
+.submit-btn:hover{filter:brightness(1.08);}
+.submit-btn:active{transform:translateY(1px);}
 
 .footer-wrapper{
   position:fixed;left:0;right:0;bottom:0;z-index:100;height:var(--footer-h);
@@ -446,11 +468,11 @@ button{font-family:inherit;}
     <div class="ticker-track">⚠️ تذكر دائماً: استخدامك لهذه الأداة على مسؤوليتك الشخصية، ويجب التأكد من الويكي.</div>
   </div>
   <div class="header-actions">
-    <!-- زر الأداة الأخرى Agent Lite مع الأيقونة -->
     <a href="https://agent.cand-chat.info/agent" target="_blank" class="link-btn" title="Agent Lite">
       <img src="https://cdn-icons-png.flaticon.com/512/4017/4017991.png" alt="Agent Lite"> Agent Lite
     </a>
     <button class="about-btn" id="aboutBtn">ℹ️ About and Contact</button>
+    <button class="feed-btn" id="feedBtn">💡 Suggestions & Feedback</button>
     <button class="theme-toggle" id="themeToggle" title="تغيير المظهر">🌙</button>
   </div>
 </div>
@@ -487,7 +509,7 @@ button{font-family:inherit;}
   <div class="about-view show" style="grid-column: 1 / -1;">
     <div class="about-box-card">
       <h2>About Canned Tool</h2>
-      <p>نظام ذكي متكامل مصخص خصيصاً لمساعدة وكلاء الدعم الفني في سرعة الوصول إلى الردود الجاهزة وإدارتها بكفاءة عالية.</p>
+      <p>نظام ذكي متكامل مصمم خصيصاً لمساعدة وكلاء الدعم الفني في سرعة الوصول إلى الردود الجاهزة وإدارتها بكفاءة عالية.</p>
       
       <div style="font-size: 13px; font-weight: 700; color: var(--acc-cyan); margin-bottom: 12px; text-align: center;">: Integrated Tools Directory</div>
       <div class="tools-grid-box">
@@ -503,6 +525,37 @@ button{font-family:inherit;}
         <span>Contact us at:</span>
         <a href="mailto:contact@cand-chat.info">contact@cand-chat.info</a>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- صفحة Suggestions & Feedback المستقلة -->
+<div class="app" id="feedbackViewContainer" style="display:none;">
+  <div class="feedback-view show" style="grid-column: 1 / -1;">
+    <div class="feedback-box-card">
+      <h2>Suggestions & Feedback</h2>
+      <p>شاركنا باقتراحاتك لتطوير الأداة أو أي ملاحظات لتحسين بيئة العمل. يتم إرسال مشاركتك بسرية تامة.</p>
+      
+      <form class="feedback-form" id="feedbackForm">
+        <div class="form-group">
+          <label for="empName">اسم الموظف أو الكود (اختياري)</label>
+          <input type="text" id="empName" placeholder="اكتب اسمك أو كودك (أو اتركها فارغة للإرسال بسرية)">
+        </div>
+        <div class="form-group">
+          <label for="suggType">نوع المشاركة</label>
+          <select id="suggType">
+            <option value="اقتراح تطوير أداة">اقتراح تطوير أداة</option>
+            <option value="تعديل كاند / ردود">تعديل كاند / ردود</option>
+            <option value="مشكلة تقنية">مشكلة تقنية</option>
+            <option value="أخرى">أخرى</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="suggText">تفاصيل الاقتراح أو الملاحظة *</label>
+          <textarea id="suggText" placeholder="اكتب تفاصيل مقترحك هنا..." required></textarea>
+        </div>
+        <button type="submit" class="submit-btn" id="submitFeedbackBtn">إرسال الاقتراح بسرية 🚀</button>
+      </form>
     </div>
   </div>
 </div>
@@ -569,23 +622,78 @@ document.addEventListener("DOMContentLoaded", () => {
   const resultCount = document.getElementById("resultCount");
   
   const aboutBtn = document.getElementById("aboutBtn");
+  const feedBtn = document.getElementById("feedBtn");
   const appGridContainer = document.getElementById("appGridContainer");
   const aboutViewContainer = document.getElementById("aboutViewContainer");
+  const feedbackViewContainer = document.getElementById("feedbackViewContainer");
 
-  let isAboutOpen = false;
-  aboutBtn.addEventListener("click", () => {
-    isAboutOpen = !isAboutOpen;
-    if (isAboutOpen) {
-      appGridContainer.style.display = "none";
-      aboutViewContainer.style.display = "block";
-      aboutBtn.textContent = "🔙 العودة للأدوات";
-      aboutBtn.style.borderColor = "var(--acc-violet)";
+  let activeTab = 'main';
+
+  function switchTab(tab) {
+    appGridContainer.style.display = "none";
+    aboutViewContainer.style.display = "none";
+    feedbackViewContainer.style.display = "none";
+
+    aboutBtn.textContent = "ℹ️ About and Contact";
+    aboutBtn.style.borderColor = "var(--line)";
+    feedBtn.textContent = "💡 Suggestions & Feedback";
+    feedBtn.style.borderColor = "var(--line)";
+
+    if (tab === 'about') {
+      if (activeTab === 'about') {
+        activeTab = 'main';
+        appGridContainer.style.display = "grid";
+      } else {
+        activeTab = 'about';
+        aboutViewContainer.style.display = "block";
+        aboutBtn.textContent = "🔙 العودة للأدوات";
+        aboutBtn.style.borderColor = "var(--acc-violet)";
+      }
+    } else if (tab === 'feedback') {
+      if (activeTab === 'feedback') {
+        activeTab = 'main';
+        appGridContainer.style.display = "grid";
+      } else {
+        activeTab = 'feedback';
+        feedbackViewContainer.style.display = "block";
+        feedBtn.textContent = "🔙 العودة للأدوات";
+        feedBtn.style.borderColor = "var(--acc-violet)";
+      }
     } else {
-      aboutViewContainer.style.display = "none";
+      activeTab = 'main';
       appGridContainer.style.display = "grid";
-      aboutBtn.textContent = "ℹ️ About and Contact";
-      aboutBtn.style.borderColor = "var(--line)";
     }
+  }
+
+  aboutBtn.addEventListener("click", () => switchTab('about'));
+  feedBtn.addEventListener("click", () => switchTab('feedback'));
+
+  // تعديل إرسال الاقتراح بحيث يظهر رسالة النجاح فوراً ولا ينتظر استجابة خادم جوجل البطء
+  const feedbackForm = document.getElementById("feedbackForm");
+  feedbackForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const submitBtn = document.getElementById("submitFeedbackBtn");
+    
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwanRWJw9hE7qPrO4vuyC2x0p7in3XYyYfJGSevWcKBEXajhog3DXfa8LWqPDVMcF43MQ/exec"; 
+
+    const payload = {
+      employeeName: document.getElementById("empName").value.trim() || "مجهول",
+      suggestionType: document.getElementById("suggType").value,
+      suggestionText: document.getElementById("suggText").value.trim()
+    };
+
+    // إرسال البيانات في الخلفية دون تعطيل واجهة المستخدم أو انتظار الرد البطيء
+    fetch(WEB_APP_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    }).catch(() => {});
+
+    // إظهار رسالة النجاح والانتقال للرئيسية فوراً
+    alert("تم إرسال اقتراحك بنجاح وبسرية تامة، شكراً لك! 🌟");
+    feedbackForm.reset();
+    switchTab('main');
   });
 
   let workbookData = {};
@@ -645,7 +753,7 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.style.setProperty('--accent', accentFor(name));
       btn.innerHTML = `<span class="chip"></span><span class="label">${escapeHtml(name)}</span>`;
       btn.addEventListener('click', () => {
-        if(isAboutOpen) aboutBtn.click();
+        if(activeTab !== 'main') switchTab('main');
         showSheet(name);
       });
       sheetList.appendChild(btn);
@@ -718,15 +826,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   searchInput.addEventListener('input', () => {
     const q = searchInput.value.trim().toLowerCase();
-    if (!q) { if (currentSheet) showSheet(currentSheet); return; }
-    if(isAboutOpen) aboutBtn.click();
-    document.querySelectorAll('.sheet-item').forEach(el => el.el.classList.remove('active'));
-    const results=[];
+    if (activeTab !== 'main') switchTab('main');
+    if (!q) { 
+      if (currentSheet) showSheet(currentSheet); 
+      return; 
+    }
+    document.querySelectorAll('.sheet-item').forEach(el => el.classList.remove('active'));
+    const results = [];
     Object.keys(workbookData).forEach(sheetName => (workbookData[sheetName] || []).forEach(item => {
-      const hay=(item.name+' '+item.content).toLowerCase();
-      if(hay.includes(q)) results.push({...item,sheet:sheetName});
+      const hay = (item.name + ' ' + item.content).toLowerCase();
+      if (hay.includes(q)) results.push({...item, sheet: sheetName});
     }));
-    sectionTitle.textContent='نتائج البحث';
+    sectionTitle.textContent = 'نتائج البحث';
     renderCards(results);
   });
 
