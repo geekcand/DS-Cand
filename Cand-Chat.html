@@ -571,7 +571,7 @@ button{font-family:inherit;}
 <div class="footer-wrapper">
   <span class="fseg"><span class="dot"></span> Ready</span>
   <span class="sep">·</span>
-  <span class="fseg">version 12</span>
+  <span class="fseg">version 13</span>
   <span class="sep">·</span>
   <span class="fseg">Developed By : Geek</span>
 </div>
@@ -632,7 +632,7 @@ document.addEventListener("DOMContentLoaded", () => {
     successMsg.classList.add('show');
     loadCannedData();
     
-    // إرسال نبضة نشاط فورية عند الدخول ثم جدولتها كل دقيقة
+    // إرسال نبضة فورية عند الدخول وبدء نظام التتبع النشط
     supabaseClient.rpc('update_last_seen').catch(e => console.error(e));
     startHeartbeat(); 
 
@@ -644,15 +644,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 650);
   }
 
-  // دالة إرسال نبضة النشاط (Heartbeat) كل 60 ثانية باستخدام الـ RPC الآمن
+  // نظام نبضات متقدم يضمن ظهور الموظف Online باستمرار طالما الأداة مفتوحة ويتفاعل معها
   function startHeartbeat() {
-    setInterval(async () => {
-      try {
-        await supabaseClient.rpc('update_last_seen');
-      } catch (e) {
-        console.error(e);
+    const ping = () => {
+      supabaseClient.rpc('update_last_seen').catch(e => console.error(e));
+    };
+
+    // إرسال نبضة تلقائية كل 25 ثانية
+    setInterval(ping, 25000);
+
+    // إرسال نبضة فورية عند أي تفاعل للموظف (كتابة، ضغط، سكرول) بحد أقصى مرة كل 20 ثانية
+    let lastActivityPing = 0;
+    ['click', 'keydown', 'mousemove', 'scroll'].forEach(evt => {
+      window.addEventListener(evt, () => {
+        const now = Date.now();
+        if (now - lastActivityPing > 20000) {
+          lastActivityPing = now;
+          ping();
+        }
+      }, { passive: true });
+    });
+
+    // تحديث الحالة فوراً إذا عاد المستخدم لفتح التبويب
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        ping();
       }
-    }, 60000);
+    });
   }
 
   async function getProfile(userId){
@@ -693,7 +711,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const e = registerEmail.value.trim().toLowerCase(), p = registerPwd.value, p2 = registerPwd2.value;
     if(!e || !p || !p2) return authMessage('اكمل كل البيانات.');
     
-    // التحقق الصارم من أن الإيميل ينتهي بـ @te.eg فقط
     if(!e.endsWith('@te.eg')){
       return authMessage('عذراً، مسموح بالتسجيل باستخدام البريد الإلكتروني للشركة (@te.eg) فقط.');
     }
@@ -859,7 +876,6 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="cmd">انسخ ↗</span>
         </div>`;
       card.addEventListener('click', () => {
-        // الحفاظ على علامة الـ p&nbsp; بين السطور لمتطلبات شات الشركة
         const contentToCopy = item.content.replace(/\n/g, "\n<p>&nbsp;</p>\n");
         copyText(contentToCopy);
         playClick();
