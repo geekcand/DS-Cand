@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Canned Tool — Admin Dashboard</title>
+<title>Canned Tool — Admin</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 body{margin:0;background:#0d1020;color:#eee;font-family:Arial,sans-serif;padding:28px;direction:rtl}
@@ -72,13 +72,29 @@ const addCannedForm = document.getElementById('addCannedForm');
 const addBtn = document.getElementById('addBtn');
 
 async function load(){
-  const { data:{session} } = await sb.auth.getSession();
-  if(!session){ location.href='index.html'; return; }
-  const { data:me, error:meErr } = await sb.from('profiles').select('role,status').eq('id',session.user.id).single();
-  if(meErr || !me || me.role!=='admin'){ document.body.innerHTML='<h2 style="text-align:center;margin-top:50px">Access denied — غير مصرح لك بالدخول</h2>'; return; }
+  msg.style.color = '#7ee2a8';
+  msg.textContent = 'جارٍ التحقق من الصلاحيات والجلسة...';
+  
+  const { data: { session }, error: sessionErr } = await sb.auth.getSession();
+  
+  if(sessionErr || !session){
+    msg.style.color = '#ff9b9b';
+    msg.textContent = 'غير مسجل دخول، سيتم توجيهك لصفحة الدخول خلال لحظات...';
+    setTimeout(() => { location.href = 'index.html'; }, 1500);
+    return;
+  }
 
+  const { data: me, error: meErr } = await sb.from('profiles').select('role,status').eq('id', session.user.id).single();
+  
+  if(meErr || !me || me.role !== 'admin'){
+    document.body.innerHTML = '<h2 style="text-align:center;margin-top:50px;color:#ff9b9b">Access denied — غير مصرح لك بدخول لوحة الإدارة</h2>';
+    return;
+  }
+
+  msg.textContent = '';
   const { data, error } = await sb.from('profiles').select('id,email,status,role,created_at').order('created_at',{ascending:true});
-  if(error){ msg.textContent='فشل في تحميل حسابات المستخدمين.'; return; }
+  if(error){ msg.style.color='#ff9b9b'; msg.textContent='فشل في تحميل حسابات المستخدمين.'; return; }
+  
   users.innerHTML='';
   (data||[]).forEach(u=>{
     const tr=document.createElement('tr');
@@ -89,10 +105,12 @@ async function load(){
     tr.innerHTML=`<td>${esc(u.email)}</td><td><span class="badge">${esc(u.status)}</span></td><td>${esc(u.role)}</td><td>${new Date(u.created_at).toLocaleString()}</td><td>${actions}</td>`;
     users.appendChild(tr);
   });
+  
   document.querySelectorAll('[data-id]').forEach(b=>b.onclick=async()=>{
     b.disabled=true;
     const {error}=await sb.rpc('set_user_status',{target_user_id:b.dataset.id,new_status:b.dataset.status});
-    if(error){msg.textContent='فشل تحديث حالة الحساب.';b.disabled=false;return;}
+    if(error){msg.style.color='#ff9b9b'; msg.textContent='فشل تحديث حالة الحساب.'; b.disabled=false; return;}
+    msg.style.color='#7ee2a8';
     msg.textContent='تم تحديث حالة الحساب بنجاح.';
     load();
   });
@@ -102,7 +120,8 @@ async function load(){
 addCannedForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   addBtn.disabled = true;
-  msg.textContent = 'جارٍ إضافة الكند...';
+  msg.style.color = '#7ee2a8';
+  msg.textContent = 'جارٍ إضافة الكند لقاعدة البيانات...';
 
   const sheet_name = document.getElementById('sheetName').value.trim();
   const title = document.getElementById('cannedTitle').value.trim();
@@ -122,7 +141,9 @@ addCannedForm.addEventListener('submit', async (e) => {
 });
 
 function esc(v){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
-load();
+
+// تشغيل التحميل بعد تحميل الصفحة بالكامل
+window.addEventListener('DOMContentLoaded', load);
 </script>
 </body>
 </html>
