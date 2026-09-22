@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Canned Tool — Admin Dashboard</title>
+<title>Canned Tool — Admin</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -33,14 +33,14 @@ textarea.form-control{resize:vertical;min-height:90px}
   <div class="sub">لوحة إدارة الحسابات والردود الجاهزة</div>
   <div id="msg"></div>
 
-  <!-- قسم رفع ملف الإكسيل مباشرة -->
+  <!-- قسم رفع ملف الإكسيل مع الحفاظ على الترتيب الدقيق -->
   <div class="card" style="border: 1px dashed #b18cff;">
-    <h3>📊 رفع ملف الإكسيل (تحديث جميع الكندات تلقائياً)</h3>
-    <p style="font-size: 12px; color: #9da5b5; margin-top: 0;">اختر ملف `candat_data.xlsx` لتحديث القاعدة بالكامل بضغطة زر واحدة بدون SQL.</p>
+    <h3>📊 رفع ملف الإكسيل (تحديث الشيتات والكندات بنفس الترتيب 100%)</h3>
+    <p style="font-size: 12px; color: #9da5b5; margin-top: 0;">اختر ملف الإكسيل لتحديث القاعدة بالكامل مع الحفاظ التام على تسلسل الصفوف والترتيب الأصلي.</p>
     <div class="form-group">
       <input type="file" id="excelFile" class="form-control" accept=".xlsx, .xls">
     </div>
-    <button type="button" id="uploadExcelBtn" class="primary-btn" style="background: linear-gradient(135deg,#6fe3d9,#b18cff);">قراءة ورفع الردود لقاعدة البيانات 🚀</button>
+    <button type="button" id="uploadExcelBtn" class="primary-btn" style="background: linear-gradient(135deg,#6fe3d9,#b18cff);">قراءة ورفع الردود بدقة متناهية 🚀</button>
   </div>
 
   <!-- قسم إضافة كاند فردية جديدة -->
@@ -137,7 +137,7 @@ async function loadUsers(){
   });
 }
 
-// ميزة رفع ملف الإكسيل ومعالجته تلقائياً وتحديث قاعدة البيانات
+// رفع الإكسيل مع تسجيل الترتيب الدقيق (row_order)
 uploadExcelBtn.addEventListener('click', async () => {
   const fileInput = document.getElementById('excelFile');
   if (!fileInput.files.length) {
@@ -158,28 +158,32 @@ uploadExcelBtn.addEventListener('click', async () => {
       const wb = XLSX.read(data, { type: 'array' });
       
       let allItems = [];
+      let globalIndex = 0; // عداد لحفظ التسلسل والترتيب الأصلي بدقة
+
       wb.SheetNames.forEach(sheetName => {
         const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { header: 1 });
         for (let i = 1; i < rows.length; i++) {
           const r = rows[i];
           if (r && r[0] && r[1]) {
+            globalIndex++;
             allItems.push({
               sheet_name: sheetName,
               title: String(r[0]),
               content: String(r[1]),
               reference_url: r[2] ? String(r[2]) : null,
-              click_count: r[3] ? Number(r[3]) : 0
+              click_count: r[3] ? Number(r[3]) : 0,
+              row_order: globalIndex // حفظ رقم الترتيب الدقيق للإكسيل
             });
           }
         }
       });
 
-      msg.textContent = `🔄 جارٍ مسح الردود القديمة ورفع ${allItems.length} كاند جديدة لقاعدة البيانات...`;
+      msg.textContent = `🔄 جارٍ تحديث الردود وحفظ الترتيب الدقيق لـ ${allItems.length} كاند...`;
       
-      // تفريغ الجدول القديم تماماً لتجنب التكرار
+      // تفريغ الجدول القديم لتجنب التكرار
       await sb.from('canned_items').delete().neq('id', 0);
 
-      // رفع البيانات على دفعات (كل 100 صف) لتفادي حدود الطلبات
+      // رفع البيانات على دفعات (كل 100 صف)
       const chunkSize = 100;
       for (let i = 0; i < allItems.length; i += chunkSize) {
         const chunk = allItems.slice(i, i + chunkSize);
@@ -188,7 +192,7 @@ uploadExcelBtn.addEventListener('click', async () => {
       }
 
       msg.style.color = '#7ee2a8';
-      msg.textContent = `✨ تم رفع وتحديث جميع الردود (${allItems.length} كاند موزعة على الشيتات) بنجاح تام!`;
+      msg.textContent = `✨ تمت عملية الرفع بنجاح تام! الكندات مرتبطة الآن بنفس ترتيب الإكسيل الحرفي (${allItems.length} رد).`;
       fileInput.value = '';
     } catch (err) {
       console.error(err);
@@ -201,7 +205,7 @@ uploadExcelBtn.addEventListener('click', async () => {
   reader.readAsArrayBuffer(file);
 });
 
-// إضافة كاند فردية جديدة مباشرة لقاعدة البيانات
+// إضافة كاند فردية جديدة
 addCannedForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   addBtn.disabled = true;
@@ -212,7 +216,7 @@ addCannedForm.addEventListener('submit', async (e) => {
   const title = document.getElementById('cannedTitle').value.trim();
   const content = document.getElementById('cannedContent').value.trim();
 
-  const { error } = await sb.from('canned_items').insert([{ sheet_name, title, content }]);
+  const { error } = await sb.from('canned_items').insert([{ sheet_name, title, content, row_order: 999999 }]);
 
   addBtn.disabled = false;
   if(error){
