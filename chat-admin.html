@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Canned Tool — Admin</title>
+<title>Canned Tool — Admin Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 body{margin:0;background:#0d1020;color:#eee;font-family:Arial,sans-serif;padding:28px;direction:rtl}
@@ -71,27 +71,30 @@ const users = document.getElementById('users'), msg = document.getElementById('m
 const addCannedForm = document.getElementById('addCannedForm');
 const addBtn = document.getElementById('addBtn');
 
-async function load(){
-  msg.style.color = '#7ee2a8';
-  msg.textContent = 'جارٍ التحقق من الصلاحيات والجلسة...';
-  
-  const { data: { session }, error: sessionErr } = await sb.auth.getSession();
-  
-  if(sessionErr || !session){
+// استخدام الـ listener الآمن لجلسات Supabase لمنع مشاكل التحويل المفاجئ
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (!session) {
     msg.style.color = '#ff9b9b';
-    msg.textContent = 'غير مسجل دخول، سيتم توجيهك لصفحة الدخول خلال لحظات...';
-    setTimeout(() => { location.href = 'index.html'; }, 1500);
+    msg.textContent = 'غير مسجل دخول، جاري التحويل لصفحة الدخول...';
+    setTimeout(() => { location.href = 'index.html'; }, 1000);
     return;
   }
 
+  // التحقق من صلاحيات الأدمن
   const { data: me, error: meErr } = await sb.from('profiles').select('role,status').eq('id', session.user.id).single();
   
-  if(meErr || !me || me.role !== 'admin'){
+  if (meErr || !me || me.role !== 'admin') {
     document.body.innerHTML = '<h2 style="text-align:center;margin-top:50px;color:#ff9b9b">Access denied — غير مصرح لك بدخول لوحة الإدارة</h2>';
     return;
   }
 
+  loadUsers();
+});
+
+async function loadUsers(){
+  msg.style.color = '#7ee2a8';
   msg.textContent = '';
+  
   const { data, error } = await sb.from('profiles').select('id,email,status,role,created_at').order('created_at',{ascending:true});
   if(error){ msg.style.color='#ff9b9b'; msg.textContent='فشل في تحميل حسابات المستخدمين.'; return; }
   
@@ -112,7 +115,7 @@ async function load(){
     if(error){msg.style.color='#ff9b9b'; msg.textContent='فشل تحديث حالة الحساب.'; b.disabled=false; return;}
     msg.style.color='#7ee2a8';
     msg.textContent='تم تحديث حالة الحساب بنجاح.';
-    load();
+    loadUsers();
   });
 }
 
@@ -141,9 +144,6 @@ addCannedForm.addEventListener('submit', async (e) => {
 });
 
 function esc(v){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
-
-// تشغيل التحميل بعد تحميل الصفحة بالكامل
-window.addEventListener('DOMContentLoaded', load);
 </script>
 </body>
 </html>
