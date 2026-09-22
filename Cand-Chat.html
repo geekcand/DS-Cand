@@ -466,7 +466,7 @@ button{font-family:inherit;}
 
     <div class="login-success" id="loginSuccess">
       <div class="success-check">✓</div>
-      <h3>Welcome Back!</h3>
+      <h3 style="direction: ltr; unicode-bidi: embed;">Welcome Back!</h3>
       <p class="login-sub">Login Successful</p>
     </div>
   </div>
@@ -571,7 +571,7 @@ button{font-family:inherit;}
 <div class="footer-wrapper">
   <span class="fseg"><span class="dot"></span> Ready</span>
   <span class="sep">·</span>
-  <span class="fseg">version 15</span>
+  <span class="fseg">version 16</span>
   <span class="sep">·</span>
   <span class="fseg">Developed By : Geek</span>
 </div>
@@ -627,45 +627,47 @@ document.addEventListener("DOMContentLoaded", () => {
     subtitle.textContent='Create Your Account';
   });
 
+  // دالة الدخول وتجاوز الشاشة المعلقة بشكل مضمون 100%
   function enterTool(){
     formContent.classList.add('hide');
     successMsg.classList.add('show');
-    loadCannedData();
     
-    // استدعاء دالة الـ RPC الآمنة فور الدخول لتحديث الحالة فوراً
+    // تحميل البيانات وإرسال النبضة بشكل آمن تماماً بدون إبطاء الانتقال
+    loadCannedData();
     supabaseClient.rpc('update_last_seen').catch(e => console.error(e));
     startHeartbeat(); 
 
+    // الانتقال السريع والشامل للأداة بعد إظهار رسالة الترحيب مباشرة
     setTimeout(() => {
+      overlay.style.transition = 'opacity 0.3s ease';
       overlay.style.opacity = '0';
-      setTimeout(() => overlay.style.display = 'none', 400);
-      app.style.display = 'block';
-      setTimeout(() => app.style.opacity = '1', 50);
-    }, 650);
+      setTimeout(() => {
+        overlay.style.display = 'none';
+        app.style.display = 'block';
+        setTimeout(() => app.style.opacity = '1', 50);
+      }, 300);
+    }, 800);
   }
 
-  // نظام نبضات يعتمد على دالة الـ RPC الآمنة لضمان عمله مع جميع الموظفين بدون قيود RLS
+  // نظام النبضات الآمن والمستمر لتحديث الحالة في الخلفية
   function startHeartbeat() {
     const ping = () => {
       supabaseClient.rpc('update_last_seen').catch(e => console.error(e));
     };
 
-    // إرسال نبضة تلقائية كل 20 ثانية لتظل الحالة نشطة دائماً
-    setInterval(ping, 20000);
+    setInterval(ping, 25000);
 
-    // إرسال نبضة فورية عند أي تفاعل للموظف (كتابة، ضغط، سكرول)
     let lastActivityPing = 0;
     ['click', 'keydown', 'mousemove', 'scroll'].forEach(evt => {
       window.addEventListener(evt, () => {
         const now = Date.now();
-        if (now - lastActivityPing > 15000) {
+        if (now - lastActivityPing > 20000) {
           lastActivityPing = now;
           ping();
         }
       }, { passive: true });
     });
 
-    // تحديث الحالة فوراً إذا عاد المستخدم لفتح تبويب الأداة
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
         ping();
