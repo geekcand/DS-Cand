@@ -14,7 +14,6 @@
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
   gtag('config', 'G-HSD4C2YLLV');
 </script>
 
@@ -99,74 +98,90 @@ body{
 
 button{font-family:inherit;}
 
+/* تصميم بطاقة تسجيل الدخول المنمقة والمنسقة */
 #loginOverlay{
-  position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
-  background:#15161f;
+  position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:#0d0e17;
   padding:20px;
   animation:fadeIn .35s ease both;
 }
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
-.login-circle{
+.login-card{
   position:relative;
-  width:min(90vw,420px);aspect-ratio:1/1;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  background:#15161f;
-  box-shadow:-24px -24px 54px rgba(255,255,255,.035), 26px 26px 60px rgba(0,0,0,.6);
+  width:min(92vw,400px);
+  background:#12141f;
+  border:1px solid #262a3d;
+  border-radius:24px;
+  padding:32px 24px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  box-shadow:0 20px 50px rgba(0,0,0,0.7);
   animation:riseIn .5s cubic-bezier(.19,1,.22,1) both;
 }
-@keyframes riseIn{from{opacity:0;transform:translateY(18px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes riseIn{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
 
 .login-inner{
-  width:min(64%,270px);display:flex;flex-direction:column;align-items:center;text-align:center;gap:13px;
-  transition:opacity .3s ease, transform .3s ease;
+  width:100%;display:flex;flex-direction:column;align-items:center;gap:12px;
+  transition:opacity .25s ease, transform .25s ease;
 }
-.login-inner.hide{opacity:0;transform:scale(.94);pointer-events:none;}
+.login-inner.hide{opacity:0;transform:scale(.96);pointer-events:none;}
 
 .login-mark{
-  width:54px;height:54px;border-radius:16px;display:grid;place-items:center;margin-bottom:2px;
-  font-family:var(--font-mono);font-weight:700;font-size:22px;color:#0c0d16;
+  width:48px;height:48px;border-radius:14px;display:grid;place-items:center;margin-bottom:2px;
+  font-family:var(--font-mono);font-weight:700;font-size:20px;color:#0c0d16;
   background:linear-gradient(135deg,#6fe3d9,#b18cff);
-  box-shadow:-6px -6px 12px rgba(255,255,255,.04), 6px 6px 16px rgba(0,0,0,.55);
+  box-shadow:0 8px 20px rgba(111,227,217,.2);
 }
-.login-circle h3{margin:0;font-size:17px;font-weight:700;color:#e9eaf7;font-family:var(--font-arabic);}
-.login-sub{margin:0;font-size:12px;color:#7c81a0;font-family:var(--font-arabic);}
+.login-card h3{margin:0;font-size:18px;font-weight:700;color:#e9eaf7;font-family:var(--font-arabic);}
+.login-sub{margin:0;font-size:12px;color:#8a8fac;font-family:var(--font-arabic);margin-bottom:6px;}
+
+.auth-tabs{display:flex;gap:6px;width:100%;background:#171a29;padding:4px;border-radius:12px;margin-bottom:6px;border:1px solid #262a3d;}
+.auth-tab{flex:1;border:0;background:transparent;color:#8a8fac;border-radius:9px;padding:8px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;transition:all .2s ease;}
+.auth-tab.active{background:rgba(111,227,217,.15);color:#6fe3d9;}
 
 .neu-input{
-  width:100%;border:none;outline:none;border-radius:999px;
-  padding:15px 20px;background:#15161f;color:#e9eaf7;
-  font-family:var(--font-arabic);font-size:13.5px;font-weight:600;
-  box-shadow:inset 6px 6px 12px rgba(0,0,0,.6), inset -6px -6px 12px rgba(255,255,255,.03);
+  width:100%;border:1px solid #262a3d;outline:none;border-radius:12px;
+  padding:12px 16px;background:#171a29;color:#e9eaf7;
+  font-family:var(--font-arabic);font-size:13px;font-weight:600;
   direction:ltr !important;text-align:left !important;unicode-bidi:normal !important;
-  transition:box-shadow .2s ease;
+  transition:border-color .2s ease, box-shadow .2s ease;
+  margin-bottom:10px;
 }
-.neu-input:focus{box-shadow:inset 5px 5px 10px rgba(0,0,0,.55), inset -5px -5px 10px rgba(255,255,255,.03), 0 0 0 3px rgba(177,140,255,.16);}
-.neu-input::placeholder{color:#565b78;font-weight:500;}
+.neu-input:focus{border-color:#6fe3d9;box-shadow:0 0 0 3px rgba(111,227,217,.12);}
+.neu-input::placeholder{color:#585d78;font-weight:500;}
 
 .neu-btn{
-  width:100%;border:none;border-radius:999px;padding:15px;cursor:pointer;margin-top:2px;
+  width:100%;border:none;border-radius:12px;padding:13px;cursor:pointer;margin-top:4px;
   font-family:var(--font-arabic);font-weight:800;font-size:14px;color:#0c0d16;
   background:linear-gradient(135deg,#6fe3d9,#b18cff);
-  box-shadow:-6px -6px 14px rgba(255,255,255,.04), 6px 6px 18px rgba(0,0,0,.55);
-  transition:transform .15s ease, box-shadow .15s ease, filter .15s ease;
+  box-shadow:0 8px 20px rgba(111,227,217,.25);
+  transition:filter .15s ease, transform .1s ease;
 }
 .neu-btn:hover{filter:brightness(1.06);}
+.neu-btn:active{transform:translateY(1px);}
 
-#loginMsg{min-height:14px;font-size:11.5px;color:var(--danger);font-family:var(--font-arabic);font-weight:600;}
+.auth-link{display:block;width:100%;margin-top:6px;border:0;background:transparent;color:#b18cff;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;}
+.auth-link:hover{text-decoration:underline;}
+
+.auth-note{font-size:11.5px;line-height:1.5;color:#8a8fac;margin-top:8px;text-align:center;}
+.auth-note b{color:#6fe3d9;}
+
+#loginMsg{min-height:16px;font-size:12px;color:var(--danger);font-family:var(--font-arabic);font-weight:600;margin-top:4px;}
 
 .login-success{
   position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
-  opacity:0;transform:scale(.9);pointer-events:none;
-  transition:opacity .35s ease, transform .35s ease;
+  opacity:0;transform:scale(.95);pointer-events:none;
+  transition:opacity .3s ease, transform .3s ease;
+  background:#12141f;border-radius:24px;
 }
 .login-success.show{opacity:1;transform:scale(1);pointer-events:auto;}
 .success-check{
-  width:60px;height:60px;border-radius:50%;display:grid;place-items:center;margin-bottom:2px;
-  background:linear-gradient(135deg,#a6ecb0,#4fb86a);color:#0c1f12;font-size:26px;font-weight:900;
-  box-shadow:-6px -6px 12px rgba(255,255,255,.04), 6px 6px 16px rgba(0,0,0,.55);
+  width:54px;height:54px;border-radius:50%;display:grid;place-items:center;margin-bottom:2px;
+  background:linear-gradient(135deg,#8fdc9a,#1f8f4c);color:#0c1f12;font-size:24px;font-weight:900;
+  box-shadow:0 8px 20px rgba(143,220,154,.25);
 }
+.login-footnote{font-size:11px;color:#585d78;font-family:var(--font-arabic);margin-top:16px;}
 
-.login-footnote{font-size:11px;color:#565b78;font-family:var(--font-arabic);}
 #protectedApp{display:none;opacity:0;transition:opacity .5s ease;}
 
 .splash{
@@ -211,7 +226,6 @@ button{font-family:inherit;}
   text-decoration:none; transition:border-color .2s ease, transform .2s ease;
 }
 .link-btn:hover, .about-btn:hover, .feed-btn:hover{border-color:var(--acc-violet); transform:translateY(-1px);}
-.link-btn img{width:16px; height:16px; border-radius:3px; object-fit:contain;}
 
 .theme-toggle{
   flex:0 0 auto;width:30px;height:30px;border-radius:8px;
@@ -372,21 +386,6 @@ button{font-family:inherit;}
 .about-box-card h2, .feedback-box-card h2{font-size:21px; font-weight:800; color:var(--ink); margin-bottom:6px;}
 .about-box-card p, .feedback-box-card p{font-size:13px; color:var(--ink-dim); margin-bottom:20px;}
 
-.tools-grid-box{
-  display:grid; grid-template-columns:repeat(2,1fr); gap:10px;
-  text-align:left; direction:ltr; margin-bottom:24px;
-}
-.tool-item-badge{
-  background:var(--inset); border:1px solid var(--line-soft); padding:10px 14px;
-  border-radius:8px; font-size:13px; font-weight:600; color:var(--ink);
-  display:flex; align-items:center; gap:10px;
-}
-.tool-item-badge span{
-  background:rgba(111,227,217,.12); color:var(--acc-cyan); width:22px; height:22px;
-  border-radius:5px; display:flex; align-items:center; justify-content:center;
-  font-size:11px; font-weight:700; border:1px solid rgba(111,227,217,.25); flex-shrink:0;
-}
-
 .contact-footer-box{
   border-top:1px solid var(--line-soft); padding-top:16px; font-size:13px; color:var(--ink-faint);
   display:flex; flex-direction:column; align-items:center; gap:4px; direction:ltr;
@@ -416,7 +415,6 @@ button{font-family:inherit;}
   transition:filter .15s ease, transform .1s ease; margin-top:6px;
 }
 .submit-btn:hover{filter:brightness(1.08);}
-.submit-btn:active{transform:translateY(1px);}
 
 .footer-wrapper{
   position:fixed;left:0;right:0;bottom:0;z-index:100;height:var(--footer-h);
@@ -431,13 +429,6 @@ button{font-family:inherit;}
 .footer-wrapper .sep{opacity:.5;}
 .footer-wrapper a{color:#fff; text-decoration:none;}
 .footer-wrapper a:hover{text-decoration:underline;}
-
-.auth-tabs{display:flex;gap:8px;margin:0 0 14px;justify-content:center}
-.auth-tab{border:0;background:rgba(255,255,255,.06);color:#aaa;border-radius:10px;padding:8px 18px;font-family:inherit;font-weight:700;cursor:pointer}
-.auth-tab.active{background:rgba(126,226,168,.16);color:#7ee2a8}
-.auth-link{display:block;width:100%;margin-top:9px;border:0;background:transparent;color:#9aa7ff;cursor:pointer;font-family:inherit;font-size:12px}
-.auth-note{font-size:11px;line-height:1.6;color:#aeb4c2;margin:8px 4px 0}
-.auth-note b{color:#7ee2a8}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -445,7 +436,7 @@ button{font-family:inherit;}
 <body data-theme="dark" oncontextmenu="return false;">
 
 <div id="loginOverlay">
-  <div class="login-circle" id="loginCircle">
+  <div class="login-card" id="loginCircle">
     <div class="login-inner" id="loginFormContent">
       <div class="login-mark">C</div>
       <h3>Canned Tool</h3>
@@ -456,14 +447,14 @@ button{font-family:inherit;}
         <button type="button" class="auth-tab" id="registerTab">Register</button>
       </div>
 
-      <div id="loginPanel">
+      <div id="loginPanel" style="width:100%;">
         <input id="loginEmail" class="neu-input" type="email" placeholder="Email address" autocomplete="username" dir="ltr">
         <input id="loginPwd" class="neu-input" type="password" placeholder="Password" autocomplete="current-password" dir="ltr">
         <button id="loginBtn" class="neu-btn">Login</button>
         <button type="button" id="forgotBtn" class="auth-link">Forgot password?</button>
       </div>
 
-      <div id="registerPanel" style="display:none">
+      <div id="registerPanel" style="display:none; width:100%;">
         <input id="registerEmail" class="neu-input" type="email" placeholder="Work email" autocomplete="email" dir="ltr">
         <input id="registerPwd" class="neu-input" type="password" placeholder="Password (8+ characters)" autocomplete="new-password" dir="ltr">
         <input id="registerPwd2" class="neu-input" type="password" placeholder="Confirm password" autocomplete="new-password" dir="ltr">
@@ -758,13 +749,13 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem('candat_theme', next);
   });
 
-  // دالة جلب البيانات من Supabase مرتبطة بـ row_order حصرياً لضمان التطابق التام 100% مع الإكسيل
+  // دالة جلب البيانات مرتبطة بـ row_order حصرياً للتطابق التام مع الإكسيل
   async function loadCannedData() {
     try {
       const { data, error } = await supabaseClient
         .from('canned_items')
         .select('sheet_name, title, content, reference_url, click_count, row_order')
-        .order('row_order', { ascending: true }); // الترتيب الدقيق المطابق للإكسيل
+        .order('row_order', { ascending: true });
 
       if (error) throw error;
 
