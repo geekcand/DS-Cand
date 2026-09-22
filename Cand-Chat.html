@@ -437,7 +437,27 @@ button{font-family:inherit;}
 .footer-wrapper .sep{opacity:.5;}
 .footer-wrapper a{color:#fff; text-decoration:none;}
 .footer-wrapper a:hover{text-decoration:underline;}
+
+/* ===== Supabase Authentication UI ===== */
+.auth-tabs{display:flex;gap:8px;margin:0 0 14px;justify-content:center}
+.auth-tab{border:0;background:rgba(255,255,255,.06);color:#aaa;border-radius:10px;padding:8px 18px;font-family:inherit;font-weight:700;cursor:pointer}
+.auth-tab.active{background:rgba(126,226,168,.16);color:#7ee2a8}
+.auth-link{display:block;width:100%;margin-top:9px;border:0;background:transparent;color:#9aa7ff;cursor:pointer;font-family:inherit;font-size:12px}
+.auth-note{font-size:11px;line-height:1.6;color:#aeb4c2;margin:8px 4px 0}
+.auth-note b{color:#7ee2a8}
+#registerPanel .neu-input,#loginPanel .neu-input{margin-bottom:9px}
+.auth-admin-title{font-size:13px;font-weight:800;margin:8px 0 10px}
+.auth-user-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:10px}
+.auth-user-email{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px}
+.auth-user-actions{display:flex;gap:5px}
+.auth-mini-btn{border:0;border-radius:7px;padding:5px 8px;font-size:10px;cursor:pointer;font-family:inherit}
+.auth-approve{background:rgba(126,226,168,.16);color:#7ee2a8}
+.auth-reject{background:rgba(255,110,110,.13);color:#ff9b9b}
+
 </style>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 </head>
 <body data-theme="dark" oncontextmenu="return false;">
 
@@ -446,11 +466,32 @@ button{font-family:inherit;}
     <div class="login-inner" id="loginFormContent">
       <div class="login-mark">C</div>
       <h3>Canned Tool</h3>
-      <p class="login-sub">Protected By Password</p>
-      <input id="loginPwd" class="neu-input" type="password" placeholder="Enter password" autocomplete="off" dir="ltr">
-      <button id="loginBtn" class="neu-btn">Login</button>
+      <p class="login-sub" id="authSubtitle">Secure Access</p>
+
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab active" id="loginTab">Login</button>
+        <button type="button" class="auth-tab" id="registerTab">Register</button>
+      </div>
+
+      <div id="loginPanel">
+        <input id="loginEmail" class="neu-input" type="email" placeholder="Email address" autocomplete="username" dir="ltr">
+        <input id="loginPwd" class="neu-input" type="password" placeholder="Password" autocomplete="current-password" dir="ltr">
+        <button id="loginBtn" class="neu-btn">Login</button>
+        <button type="button" id="forgotBtn" class="auth-link">Forgot password?</button>
+      </div>
+
+      <div id="registerPanel" style="display:none">
+        <input id="registerEmail" class="neu-input" type="email" placeholder="Work email" autocomplete="email" dir="ltr">
+        <input id="registerPwd" class="neu-input" type="password" placeholder="Password (8+ characters)" autocomplete="new-password" dir="ltr">
+        <input id="registerPwd2" class="neu-input" type="password" placeholder="Confirm password" autocomplete="new-password" dir="ltr">
+        <button id="registerBtn" class="neu-btn">Create account</button>
+        <div class="auth-note">بعد التسجيل، الحساب يظل <b>قيد المراجعة</b> حتى تتم الموافقة عليه من الإدارة.</div>
+      </div>
+
       <div id="loginMsg"></div>
+      <div id="adminPanel" style="display:none"></div>
     </div>
+
     <div class="login-success" id="loginSuccess">
       <div class="success-check">✓</div>
       <h3>Welcome Back!</h3>
@@ -614,40 +655,198 @@ button{font-family:inherit;}
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  const FIXED_PASSWORD = 'Chat2025';
+  // ===== Supabase Authentication =====
+  const SUPABASE_URL = 'https://jdvkzdorjthljhwqmvmn.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_6WQHg-zL775jpFaErofLog_1kd5X6bI';
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
   const overlay = document.getElementById('loginOverlay');
   const btn = document.getElementById('loginBtn');
   const pwd = document.getElementById('loginPwd');
+  const email = document.getElementById('loginEmail');
   const msg = document.getElementById('loginMsg');
   const app = document.getElementById('protectedApp');
   const formContent = document.getElementById('loginFormContent');
   const successMsg = document.getElementById('loginSuccess');
+  const loginTab = document.getElementById('loginTab');
+  const registerTab = document.getElementById('registerTab');
+  const loginPanel = document.getElementById('loginPanel');
+  const registerPanel = document.getElementById('registerPanel');
+  const registerEmail = document.getElementById('registerEmail');
+  const registerPwd = document.getElementById('registerPwd');
+  const registerPwd2 = document.getElementById('registerPwd2');
+  const registerBtn = document.getElementById('registerBtn');
+  const forgotBtn = document.getElementById('forgotBtn');
+  const subtitle = document.getElementById('authSubtitle');
 
-  pwd.focus();
-  function unlock() {
-    if (pwd.value === FIXED_PASSWORD) {
-      formContent.classList.add('hide');
-      successMsg.classList.add('show');
-      setTimeout(() => {
-        overlay.style.opacity = '0';
-        setTimeout(() => overlay.style.display = 'none', 400);
-        app.style.display = 'block';
-        setTimeout(() => app.style.opacity = '1', 50);
-      }, 900);
-      sessionStorage.setItem('candat_unlocked', '1');
-    } else {
-      msg.textContent = 'كلمة المرور غير صحيحة، حاول مرة أخرى';
-      pwd.value = '';
-      pwd.focus();
+  function authMessage(text, type='error'){
+    msg.textContent = text || '';
+    msg.style.color = type === 'ok' ? '#7ee2a8' : '#ff9b9b';
+  }
+
+  function showLogin(){
+    loginTab.classList.add('active'); registerTab.classList.remove('active');
+    loginPanel.style.display='block'; registerPanel.style.display='none';
+    subtitle.textContent='Secure Access';
+    setTimeout(()=>email.focus(),50);
+  }
+  function showRegister(){
+    registerTab.classList.add('active'); loginTab.classList.remove('active');
+    loginPanel.style.display='none'; registerPanel.style.display='block';
+    subtitle.textContent='Create Your Account';
+    setTimeout(()=>registerEmail.focus(),50);
+  }
+  loginTab.addEventListener('click', showLogin);
+  registerTab.addEventListener('click', showRegister);
+
+  function enterTool(){
+    formContent.classList.add('hide');
+    successMsg.classList.add('show');
+    setTimeout(() => {
+      overlay.style.opacity = '0';
+      setTimeout(() => overlay.style.display = 'none', 400);
+      app.style.display = 'block';
+      setTimeout(() => app.style.opacity = '1', 50);
+    }, 650);
+  }
+
+  async function getProfile(userId){
+    const { data, error } = await supabaseClient
+      .from('profiles')
+      .select('id,email,status,role')
+      .eq('id', userId)
+      .single();
+    if(error) throw error;
+    return data;
+  }
+
+  async function checkSession(){
+    const { data:{session} } = await supabaseClient.auth.getSession();
+    if(!session) return;
+
+    try{
+      const profile = await getProfile(session.user.id);
+      if(profile.status === 'approved' || profile.role === 'admin'){
+        enterTool();
+      }else if(profile.status === 'pending'){
+        authMessage('حسابك قيد المراجعة. سيتم تفعيل الدخول بعد موافقة الإدارة.');
+      }else if(profile.status === 'rejected'){
+        authMessage('تم رفض طلب الدخول. تواصل مع الإدارة إذا كنت تعتقد أن هذا خطأ.');
+      }else{
+        authMessage('هذا الحساب غير مفعل حالياً.');
+      }
+    }catch(e){
+      authMessage('تعذر التحقق من حالة الحساب. حاول مرة أخرى.');
+      console.error(e);
     }
   }
-  btn.addEventListener('click', unlock);
-  pwd.addEventListener('keydown', (e) => { if (e.key === 'Enter') unlock(); });
-  if (sessionStorage.getItem('candat_unlocked') === '1') {
-    overlay.style.display = 'none';
-    app.style.display = 'block';
-    app.style.opacity = '1';
+
+  async function login(){
+    const e = email.value.trim();
+    const p = pwd.value;
+    if(!e || !p) return authMessage('اكتب البريد الإلكتروني وكلمة المرور.');
+    btn.disabled = true;
+    authMessage('');
+    const { data, error } = await supabaseClient.auth.signInWithPassword({email:e,password:p});
+    btn.disabled = false;
+    if(error) return authMessage('بيانات الدخول غير صحيحة أو الحساب غير متاح.');
+    try{
+      const profile = await getProfile(data.user.id);
+      if(profile.status === 'approved' || profile.role === 'admin') enterTool();
+      else {
+        await supabaseClient.auth.signOut();
+        if(profile.status === 'pending') authMessage('حسابك قيد المراجعة. انتظر موافقة الإدارة.');
+        else if(profile.status === 'rejected') authMessage('تم رفض طلب الدخول.');
+        else authMessage('الحساب غير مفعل حالياً.');
+      }
+    }catch(e){
+      await supabaseClient.auth.signOut();
+      authMessage('تعذر قراءة حالة الحساب.');
+    }
   }
+
+  async function register(){
+    const e = registerEmail.value.trim();
+    const p = registerPwd.value;
+    const p2 = registerPwd2.value;
+    if(!e || !p || !p2) return authMessage('اكمل كل البيانات.');
+    if(p.length < 8) return authMessage('كلمة المرور يجب أن تكون 8 أحرف على الأقل.');
+    if(p !== p2) return authMessage('تأكيد كلمة المرور غير مطابق.');
+    registerBtn.disabled = true;
+    authMessage('');
+    const { data, error } = await supabaseClient.auth.signUp({email:e,password:p});
+    registerBtn.disabled = false;
+    if(error) return authMessage(error.message);
+    if(data.user){
+      authMessage('تم تسجيل حسابك بنجاح. حسابك الآن قيد المراجعة من الإدارة.', 'ok');
+      registerPwd.value=''; registerPwd2.value='';
+    }
+  }
+
+  async function resetPassword(){
+    const e = email.value.trim();
+    if(!e) return authMessage('اكتب بريدك الإلكتروني أولاً.');
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(e, {
+      redirectTo: window.location.origin + window.location.pathname
+    });
+    if(error) return authMessage('تعذر إرسال رابط استعادة كلمة المرور.');
+    authMessage('تم إرسال رابط استعادة كلمة المرور إلى بريدك.', 'ok');
+  }
+
+  btn.addEventListener('click', login);
+  pwd.addEventListener('keydown', e => { if(e.key === 'Enter') login(); });
+  email.addEventListener('keydown', e => { if(e.key === 'Enter') login(); });
+  registerBtn.addEventListener('click', register);
+  registerPwd2.addEventListener('keydown', e => { if(e.key === 'Enter') register(); });
+  forgotBtn.addEventListener('click', resetPassword);
+
+  checkSession();
+
+
+  async function openAdmin(){
+    const {data:{session}} = await supabaseClient.auth.getSession();
+    if(!session) return;
+    const profile = await getProfile(session.user.id);
+    if(profile.role !== 'admin') return;
+    const {data, error} = await supabaseClient
+      .from('profiles')
+      .select('id,email,status,role,created_at')
+      .order('created_at',{ascending:true});
+    if(error) return;
+    let htmlRows = '<div class="auth-admin-title">Account Management</div>';
+    (data||[]).forEach(u=>{
+      if(u.role==='admin') return;
+      htmlRows += `<div class="auth-user-row">
+        <span class="auth-user-email" title="${escapeHtml(u.email)}">${escapeHtml(u.email)}</span>
+        <span>${escapeHtml(u.status)}</span>
+        <span class="auth-user-actions">
+          ${u.status==='pending' ? `<button class="auth-mini-btn auth-approve" data-a="${u.id}">Approve</button>
+          <button class="auth-mini-btn auth-reject" data-r="${u.id}">Reject</button>` : ''}
+        </span>
+      </div>`;
+    });
+    document.getElementById('adminPanel').innerHTML = htmlRows;
+    document.getElementById('adminPanel').style.display='block';
+    document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>changeUserStatus(b.dataset.a,'approved'));
+    document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>changeUserStatus(b.dataset.r,'rejected'));
+  }
+
+  async function changeUserStatus(userId,status){
+    const {data,error}=await supabaseClient.rpc('set_user_status',{target_user_id:userId,new_status:status});
+    if(error){ authMessage('تعذر تحديث حالة الحساب.'); console.error(error); return; }
+    authMessage('تم تحديث حالة الحساب.', 'ok');
+    openAdmin();
+  }
+
+  async function maybeShowAdmin(){
+    const {data:{session}}=await supabaseClient.auth.getSession();
+    if(!session) return;
+    try{
+      const p=await getProfile(session.user.id);
+      if(p.role==='admin') openAdmin();
+    }catch(e){}
+  }
+  setTimeout(maybeShowAdmin, 800);
 
   const splash = document.getElementById("splash");
   const sheetList = document.getElementById("sheetList");
