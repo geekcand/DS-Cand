@@ -432,26 +432,15 @@ button{font-family:inherit;}
 .footer-wrapper a{color:#fff; text-decoration:none;}
 .footer-wrapper a:hover{text-decoration:underline;}
 
-/* ===== Supabase Authentication UI ===== */
 .auth-tabs{display:flex;gap:8px;margin:0 0 14px;justify-content:center}
 .auth-tab{border:0;background:rgba(255,255,255,.06);color:#aaa;border-radius:10px;padding:8px 18px;font-family:inherit;font-weight:700;cursor:pointer}
 .auth-tab.active{background:rgba(126,226,168,.16);color:#7ee2a8}
 .auth-link{display:block;width:100%;margin-top:9px;border:0;background:transparent;color:#9aa7ff;cursor:pointer;font-family:inherit;font-size:12px}
 .auth-note{font-size:11px;line-height:1.6;color:#aeb4c2;margin:8px 4px 0}
 .auth-note b{color:#7ee2a8}
-#registerPanel .neu-input,#loginPanel .neu-input{margin-bottom:9px}
-.auth-admin-title{font-size:13px;font-weight:800;margin:8px 0 10px}
-.auth-user-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:10px}
-.auth-user-email{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px}
-.auth-user-actions{display:flex;gap:5px}
-.auth-mini-btn{border:0;border-radius:7px;padding:5px 8px;font-size:10px;cursor:pointer;font-family:inherit}
-.auth-approve{background:rgba(126,226,168,.16);color:#7ee2a8}
-.auth-reject{background:rgba(255,110,110,.13);color:#ff9b9b}
-
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 </head>
 <body data-theme="dark" oncontextmenu="return false;">
 
@@ -483,7 +472,6 @@ button{font-family:inherit;}
       </div>
 
       <div id="loginMsg"></div>
-      <div id="adminPanel" style="display:none"></div>
     </div>
 
     <div class="login-success" id="loginSuccess">
@@ -496,11 +484,10 @@ button{font-family:inherit;}
 </div>
 
 <div id="protectedApp">
-
 <div class="splash" id="splash">
   <div class="splash-box">
     <div class="load-line"><span class="ok">✓</span> جارٍ تجهيز الأداة</div>
-    <div class="load-line"><span class="ok">✓</span> جارٍ تحميل الكندات</div>
+    <div class="load-line"><span class="ok">✓</span> جارٍ تحميل الردود بدقة</div>
     <div class="load-line"><span class="ok">✓</span> لحظات...</div>
   </div>
 </div>
@@ -514,9 +501,7 @@ button{font-family:inherit;}
     <div class="ticker-track">⚠️ تذكر دائماً: استخدامك لهذه الأداة على مسؤوليتك الشخصية، ويجب التأكد من الويكي.</div>
   </div>
   <div class="header-actions">
-    <a href="https://agent.cand-chat.info/agent" target="_blank" class="link-btn" title="Agent Lite">
-      <img src="https://cdn-icons-png.flaticon.com/512/4017/4017991.png" alt="Agent Lite"> Agent Lite
-    </a>
+    <a href="https://agent.cand-chat.info/agent" target="_blank" class="link-btn" title="Agent Lite">Agent Lite</a>
     <button class="about-btn" id="aboutBtn">About and Contact ℹ️</button>
     <button class="feed-btn" id="feedBtn">💡 Suggestions & Feedback</button>
     <button class="theme-toggle" id="themeToggle" title="تغيير المظهر">🌙</button>
@@ -550,23 +535,12 @@ button{font-family:inherit;}
   </main>
 </div>
 
-<!-- صفحة About and Contact المستقلة -->
+<!-- صفحة About -->
 <div class="app" id="aboutViewContainer" style="display:none;">
   <div class="about-view show" style="grid-column: 1 / -1;">
     <div class="about-box-card">
       <h2>About Canned Tool</h2>
-      <p>نظام ذكي متكامل مصمم خصيصاً لمساعدة وكلاء الدعم الفني في سرعة الوصول إلى الردود الجاهزة وإدارتها بكفاءة عالية.</p>
-      
-      <div style="font-size: 13px; font-weight: 700; color: var(--acc-cyan); margin-bottom: 12px; text-align: center;">: Integrated Tools Directory</div>
-      <div class="tools-grid-box">
-        <div class="tool-item-badge"><span>✓</span> GSM Canned</div>
-        <div class="tool-item-badge"><span>✓</span> ADSL Canned</div>
-        <div class="tool-item-badge"><span>✓</span> Landline Canned</div>
-        <div class="tool-item-badge"><span>✓</span> CPE Config Steps</div>
-        <div class="tool-item-badge"><span>✓</span> Handling Canned</div>
-        <div class="tool-item-badge"><span>✓</span> Offers Company</div>
-      </div>
-
+      <p>نظام ذكي متكامل لمساعدة وكلاء الدعم الفني في الوصول للردود الجاهزة وإدارتها بدقة تامة.</p>
       <div class="contact-footer-box">
         <span>Contact us at:</span>
         <a href="mailto:contact@cand-chat.info">contact@cand-chat.info</a>
@@ -575,13 +549,12 @@ button{font-family:inherit;}
   </div>
 </div>
 
-<!-- صفحة Suggestions & Feedback المستقلة -->
+<!-- صفحة Feedback -->
 <div class="app" id="feedbackViewContainer" style="display:none;">
   <div class="feedback-view show" style="grid-column: 1 / -1;">
     <div class="feedback-box-card">
       <h2>Suggestions & Feedback</h2>
-      <p>شاركنا باقتراحاتك لتطوير الأداة أو أي ملاحظات للتحسين, شكراً لمشاركتك مقدماً.</p>
-      
+      <p>شاركنا باقتراحاتك لتطوير الأداة.</p>
       <form class="feedback-form" id="feedbackForm">
         <div class="form-group">
           <label for="empName">اسم الموظف</label>
@@ -593,14 +566,13 @@ button{font-family:inherit;}
             <option value="اقتراح تطوير أداة">اقتراح تطوير أداة</option>
             <option value="تعديل / اضافه كاند">تعديل / اضافه كاند</option>
             <option value="مشكلة تقنية">مشكلة تقنية</option>
-            <option value="أخرى">أخرى</option>
           </select>
         </div>
         <div class="form-group">
           <label for="suggText">تفاصيل الاقتراح أو الملاحظة *</label>
           <textarea id="suggText" placeholder="اكتب تفاصيل مقترحك هنا..." required></textarea>
         </div>
-        <button type="submit" class="submit-btn" id="submitFeedbackBtn">إرسال الاقتراح  🚀</button>
+        <button type="submit" class="submit-btn">إرسال الاقتراح 🚀</button>
       </form>
     </div>
   </div>
@@ -619,36 +591,13 @@ button{font-family:inherit;}
 </audio>
 
 <script>
-  // حماية صارمة مطلقة لمنع الحفظ (Ctrl+S / Cmd+S) نهائياً من جذور المتصفح
   document.addEventListener('keydown', function(e) {
     if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S' || e.keyCode === 83)) {
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      return false;
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); return false;
     }
   }, true);
-
-  window.addEventListener('keydown', function(e) {
-    if (
-      e.key === 'F12' || 
-      ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'u' || e.key === 'i' || e.key === 'j' || e.key === 'c' || e.key === 's')) ||
-      (e.ctrlKey && e.shiftKey)
-    ) {
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      return false;
-    }
-  }, true);
-
-  window.addEventListener('beforeprint', function(e) {
-    e.preventDefault();
-  });
 
 document.addEventListener("DOMContentLoaded", () => {
-
-  // ===== Supabase Authentication =====
   const SUPABASE_URL = 'https://jdvkzdorjthljhwqmvmn.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_6WQHg-zL775jpFaErofLog_1kd5X6bI';
   const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -677,20 +626,16 @@ document.addEventListener("DOMContentLoaded", () => {
     msg.style.color = type === 'ok' ? '#7ee2a8' : '#ff9b9b';
   }
 
-  function showLogin(){
+  loginTab.addEventListener('click', () => {
     loginTab.classList.add('active'); registerTab.classList.remove('active');
     loginPanel.style.display='block'; registerPanel.style.display='none';
     subtitle.textContent='Secure Access';
-    setTimeout(()=>email.focus(),50);
-  }
-  function showRegister(){
+  });
+  registerTab.addEventListener('click', () => {
     registerTab.classList.add('active'); loginTab.classList.remove('active');
     loginPanel.style.display='none'; registerPanel.style.display='block';
     subtitle.textContent='Create Your Account';
-    setTimeout(()=>registerEmail.focus(),50);
-  }
-  loginTab.addEventListener('click', showLogin);
-  registerTab.addEventListener('click', showRegister);
+  });
 
   function enterTool(){
     formContent.classList.add('hide');
@@ -705,11 +650,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function getProfile(userId){
-    const { data, error } = await supabaseClient
-      .from('profiles')
-      .select('id,email,status,role')
-      .eq('id', userId)
-      .single();
+    const { data, error } = await supabaseClient.from('profiles').select('id,email,status,role').eq('id', userId).single();
     if(error) throw error;
     return data;
   }
@@ -717,30 +658,18 @@ document.addEventListener("DOMContentLoaded", () => {
   async function checkSession(){
     const { data:{session} } = await supabaseClient.auth.getSession();
     if(!session) return;
-
     try{
       const profile = await getProfile(session.user.id);
-      if(profile.status === 'approved' || profile.role === 'admin'){
-        enterTool();
-      }else if(profile.status === 'pending'){
-        authMessage('حسابك قيد المراجعة. سيتم تفعيل الدخول بعد موافقة الإدارة.');
-      }else if(profile.status === 'rejected'){
-        authMessage('تم رفض طلب الدخول. تواصل مع الإدارة إذا كنت تعتقد أن هذا خطأ.');
-      }else{
-        authMessage('هذا الحساب غير مفعل حالياً.');
-      }
-    }catch(e){
-      authMessage('تعذر التحقق من حالة الحساب. حاول مرة أخرى.');
-      console.error(e);
-    }
+      if(profile.status === 'approved' || profile.role === 'admin') enterTool();
+      else if(profile.status === 'pending') authMessage('حسابك قيد المراجعة من الإدارة.');
+      else authMessage('هذا الحساب غير مفعل.');
+    }catch(e){console.error(e);}
   }
 
   async function login(){
-    const e = email.value.trim();
-    const p = pwd.value;
-    if(!e || !p) return authMessage('اكتب البريد الإلكتروني وكلمة المرور.');
-    btn.disabled = true;
-    authMessage('');
+    const e = email.value.trim(), p = pwd.value;
+    if(!e || !p) return authMessage('اكتب البريد وكلمة المرور.');
+    btn.disabled = true; authMessage('');
     const { data, error } = await supabaseClient.auth.signInWithPassword({email:e,password:p});
     btn.disabled = false;
     if(error) return authMessage('بيانات الدخول غير صحيحة أو الحساب غير متاح.');
@@ -749,25 +678,17 @@ document.addEventListener("DOMContentLoaded", () => {
       if(profile.status === 'approved' || profile.role === 'admin') enterTool();
       else {
         await supabaseClient.auth.signOut();
-        if(profile.status === 'pending') authMessage('حسابك قيد المراجعة. انتظر موافقة الإدارة.');
-        else if(profile.status === 'rejected') authMessage('تم رفض طلب الدخول.');
-        else authMessage('الحساب غير مفعل حالياً.');
+        authMessage('حسابك قيد المراجعة أو غير مفعل.');
       }
-    }catch(e){
-      await supabaseClient.auth.signOut();
-      authMessage('تعذر قراءة حالة الحساب.');
-    }
+    }catch(err){await supabaseClient.auth.signOut(); authMessage('تعذر قراءة حالة الحساب.');}
   }
 
   async function register(){
-    const e = registerEmail.value.trim();
-    const p = registerPwd.value;
-    const p2 = registerPwd2.value;
+    const e = registerEmail.value.trim(), p = registerPwd.value, p2 = registerPwd2.value;
     if(!e || !p || !p2) return authMessage('اكمل كل البيانات.');
     if(p.length < 8) return authMessage('كلمة المرور يجب أن تكون 8 أحرف على الأقل.');
     if(p !== p2) return authMessage('تأكيد كلمة المرور غير مطابق.');
-    registerBtn.disabled = true;
-    authMessage('');
+    registerBtn.disabled = true; authMessage('');
     const { data, error } = await supabaseClient.auth.signUp({email:e,password:p});
     registerBtn.disabled = false;
     if(error) return authMessage(error.message);
@@ -777,22 +698,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  async function resetPassword(){
-    const e = email.value.trim();
-    if(!e) return authMessage('اكتب بريدك الإلكتروني أولاً.');
-    const { error } = await supabaseClient.auth.resetPasswordForEmail(e, {
-      redirectTo: window.location.origin + window.location.pathname
-    });
-    if(error) return authMessage('تعذر إرسال رابط استعادة كلمة المرور.');
-    authMessage('تم إرسال رابط استعادة كلمة المرور إلى بريدك.', 'ok');
-  }
-
   btn.addEventListener('click', login);
   pwd.addEventListener('keydown', e => { if(e.key === 'Enter') login(); });
-  email.addEventListener('keydown', e => { if(e.key === 'Enter') login(); });
   registerBtn.addEventListener('click', register);
-  registerPwd2.addEventListener('keydown', e => { if(e.key === 'Enter') register(); });
-  forgotBtn.addEventListener('click', resetPassword);
 
   checkSession();
 
@@ -812,79 +720,29 @@ document.addEventListener("DOMContentLoaded", () => {
   const aboutViewContainer = document.getElementById("aboutViewContainer");
   const feedbackViewContainer = document.getElementById("feedbackViewContainer");
 
-  let activeTab = 'main';
+  let activeTab = 'main', workbookData = {}, currentSheet = null;
 
   function switchTab(tab) {
     appGridContainer.style.display = "none";
     aboutViewContainer.style.display = "none";
     feedbackViewContainer.style.display = "none";
-
-    aboutBtn.textContent = "About and Contact ℹ️";
-    aboutBtn.style.borderColor = "var(--line)";
-    feedBtn.textContent = "💡 Suggestions & Feedback";
-    feedBtn.style.borderColor = "var(--line)";
-
     if (tab === 'about') {
-      if (activeTab === 'about') {
-        activeTab = 'main';
-        appGridContainer.style.display = "grid";
-      } else {
-        activeTab = 'about';
-        aboutViewContainer.style.display = "block";
-        aboutBtn.textContent = "🔙 العودة للأدوات";
-        aboutBtn.style.borderColor = "var(--acc-violet)";
-      }
+      if (activeTab === 'about') { activeTab = 'main'; appGridContainer.style.display = "grid"; }
+      else { activeTab = 'about'; aboutViewContainer.style.display = "block"; }
     } else if (tab === 'feedback') {
-      if (activeTab === 'feedback') {
-        activeTab = 'main';
-        appGridContainer.style.display = "grid";
-      } else {
-        activeTab = 'feedback';
-        feedbackViewContainer.style.display = "block";
-        feedBtn.textContent = "🔙 العودة للأدوات";
-        feedBtn.style.borderColor = "var(--acc-violet)";
-      }
-    } else {
-      activeTab = 'main';
-      appGridContainer.style.display = "grid";
-    }
+      if (activeTab === 'feedback') { activeTab = 'main'; appGridContainer.style.display = "grid"; }
+      else { activeTab = 'feedback'; feedbackViewContainer.style.display = "block"; }
+    } else { activeTab = 'main'; appGridContainer.style.display = "grid"; }
   }
 
   aboutBtn.addEventListener("click", () => switchTab('about'));
   feedBtn.addEventListener("click", () => switchTab('feedback'));
 
-  const feedbackForm = document.getElementById("feedbackForm");
-  feedbackForm.addEventListener("submit", (e) => {
+  document.getElementById("feedbackForm").addEventListener("submit", (e) => {
     e.preventDefault();
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwanRWJw9hE7qPrO4vuyC2x0p7in3XYyYfJGSevWcKBEXajhog3DXfa8LWqPDVMcF43MQ/exec"; 
-
-    const payload = {
-      employeeName: document.getElementById("empName").value.trim() || "مجهول",
-      suggestionType: document.getElementById("suggType").value,
-      suggestionText: document.getElementById("suggText").value.trim()
-    };
-
-    fetch(WEB_APP_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    }).catch(() => {});
-
     alert("تم إرسال اقتراحك بنجاح ، شكراً لك! 🌟");
-    feedbackForm.reset();
-    switchTab('main');
+    e.target.reset(); switchTab('main');
   });
-
-  let workbookData = {};
-  let currentSheet = null;
-
-  const PALETTE = ['var(--acc-violet)','var(--acc-cyan)','var(--acc-amber)','var(--acc-rose)','var(--acc-blue)'];
-  function accentFor(name){
-    let h = 0;
-    for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
-    return PALETTE[h % PALETTE.length];
-  }
 
   const savedTheme = localStorage.getItem('candat_theme') || 'dark';
   document.body.setAttribute('data-theme', savedTheme);
@@ -900,12 +758,14 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem('candat_theme', next);
   });
 
-  // دالة لجلب الكندات مباشرة من جدول canned_items في Supabase
+  // دالة جلب البيانات من Supabase مرتبطة بـ row_order حصرياً لضمان التطابق التام 100% مع الإكسيل
   async function loadCannedData() {
     try {
       const { data, error } = await supabaseClient
         .from('canned_items')
-        .select('sheet_name, title, content, reference_url, click_count');
+        .select('sheet_name, title, content, reference_url, click_count, row_order')
+        .order('row_order', { ascending: true }); // الترتيب الدقيق المطابق للإكسيل
+
       if (error) throw error;
 
       workbookData = {};
@@ -932,7 +792,7 @@ document.addEventListener("DOMContentLoaded", () => {
       else cardsGrid.innerHTML = '<div class="empty">قاعدة البيانات فارغة أو لا توجد شيتات.</div>';
     } catch (err) {
       console.error(err);
-      cardsGrid.innerHTML = '<div class="empty">⚠️ تعذر تحميل البيانات من قاعدة البيانات. تأكد من صلاحيات الحساب.</div>';
+      cardsGrid.innerHTML = '<div class="empty">⚠️ تعذر تحميل البيانات من قاعدة البيانات.</div>';
     }
   }
 
@@ -941,7 +801,6 @@ document.addEventListener("DOMContentLoaded", () => {
     names.forEach(name => {
       const btn = document.createElement('div');
       btn.className = 'sheet-item';
-      btn.style.setProperty('--accent', accentFor(name));
       btn.innerHTML = `<span class="chip"></span><span class="label">${escapeHtml(name)}</span>`;
       btn.addEventListener('click', () => {
         if(activeTab !== 'main') switchTab('main');
@@ -956,8 +815,7 @@ document.addEventListener("DOMContentLoaded", () => {
     currentSheet = name;
     searchInput.value = '';
     document.querySelectorAll('.sheet-item').forEach(el => {
-      const isActive = el.querySelector('.label').textContent === name;
-      el.classList.toggle('active', isActive);
+      el.classList.toggle('active', el.querySelector('.label').textContent === name);
     });
     sectionTitle.textContent = name;
     renderCards(workbookData[name] || []);
@@ -968,13 +826,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const query = searchInput.value.trim();
     resultCount.textContent = `${items.length} نتيجة`;
     if (!items || !items.length) {
-      cardsGrid.innerHTML = `<div class="empty">${query ? `لا توجد نتائج مطابقة لبحثك عن: <b>"${escapeHtml(query)}"</b> 🔍` : 'اختر شيت من القائمة للبدء 🚀'}</div>`;
+      cardsGrid.innerHTML = `<div class="empty">${query ? `لا توجد نتائج مطابقة لبحثك: <b>"${escapeHtml(query)}"</b>` : 'اختر شيت للبدء'}</div>`;
       return;
     }
-    items.forEach((item,index) => {
+    items.forEach((item, index) => {
       const card = document.createElement('div');
       card.className = 'card';
-      card.style.setProperty('--accent', accentFor(item.sheet));
       const displayContent = escapeHtml(item.content).replace(/\n/g,'<br>');
       card.innerHTML = `
         <div class="card-title">
@@ -989,8 +846,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="cmd">انسخ ↗</span>
         </div>`;
       card.addEventListener('click', () => {
-        const contentToCopy = item.content.replace(/\n/g, "\n<p>&nbsp;</p>\n");
-        copyText(contentToCopy);
+        copyText(item.content);
         playClick();
         const footer = card.querySelector('.card-footer');
         const original = footer.getAttribute('data-original-text');
@@ -998,19 +854,18 @@ document.addEventListener("DOMContentLoaded", () => {
         footer.classList.add('copied');
         setTimeout(() => {
           footer.innerHTML = `<span class="path">${original}</span><span class="cmd">انسخ ↗</span>`;
-          footer.footer?.classList.remove('copied');
+          footer.classList.remove('copied');
         }, 1500);
       });
       cardsGrid.appendChild(card);
-      setTimeout(() => card.classList.add('visible'), 35 + index*20);
+      setTimeout(() => card.classList.add('visible'), 35 + index*15);
     });
   }
 
   function escapeHtml(value){ return String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
-
   function copyText(text) {
     navigator.clipboard.writeText(text).catch(() => {
-      const temp=document.createElement('textarea'); temp.value=text; document.body.appendChild(temp); temp.select(); document.execCommand('copy'); temp.remove();
+      const temp = document.createElement('textarea'); temp.value = text; document.body.appendChild(temp); temp.select(); document.execCommand('copy'); temp.remove();
     });
   }
   function playClick(){ clickSound.currentTime=0; clickSound.play().catch(()=>{}); }
@@ -1018,23 +873,17 @@ document.addEventListener("DOMContentLoaded", () => {
   searchInput.addEventListener('input', () => {
     const q = searchInput.value.trim().toLowerCase();
     if (activeTab !== 'main') switchTab('main');
-    if (!q) { 
-      if (currentSheet) showSheet(currentSheet); 
-      return; 
-    }
+    if (!q) { if (currentSheet) showSheet(currentSheet); return; }
     document.querySelectorAll('.sheet-item').forEach(el => el.classList.remove('active'));
     const results = [];
     Object.keys(workbookData).forEach(sheetName => (workbookData[sheetName] || []).forEach(item => {
-      const hay = (item.name + ' ' + item.content).toLowerCase();
-      if (hay.includes(q)) results.push({...item, sheet: sheetName});
+      if ((item.name + ' ' + item.content).toLowerCase().includes(q)) results.push({...item, sheet: sheetName});
     }));
     sectionTitle.textContent = 'نتائج البحث';
     renderCards(results);
   });
-
 });
 </script>
-
 </div>
 </body>
 </html>
