@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Canned Tool — Admin Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body{margin:0;background:#0d1020;color:#eee;font-family:Arial,sans-serif;padding:28px;direction:rtl}
+.wrap{max-width:1000px;margin:auto}
+h1{margin:0 0 6px}.sub{color:#9da5b5;margin-bottom:22px}
+.card{background:#151a2c;border:1px solid #29304a;border-radius:14px;padding:18px;margin-bottom:16px}
+h3{margin-top:0;color:#7ee2a8;font-size:16px}
+table{width:100%;border-collapse:collapse}th,td{text-align:right;padding:11px 8px;border-bottom:1px solid #272d42;font-size:14px}
+.badge{padding:4px 8px;border-radius:8px;background:#252b40}
+button{border:0;border-radius:8px;padding:8px 14px;cursor:pointer;margin-right:5px;font-family:inherit;font-weight:bold}
+.approve{background:#173d2d;color:#7ee2a8}.reject{background:#482126;color:#ff9b9b}
+.primary-btn{background:#6fe3d9;color:#0c0d16;width:100%;margin-top:10px;padding:12px}
+.primary-btn:hover{filter:brightness(1.08)}
+#msg{min-height:22px;color:#7ee2a8;margin-bottom:12px;font-weight:bold}
+.muted{color:#9299aa}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:13px;color:#9da5b5;margin-bottom:5px}
+.form-control{width:100%;background:#0d1020;border:1px solid #29304a;border-radius:8px;padding:10px;color:#eee;font-family:inherit;font-size:14px;box-sizing:border-box}
+.form-control:focus{border-color:#6fe3d9;outline:none}
+textarea.form-control{resize:vertical;min-height:90px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Canned Tool Admin</h1>
+  <div class="sub">لوحة إدارة الحسابات وإضافة الردود الجاهزة</div>
+  <div id="msg"></div>
+
+  <!-- قسم إضافة كاند جديدة -->
+  <div class="card">
+    <h3>➕ إضافة كاند جديدة لقاعدة البيانات</h3>
+    <form id="addCannedForm">
+      <div class="form-group">
+        <label for="sheetName">اسم الشيت (القسم)</label>
+        <input type="text" id="sheetName" class="form-control" placeholder="مثال: Sales DSL أو Chatting & Idle" required>
+      </div>
+      <div class="form-group">
+        <label for="cannedTitle">عنوان الكند</label>
+        <input type="text" id="cannedTitle" class="form-control" placeholder="مثال: الباقات الأساسية" required>
+      </div>
+      <div class="form-group">
+        <label for="cannedContent">نص الرد الجاهز (Content)</label>
+        <textarea id="cannedContent" class="form-control" placeholder="اكتب نص الكند هنا..." required></textarea>
+      </div>
+      <button type="submit" id="addBtn" class="primary-btn">حفظ وإضافة الكند 🚀</button>
+    </form>
+  </div>
+
+  <!-- قسم إدارة المستخدمين -->
+  <div class="card">
+    <h3>👥 إدارة صلاحيات المستخدمين</h3>
+    <table>
+      <thead><tr><th>البريد الإلكتروني</th><th>الحالة</th><th>الدور</th><th>تاريخ الإنشاء</th><th>الإجراء</th></tr></thead>
+      <tbody id="users"><tr><td colspan="5" class="muted">جارٍ التحميل…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://jdvkzdorjthljhwqmvmn.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_6WQHg-zL775jpFaErofLog_1kd5X6bI';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const users = document.getElementById('users'), msg = document.getElementById('msg');
+const addCannedForm = document.getElementById('addCannedForm');
+const addBtn = document.getElementById('addBtn');
+
+async function load(){
+  const { data:{session} } = await sb.auth.getSession();
+  if(!session){ location.href='index.html'; return; }
+  const { data:me, error:meErr } = await sb.from('profiles').select('role,status').eq('id',session.user.id).single();
+  if(meErr || !me || me.role!=='admin'){ document.body.innerHTML='<h2 style="text-align:center;margin-top:50px">Access denied — غير مصرح لك بالدخول</h2>'; return; }
+
+  const { data, error } = await sb.from('profiles').select('id,email,status,role,created_at').order('created_at',{ascending:true});
+  if(error){ msg.textContent='فشل في تحميل حسابات المستخدمين.'; return; }
+  users.innerHTML='';
+  (data||[]).forEach(u=>{
+    const tr=document.createElement('tr');
+    const actions = u.role==='admin' ? '<span class="muted">أدمن النظام</span>' :
+      (u.status==='pending' ? `<button class="approve" data-id="${u.id}" data-status="approved">موافقة</button>
+       <button class="reject" data-id="${u.id}" data-status="rejected">رفض</button>` :
+       `<button data-id="${u.id}" data-status="${u.status==='approved'?'disabled':'approved'}">${u.status==='approved'?'تعطيل':'تفعيل'}</button>`);
+    tr.innerHTML=`<td>${esc(u.email)}</td><td><span class="badge">${esc(u.status)}</span></td><td>${esc(u.role)}</td><td>${new Date(u.created_at).toLocaleString()}</td><td>${actions}</td>`;
+    users.appendChild(tr);
+  });
+  document.querySelectorAll('[data-id]').forEach(b=>b.onclick=async()=>{
+    b.disabled=true;
+    const {error}=await sb.rpc('set_user_status',{target_user_id:b.dataset.id,new_status:b.dataset.status});
+    if(error){msg.textContent='فشل تحديث حالة الحساب.';b.disabled=false;return;}
+    msg.textContent='تم تحديث حالة الحساب بنجاح.';
+    load();
+  });
+}
+
+// إضافة كاند جديدة مباشرة لقاعدة البيانات
+addCannedForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  addBtn.disabled = true;
+  msg.textContent = 'جارٍ إضافة الكند...';
+
+  const sheet_name = document.getElementById('sheetName').value.trim();
+  const title = document.getElementById('cannedTitle').value.trim();
+  const content = document.getElementById('cannedContent').value.trim();
+
+  const { error } = await sb.from('canned_items').insert([{ sheet_name, title, content }]);
+
+  addBtn.disabled = false;
+  if(error){
+    msg.style.color = '#ff9b9b';
+    msg.textContent = 'خطأ أثناء الإضافة: ' + error.message;
+  } else {
+    msg.style.color = '#7ee2a8';
+    msg.textContent = 'تم إضافة الكند بنجاح وأصبح متاحاً في الأداة فوراً! 🌟';
+    addCannedForm.reset();
+  }
+});
+
+function esc(v){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+load();
+</script>
+</body>
+</html>
