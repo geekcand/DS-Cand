@@ -142,9 +142,13 @@ async function checkAuthWithRetry() {
     return;
   }
 
+  // إرسال نبضة نشاط فورية للأدمن وجدولة التحديث
+  sb.rpc('update_last_seen').catch(e => console.error(e));
+  setInterval(() => {
+    sb.rpc('update_last_seen').catch(e => console.error(e));
+  }, 20000);
+
   loadUsers();
-  
-  // تحديث جدول المستخدمين تلقائياً كل 15 ثانية
   setInterval(loadUsers, 15000);
 }
 
@@ -158,7 +162,6 @@ async function loadUsers(){
   (data||[]).forEach(u=>{
     const tr=document.createElement('tr');
     
-    // تم رفع نافذة الأمان إلى 6 دقائق لتفادي تأثير تقييد التابات الخلفية في المتصفحات
     let onlineStatus = '<span style="color:#9299aa">⚪ Offline</span>';
     if (u.last_seen) {
       const diffMinutes = (now - new Date(u.last_seen).getTime()) / (1000 * 60);
