@@ -9,7 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 body{margin:0;background:#0d1020;color:#eee;font-family:Arial,sans-serif;padding:28px;direction:ltr}
-.wrap{max-width:1000px;margin:auto}
+.wrap{max-width:1050px;margin:auto}
 h1{margin:0 0 6px}.sub{color:#9da5b5;margin-bottom:22px}
 .card{background:#151a2c;border:1px solid #29304a;border-radius:14px;padding:18px;margin-bottom:16px}
 h3{margin-top:0;color:#7ee2a8;font-size:16px}
@@ -68,14 +68,13 @@ textarea.form-control{resize:vertical;min-height:90px}
   <div class="card">
     <h3>👥 User Permissions Management</h3>
     <table>
-      <thead><tr><th>Email</th><th>Status</th><th>Role</th><th>Created At</th><th>Actions</th></tr></thead>
-      <tbody id="users"><tr><td colspan="5" class="muted">Loading…</td></tr></tbody>
+      <thead><tr><th>Email</th><th>Activity</th><th>Status</th><th>Role</th><th>Created At</th><th>Actions</th></tr></thead>
+      <tbody id="users"><tr><td colspan="6" class="muted">Loading…</td></tr></tbody>
     </table>
   </div>
 </div>
 
 <script>
-// إيقاف الزر الأيمن للماوس بشكل صارم في جميع مراحل الحدث
 ['contextmenu'].forEach(evt => {
   window.addEventListener(evt, e => {
     e.preventDefault();
@@ -85,20 +84,14 @@ textarea.form-control{resize:vertical;min-height:90px}
   }, { capture: true });
 });
 
-// إيقاف Ctrl+S و F12 والطباعة والمصدر سواء كانت لوحة المفاتيح عربي أو إنجليزي
 ['keydown', 'keypress'].forEach(evt => {
   window.addEventListener(evt, e => {
     const isCtrl = e.ctrlKey || e.metaKey;
     const key = (e.key || '').toLowerCase();
     const code = e.code || '';
-    
-    // منع الحفظ Ctrl + S
     const isSave = isCtrl && (key === 's' || key === 'س' || code === 'KeyS' || e.keyCode === 83);
-    // منع الطباعة Ctrl + P
     const isPrint = isCtrl && (key === 'p' || key === 'ح' || code === 'KeyP' || e.keyCode === 80);
-    // منع عرض السورس Ctrl + U
     const isViewSource = isCtrl && (key === 'u' || key === 'ع' || code === 'KeyU' || e.keyCode === 85);
-    // منع فحص العنصر F12 أو Ctrl + Shift + I/J/C
     const isDevTools = e.key === 'F12' || (isCtrl && e.shiftKey && ['i', 'j', 'c', 'I', 'J', 'C'].includes(e.key));
 
     if (isSave || isPrint || isViewSource || isDevTools) {
@@ -154,17 +147,31 @@ async function checkAuthWithRetry() {
 
 async function loadUsers(){
   msg.textContent = '';
-  const { data, error } = await sb.from('profiles').select('id,email,status,role,created_at').order('created_at',{ascending:true});
+  // جلب حقل last_seen لمعرفة حالة الاتصال
+  const { data, error } = await sb.from('profiles').select('id,email,status,role,created_at,last_seen').order('created_at',{ascending:true});
   if(error){ msg.style.color='#ff9b9b'; msg.textContent='Failed to load user accounts.'; return; }
   
   users.innerHTML='';
+  const now = new Date();
+
   (data||[]).forEach(u=>{
     const tr=document.createElement('tr');
+    
+    // حساب حالة الاتصال (أونلاين إذا كان التحديث خلال آخر دقيقتين)
+    let onlineStatus = '<span style="color:#9299aa">⚪ Offline</span>';
+    if (u.last_seen) {
+      const diffMinutes = (now - new Date(u.last_seen)) / (1000 * 60);
+      if (diffMinutes <= 2) {
+        onlineStatus = '<span style="color:#7ee2a8; font-weight:bold;">🟢 Online</span>';
+      }
+    }
+
     const actions = u.role==='admin' ? '<span class="muted">System Admin</span>' :
       (u.status==='pending' ? `<button class="approve" data-id="${u.id}" data-status="approved">Approve</button>
        <button class="reject" data-id="${u.id}" data-status="rejected">Reject</button>` :
        `<button data-id="${u.id}" data-status="${u.status==='approved'?'disabled':'approved'}">${u.status==='approved'?'Disable':'Enable'}</button>`);
-    tr.innerHTML=`<td>${esc(u.email)}</td><td><span class="badge">${esc(u.status)}</span></td><td>${esc(u.role)}</td><td>${new Date(u.created_at).toLocaleString()}</td><td>${actions}</td>`;
+       
+    tr.innerHTML=`<td>${esc(u.email)}</td><td>${onlineStatus}</td><td><span class="badge">${esc(u.status)}</span></td><td>${esc(u.role)}</td><td>${new Date(u.created_at).toLocaleString()}</td><td>${actions}</td>`;
     users.appendChild(tr);
   });
   
@@ -178,7 +185,6 @@ async function loadUsers(){
   });
 }
 
-// Excel upload with strict row ordering (row_order)
 uploadExcelBtn.addEventListener('click', async () => {
   const fileInput = document.getElementById('excelFile');
   if (!fileInput.files.length) {
@@ -244,7 +250,6 @@ uploadExcelBtn.addEventListener('click', async () => {
   reader.readAsArrayBuffer(file);
 });
 
-// Add single canned item
 addCannedForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   addBtn.disabled = true;
