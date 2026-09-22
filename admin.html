@@ -122,7 +122,15 @@ async function checkAuthWithRetry() {
     msg.style.color = '#7ee2a8';
     msg.textContent = 'Verifying session and permissions...';
 
-    let { data: { session }, error: sessErr } = await sb.auth.getSession();
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Connection timeout - Please check your internet or Supabase project status.')), 6000)
+    );
+
+    const sessionPromise = sb.auth.getSession();
+    let res = await Promise.race([sessionPromise, timeoutPromise]);
+    let session = res.data.session;
+    let sessErr = res.error;
+
     if (sessErr) throw sessErr;
 
     if (!session) {
@@ -132,7 +140,11 @@ async function checkAuthWithRetry() {
       return;
     }
 
-    const { data: me, error: meErr } = await sb.from('profiles').select('role,status').eq('id', session.user.id).maybeSingle();
+    msg.textContent = 'Checking admin permissions...';
+    const profilePromise = sb.from('profiles').select('role,status').eq('id', session.user.id).maybeSingle();
+    let profileRes = await Promise.race([profilePromise, timeoutPromise]);
+    let me = profileRes.data;
+    let meErr = profileRes.error;
 
     if (meErr) throw meErr;
 
@@ -141,10 +153,21 @@ async function checkAuthWithRetry() {
       return;
     }
 
-    // إرسال نبضة نشاط فورية للأدمن وجدولة التحديث
-    sb.rpc('update_last_seen').catch(e => console.error(e));
-    setInterval(() => {
-      sb.rpc('update_last_seen').catch(e => console.error(e));
+    msg.textContent = 'Verified! Loading dashboard...';
+
+    // إرسال نبضة نشاط فورية للأدمن وجدولة التحديث بطريقة سليمة وآمنة
+    try {
+      await sb.rpc('update_last_seen');
+    } catch (e) {
+      console.error(e);
+    }
+
+    setInterval(async () => {
+      try {
+        await sb.rpc('update_last_seen');
+      } catch (e) {
+        console.error(e);
+      }
     }, 20000);
 
     loadUsers();
@@ -152,7 +175,7 @@ async function checkAuthWithRetry() {
   } catch (err) {
     console.error(err);
     msg.style.color = '#ff9b9b';
-    msg.textContent = 'Auth Error: ' + err.message;
+    msg.textContent = '❌ Error: ' + err.message;
   }
 }
 
