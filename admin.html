@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Canned Tool — Admin Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 body{margin:0;background:#0d1020;color:#eee;font-family:Arial,sans-serif;padding:28px;direction:rtl}
 .wrap{max-width:1000px;margin:auto}
@@ -29,12 +30,22 @@ textarea.form-control{resize:vertical;min-height:90px}
 <body>
 <div class="wrap">
   <h1>Canned Tool Admin</h1>
-  <div class="sub">لوحة إدارة الحسابات وإضافة الردود الجاهزة</div>
+  <div class="sub">لوحة إدارة الحسابات والردود الجاهزة</div>
   <div id="msg"></div>
 
-  <!-- قسم إضافة كاند جديدة -->
+  <!-- قسم رفع ملف الإكسيل مباشرة -->
+  <div class="card" style="border: 1px dashed #b18cff;">
+    <h3>📊 رفع ملف الإكسيل (تحديث جميع الكندات تلقائياً)</h3>
+    <p style="font-size: 12px; color: #9da5b5; margin-top: 0;">اختر ملف `candat_data.xlsx` لتحديث القاعدة بالكامل بضغطة زر واحدة بدون SQL.</p>
+    <div class="form-group">
+      <input type="file" id="excelFile" class="form-control" accept=".xlsx, .xls">
+    </div>
+    <button type="button" id="uploadExcelBtn" class="primary-btn" style="background: linear-gradient(135deg,#6fe3d9,#b18cff);">قراءة ورفع الردود لقاعدة البيانات 🚀</button>
+  </div>
+
+  <!-- قسم إضافة كاند فردية جديدة -->
   <div class="card">
-    <h3>➕ إضافة كاند جديدة لقاعدة البيانات</h3>
+    <h3>➕ إضافة كاند فردية جديدة</h3>
     <form id="addCannedForm">
       <div class="form-group">
         <label for="sheetName">اسم الشيت (القسم)</label>
@@ -48,7 +59,7 @@ textarea.form-control{resize:vertical;min-height:90px}
         <label for="cannedContent">نص الرد الجاهز (Content)</label>
         <textarea id="cannedContent" class="form-control" placeholder="اكتب نص الكند هنا..." required></textarea>
       </div>
-      <button type="submit" id="addBtn" class="primary-btn">حفظ وإضافة الكند 🚀</button>
+      <button type="submit" id="addBtn" class="primary-btn">حفظ وإضافة الكند الفردي</button>
     </form>
   </div>
 
@@ -70,31 +81,38 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const users = document.getElementById('users'), msg = document.getElementById('msg');
 const addCannedForm = document.getElementById('addCannedForm');
 const addBtn = document.getElementById('addBtn');
+const uploadExcelBtn = document.getElementById('uploadExcelBtn');
 
-// استخدام الـ listener الآمن لجلسات Supabase لمنع مشاكل التحويل المفاجئ
-sb.auth.onAuthStateChange(async (event, session) => {
+async function checkAuthWithRetry() {
+  msg.style.color = '#7ee2a8';
+  msg.textContent = 'جارٍ التحقق من الجلسة والصلاحيات...';
+
+  let { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    await new Promise(resolve => setTimeout(resolve, 600));
+    let retry = await sb.auth.getSession();
+    session = retry.data.session;
+  }
+
   if (!session) {
     msg.style.color = '#ff9b9b';
-    msg.textContent = 'غير مسجل دخول، جاري التحويل لصفحة الدخول...';
-    setTimeout(() => { location.href = 'index.html'; }, 1000);
+    msg.textContent = 'غير مسجل دخول، جاري التوجيه لصفحة تسجيل الدخول...';
+    setTimeout(() => { location.href = 'index.html'; }, 1200);
     return;
   }
 
-  // التحقق من صلاحيات الأدمن
   const { data: me, error: meErr } = await sb.from('profiles').select('role,status').eq('id', session.user.id).single();
-  
+
   if (meErr || !me || me.role !== 'admin') {
     document.body.innerHTML = '<h2 style="text-align:center;margin-top:50px;color:#ff9b9b">Access denied — غير مصرح لك بدخول لوحة الإدارة</h2>';
     return;
   }
 
   loadUsers();
-});
+}
 
 async function loadUsers(){
-  msg.style.color = '#7ee2a8';
   msg.textContent = '';
-  
   const { data, error } = await sb.from('profiles').select('id,email,status,role,created_at').order('created_at',{ascending:true});
   if(error){ msg.style.color='#ff9b9b'; msg.textContent='فشل في تحميل حسابات المستخدمين.'; return; }
   
@@ -119,12 +137,76 @@ async function loadUsers(){
   });
 }
 
-// إضافة كاند جديدة مباشرة لقاعدة البيانات
+// ميزة رفع ملف الإكسيل ومعالجته تلقائياً وتحديث قاعدة البيانات
+uploadExcelBtn.addEventListener('click', async () => {
+  const fileInput = document.getElementById('excelFile');
+  if (!fileInput.files.length) {
+    msg.style.color = '#ff9b9b';
+    msg.textContent = '⚠️ الرجاء اختيار ملف إكسيل أولاً.';
+    return;
+  }
+
+  const file = fileInput.files[0];
+  uploadExcelBtn.disabled = true;
+  msg.style.color = '#7ee2a8';
+  msg.textContent = '📊 جارٍ قراءة ملف الإكسيل...';
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      
+      let allItems = [];
+      wb.SheetNames.forEach(sheetName => {
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { header: 1 });
+        for (let i = 1; i < rows.length; i++) {
+          const r = rows[i];
+          if (r && r[0] && r[1]) {
+            allItems.push({
+              sheet_name: sheetName,
+              title: String(r[0]),
+              content: String(r[1]),
+              reference_url: r[2] ? String(r[2]) : null,
+              click_count: r[3] ? Number(r[3]) : 0
+            });
+          }
+        }
+      });
+
+      msg.textContent = `🔄 جارٍ مسح الردود القديمة ورفع ${allItems.length} كاند جديدة لقاعدة البيانات...`;
+      
+      // تفريغ الجدول القديم تماماً لتجنب التكرار
+      await sb.from('canned_items').delete().neq('id', 0);
+
+      // رفع البيانات على دفعات (كل 100 صف) لتفادي حدود الطلبات
+      const chunkSize = 100;
+      for (let i = 0; i < allItems.length; i += chunkSize) {
+        const chunk = allItems.slice(i, i + chunkSize);
+        const { error: insertErr } = await sb.from('canned_items').insert(chunk);
+        if (insertErr) throw insertErr;
+      }
+
+      msg.style.color = '#7ee2a8';
+      msg.textContent = `✨ تم رفع وتحديث جميع الردود (${allItems.length} كاند موزعة على الشيتات) بنجاح تام!`;
+      fileInput.value = '';
+    } catch (err) {
+      console.error(err);
+      msg.style.color = '#ff9b9b';
+      msg.textContent = '❌ حدث خطأ أثناء معالجة الملف: ' + err.message;
+    } finally {
+      uploadExcelBtn.disabled = false;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+// إضافة كاند فردية جديدة مباشرة لقاعدة البيانات
 addCannedForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   addBtn.disabled = true;
   msg.style.color = '#7ee2a8';
-  msg.textContent = 'جارٍ إضافة الكند لقاعدة البيانات...';
+  msg.textContent = 'جارٍ إضافة الكند...';
 
   const sheet_name = document.getElementById('sheetName').value.trim();
   const title = document.getElementById('cannedTitle').value.trim();
@@ -144,6 +226,8 @@ addCannedForm.addEventListener('submit', async (e) => {
 });
 
 function esc(v){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+
+window.addEventListener('DOMContentLoaded', checkAuthWithRetry);
 </script>
 </body>
 </html>
