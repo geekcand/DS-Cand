@@ -36,7 +36,7 @@ textarea.form-control{resize:vertical;min-height:90px}
 
   <!-- قسم رفع ملف الإكسيل مع الحفاظ على الترتيب الدقيق -->
   <div class="card" style="border: 1px dashed #b18cff;">
-    <h3>📊 رفع ملف الإكسيل (تحديث الشيتات والكندات بنفس الترتيب 100%)</h3>
+    <h3>📊 رفع ملف الإكسيل (تحديث الشيتات والكاندات بنفس الترتيب 100%)</h3>
     <p style="font-size: 12px; color: #9da5b5; margin-top: 0;">اختر ملف الإكسيل لتحديث القاعدة بالكامل مع الحفاظ التام على تسلسل الصفوف والترتيب الأصلي.</p>
     <div class="form-group">
       <input type="file" id="excelFile" class="form-control" accept=".xlsx, .xls">
@@ -53,14 +53,14 @@ textarea.form-control{resize:vertical;min-height:90px}
         <input type="text" id="sheetName" class="form-control" placeholder="مثال: Sales DSL أو Chatting & Idle" required>
       </div>
       <div class="form-group">
-        <label for="cannedTitle">عنوان الكند</label>
+        <label for="cannedTitle">عنوان الكاند</label>
         <input type="text" id="cannedTitle" class="form-control" placeholder="مثال: الباقات الأساسية" required>
       </div>
       <div class="form-group">
         <label for="cannedContent">نص الرد الجاهز (Content)</label>
-        <textarea id="cannedContent" class="form-control" placeholder="اكتب نص الكند هنا..." required></textarea>
+        <textarea id="cannedContent" class="form-control" placeholder="اكتب نص الكاند هنا..." required></textarea>
       </div>
-      <button type="submit" id="addBtn" class="primary-btn">حفظ وإضافة الكند الفردي</button>
+      <button type="submit" id="addBtn" class="primary-btn">حفظ وإضافة الكاند الفردي</button>
     </form>
   </div>
 
@@ -193,7 +193,7 @@ uploadExcelBtn.addEventListener('click', async () => {
       }
 
       msg.style.color = '#7ee2a8';
-      msg.textContent = `✨ تمت عملية الرفع بنجاح تام! الكندات مرتبطة الآن بنفس ترتيب الإكسيل الحرفي (${allItems.length} رد).`;
+      msg.textContent = `✨ تمت عملية الرفع بنجاح تام! الكاندات مرتبطة الآن بنفس ترتيب الإكسيل الحرفي (${allItems.length} رد).`;
       fileInput.value = '';
     } catch (err) {
       console.error(err);
@@ -211,7 +211,7 @@ addCannedForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   addBtn.disabled = true;
   msg.style.color = '#7ee2a8';
-  msg.textContent = 'جارٍ إضافة الكند...';
+  msg.textContent = 'جارٍ إضافة الكاند...';
 
   const sheet_name = document.getElementById('sheetName').value.trim();
   const title = document.getElementById('cannedTitle').value.trim();
@@ -225,7 +225,7 @@ addCannedForm.addEventListener('submit', async (e) => {
     msg.textContent = 'خطأ أثناء الإضافة: ' + error.message;
   } else {
     msg.style.color = '#7ee2a8';
-    msg.textContent = 'تم إضافة الكند بنجاح وأصبح متاحاً في الأداة فوراً! 🌟';
+    msg.textContent = 'تم إضافة الكاند بنجاح وأصبح متاحاً في الأداة فوراً! 🌟';
     addCannedForm.reset();
   }
 });
