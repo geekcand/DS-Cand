@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -8,12 +8,12 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
-body{margin:0;background:#0d1020;color:#eee;font-family:Arial,sans-serif;padding:28px;direction:rtl}
+body{margin:0;background:#0d1020;color:#eee;font-family:Arial,sans-serif;padding:28px;direction:ltr}
 .wrap{max-width:1000px;margin:auto}
 h1{margin:0 0 6px}.sub{color:#9da5b5;margin-bottom:22px}
 .card{background:#151a2c;border:1px solid #29304a;border-radius:14px;padding:18px;margin-bottom:16px}
 h3{margin-top:0;color:#7ee2a8;font-size:16px}
-table{width:100%;border-collapse:collapse}th,td{text-align:right;padding:11px 8px;border-bottom:1px solid #272d42;font-size:14px}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:11px 8px;border-bottom:1px solid #272d42;font-size:14px}
 .badge{padding:4px 8px;border-radius:8px;background:#252b40}
 button{border:0;border-radius:8px;padding:8px 14px;cursor:pointer;margin-right:5px;font-family:inherit;font-weight:bold}
 .approve{background:#173d2d;color:#7ee2a8}.reject{background:#482126;color:#ff9b9b}
@@ -31,45 +31,45 @@ textarea.form-control{resize:vertical;min-height:90px}
 <body>
 <div class="wrap">
   <h1>Canned Tool Admin</h1>
-  <div class="sub">لوحة إدارة الحسابات والردود الجاهزة</div>
+  <div class="sub">User management and canned responses dashboard</div>
   <div id="msg"></div>
 
-  <!-- قسم رفع ملف الإكسيل مع الحفاظ على الترتيب الدقيق -->
+  <!-- Excel Upload Card with Exact Row Ordering -->
   <div class="card" style="border: 1px dashed #b18cff;">
-    <h3>📊 رفع ملف الإكسيل (تحديث الشيتات والكاندات بنفس الترتيب 100%)</h3>
-    <p style="font-size: 12px; color: #9da5b5; margin-top: 0;">اختر ملف الإكسيل لتحديث القاعدة بالكامل مع الحفاظ التام على تسلسل الصفوف والترتيب الأصلي.</p>
+    <h3>📊 Excel Upload (Update sheets & responses with 100% exact order)</h3>
+    <p style="font-size: 12px; color: #9da5b5; margin-top: 0;">Select the Excel file to fully update the database while keeping the exact original row sequence.</p>
     <div class="form-group">
       <input type="file" id="excelFile" class="form-control" accept=".xlsx, .xls">
     </div>
-    <button type="button" id="uploadExcelBtn" class="primary-btn" style="background: linear-gradient(135deg,#6fe3d9,#b18cff);">قراءة ورفع الردود بدقة متناهية 🚀</button>
+    <button type="button" id="uploadExcelBtn" class="primary-btn" style="background: linear-gradient(135deg,#6fe3d9,#b18cff);">Read & Upload Responses with High Precision 🚀</button>
   </div>
 
-  <!-- قسم إضافة كاند  -->
+  <!-- Add Single Canned Item Card -->
   <div class="card">
-    <h3>➕ إضافة كاند</h3>
+    <h3>➕ Add Single Canned Item</h3>
     <form id="addCannedForm">
       <div class="form-group">
-        <label for="sheetName">اسم الشيت (القسم)</label>
-        <input type="text" id="sheetName" class="form-control" placeholder="مثال: Sales DSL أو Chatting & Idle" required>
+        <label for="sheetName">Sheet Name (Department)</label>
+        <input type="text" id="sheetName" class="form-control" placeholder="e.g. Sales DSL or Chatting & Idle" required>
       </div>
       <div class="form-group">
-        <label for="cannedTitle">عنوان الكاند</label>
-        <input type="text" id="cannedTitle" class="form-control" placeholder="مثال: الباقات الأساسية" required>
+        <label for="cannedTitle">Canned Title</label>
+        <input type="text" id="cannedTitle" class="form-control" placeholder="e.g. Basic Packages" required>
       </div>
       <div class="form-group">
-        <label for="cannedContent">نص الرد الجاهز (Content)</label>
-        <textarea id="cannedContent" class="form-control" placeholder="اكتب نص الكاند هنا..." required></textarea>
+        <label for="cannedContent">Response Content</label>
+        <textarea id="cannedContent" class="form-control" placeholder="Type canned content here..." required></textarea>
       </div>
-      <button type="submit" id="addBtn" class="primary-btn">حفظ وإضافة الكاند </button>
+      <button type="submit" id="addBtn" class="primary-btn">Save & Add Canned Item</button>
     </form>
   </div>
 
-  <!-- قسم إدارة المستخدمين -->
+  <!-- Users Management Card -->
   <div class="card">
-    <h3>👥 إدارة صلاحيات المستخدمين</h3>
+    <h3>👥 User Permissions Management</h3>
     <table>
-      <thead><tr><th>البريد الإلكتروني</th><th>الحالة</th><th>الدور</th><th>تاريخ الإنشاء</th><th>الإجراء</th></tr></thead>
-      <tbody id="users"><tr><td colspan="5" class="muted">جارٍ التحميل…</td></tr></tbody>
+      <thead><tr><th>Email</th><th>Status</th><th>Role</th><th>Created At</th><th>Actions</th></tr></thead>
+      <tbody id="users"><tr><td colspan="5" class="muted">Loading…</td></tr></tbody>
     </table>
   </div>
 </div>
@@ -86,7 +86,7 @@ const uploadExcelBtn = document.getElementById('uploadExcelBtn');
 
 async function checkAuthWithRetry() {
   msg.style.color = '#7ee2a8';
-  msg.textContent = 'جارٍ التحقق من الجلسة والصلاحيات...';
+  msg.textContent = 'Verifying session and permissions...';
 
   let { data: { session } } = await sb.auth.getSession();
   if (!session) {
@@ -97,7 +97,7 @@ async function checkAuthWithRetry() {
 
   if (!session) {
     msg.style.color = '#ff9b9b';
-    msg.textContent = 'غير مسجل دخول، جاري التوجيه لصفحة تسجيل الدخول...';
+    msg.textContent = 'Not logged in, redirecting to login page...';
     setTimeout(() => { location.href = 'index.html'; }, 1200);
     return;
   }
@@ -105,7 +105,7 @@ async function checkAuthWithRetry() {
   const { data: me, error: meErr } = await sb.from('profiles').select('role,status').eq('id', session.user.id).single();
 
   if (meErr || !me || me.role !== 'admin') {
-    document.body.innerHTML = '<h2 style="text-align:center;margin-top:50px;color:#ff9b9b">Access denied — غير مصرح لك بدخول لوحة الإدارة</h2>';
+    document.body.innerHTML = '<h2 style="text-align:center;margin-top:50px;color:#ff9b9b">Access denied — You are not authorized to view this admin panel</h2>';
     return;
   }
 
@@ -115,15 +115,15 @@ async function checkAuthWithRetry() {
 async function loadUsers(){
   msg.textContent = '';
   const { data, error } = await sb.from('profiles').select('id,email,status,role,created_at').order('created_at',{ascending:true});
-  if(error){ msg.style.color='#ff9b9b'; msg.textContent='فشل في تحميل حسابات المستخدمين.'; return; }
+  if(error){ msg.style.color='#ff9b9b'; msg.textContent='Failed to load user accounts.'; return; }
   
   users.innerHTML='';
   (data||[]).forEach(u=>{
     const tr=document.createElement('tr');
-    const actions = u.role==='admin' ? '<span class="muted">أدمن النظام</span>' :
-      (u.status==='pending' ? `<button class="approve" data-id="${u.id}" data-status="approved">موافقة</button>
-       <button class="reject" data-id="${u.id}" data-status="rejected">رفض</button>` :
-       `<button data-id="${u.id}" data-status="${u.status==='approved'?'disabled':'approved'}">${u.status==='approved'?'تعطيل':'تفعيل'}</button>`);
+    const actions = u.role==='admin' ? '<span class="muted">System Admin</span>' :
+      (u.status==='pending' ? `<button class="approve" data-id="${u.id}" data-status="approved">Approve</button>
+       <button class="reject" data-id="${u.id}" data-status="rejected">Reject</button>` :
+       `<button data-id="${u.id}" data-status="${u.status==='approved'?'disabled':'approved'}">${u.status==='approved'?'Disable':'Enable'}</button>`);
     tr.innerHTML=`<td>${esc(u.email)}</td><td><span class="badge">${esc(u.status)}</span></td><td>${esc(u.role)}</td><td>${new Date(u.created_at).toLocaleString()}</td><td>${actions}</td>`;
     users.appendChild(tr);
   });
@@ -131,26 +131,26 @@ async function loadUsers(){
   document.querySelectorAll('[data-id]').forEach(b=>b.onclick=async()=>{
     b.disabled=true;
     const {error}=await sb.rpc('set_user_status',{target_user_id:b.dataset.id,new_status:b.dataset.status});
-    if(error){msg.style.color='#ff9b9b'; msg.textContent='فشل تحديث حالة الحساب.'; b.disabled=false; return;}
+    if(error){msg.style.color='#ff9b9b'; msg.textContent='Failed to update user status.'; b.disabled=false; return;}
     msg.style.color='#7ee2a8';
-    msg.textContent='تم تحديث حالة الحساب بنجاح.';
+    msg.textContent='User status updated successfully.';
     loadUsers();
   });
 }
 
-// رفع الإكسيل مع تسجيل الترتيب الدقيق (row_order)
+// Excel upload with strict row ordering (row_order)
 uploadExcelBtn.addEventListener('click', async () => {
   const fileInput = document.getElementById('excelFile');
   if (!fileInput.files.length) {
     msg.style.color = '#ff9b9b';
-    msg.textContent = '⚠️ الرجاء اختيار ملف إكسيل أولاً.';
+    msg.textContent = '⚠️ Please select an Excel file first.';
     return;
   }
 
   const file = fileInput.files[0];
   uploadExcelBtn.disabled = true;
   msg.style.color = '#7ee2a8';
-  msg.textContent = '📊 جارٍ قراءة ملف الإكسيل...';
+  msg.textContent = '📊 Reading Excel file...';
 
   const reader = new FileReader();
   reader.onload = async (e) => {
@@ -159,7 +159,7 @@ uploadExcelBtn.addEventListener('click', async () => {
       const wb = XLSX.read(data, { type: 'array' });
       
       let allItems = [];
-      let globalIndex = 0; // عداد لحفظ التسلسل والترتيب الأصلي بدقة
+      let globalIndex = 0;
 
       wb.SheetNames.forEach(sheetName => {
         const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { header: 1 });
@@ -173,18 +173,16 @@ uploadExcelBtn.addEventListener('click', async () => {
               content: String(r[1]),
               reference_url: r[2] ? String(r[2]) : null,
               click_count: r[3] ? Number(r[3]) : 0,
-              row_order: globalIndex // حفظ رقم الترتيب الدقيق للإكسيل
+              row_order: globalIndex
             });
           }
         }
       });
 
-      msg.textContent = `🔄 جارٍ تحديث الردود وحفظ الترتيب الدقيق لـ ${allItems.length} كاند...`;
+      msg.textContent = `🔄 Updating responses and preserving exact order for ${allItems.length} items...`;
       
-      // تفريغ الجدول القديم لتجنب التكرار
       await sb.from('canned_items').delete().neq('id', 0);
 
-      // رفع البيانات على دفعات (كل 100 صف)
       const chunkSize = 100;
       for (let i = 0; i < allItems.length; i += chunkSize) {
         const chunk = allItems.slice(i, i + chunkSize);
@@ -193,12 +191,12 @@ uploadExcelBtn.addEventListener('click', async () => {
       }
 
       msg.style.color = '#7ee2a8';
-      msg.textContent = `✨ تمت عملية الرفع بنجاح تام! الكاندات مرتبطة الآن بنفس ترتيب الإكسيل الحرفي (${allItems.length} رد).`;
+      msg.textContent = `✨ Upload completed successfully! Responses are now synced with exact Excel ordering (${allItems.length} items).`;
       fileInput.value = '';
     } catch (err) {
       console.error(err);
       msg.style.color = '#ff9b9b';
-      msg.textContent = '❌ حدث خطأ أثناء معالجة الملف: ' + err.message;
+      msg.textContent = '❌ Error processing file: ' + err.message;
     } finally {
       uploadExcelBtn.disabled = false;
     }
@@ -206,12 +204,12 @@ uploadExcelBtn.addEventListener('click', async () => {
   reader.readAsArrayBuffer(file);
 });
 
-// إضافة كاند فردية جديدة
+// Add single canned item
 addCannedForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   addBtn.disabled = true;
   msg.style.color = '#7ee2a8';
-  msg.textContent = 'جارٍ إضافة الكاند...';
+  msg.textContent = 'Adding canned item...';
 
   const sheet_name = document.getElementById('sheetName').value.trim();
   const title = document.getElementById('cannedTitle').value.trim();
@@ -222,10 +220,10 @@ addCannedForm.addEventListener('submit', async (e) => {
   addBtn.disabled = false;
   if(error){
     msg.style.color = '#ff9b9b';
-    msg.textContent = 'خطأ أثناء الإضافة: ' + error.message;
+    msg.textContent = 'Error adding item: ' + error.message;
   } else {
     msg.style.color = '#7ee2a8';
-    msg.textContent = 'تم إضافة الكاند بنجاح وأصبح متاحاً في الأداة فوراً! 🌟';
+    msg.textContent = 'Canned item added successfully and now available in the tool! 🌟';
     addCannedForm.reset();
   }
 });
