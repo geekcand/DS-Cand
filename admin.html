@@ -143,25 +143,26 @@ async function checkAuthWithRetry() {
   }
 
   loadUsers();
+  
+  // تحديث جدول المستخدمين تلقائياً كل 15 ثانية
+  setInterval(loadUsers, 15000);
 }
 
 async function loadUsers(){
-  msg.textContent = '';
-  // جلب حقل last_seen لمعرفة حالة الاتصال
   const { data, error } = await sb.from('profiles').select('id,email,status,role,created_at,last_seen').order('created_at',{ascending:true});
   if(error){ msg.style.color='#ff9b9b'; msg.textContent='Failed to load user accounts.'; return; }
   
   users.innerHTML='';
-  const now = new Date();
+  const now = Date.now();
 
   (data||[]).forEach(u=>{
     const tr=document.createElement('tr');
     
-    // حساب حالة الاتصال (أونلاين إذا كان التحديث خلال آخر دقيقتين)
+    // تم رفع نافذة الأمان إلى 6 دقائق لتفادي تأثير تقييد التابات الخلفية في المتصفحات
     let onlineStatus = '<span style="color:#9299aa">⚪ Offline</span>';
     if (u.last_seen) {
-      const diffMinutes = (now - new Date(u.last_seen)) / (1000 * 60);
-      if (diffMinutes <= 2) {
+      const diffMinutes = (now - new Date(u.last_seen).getTime()) / (1000 * 60);
+      if (diffMinutes <= 6) {
         onlineStatus = '<span style="color:#7ee2a8; font-weight:bold;">🟢 Online</span>';
       }
     }
