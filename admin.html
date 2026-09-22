@@ -118,43 +118,47 @@ const addBtn = document.getElementById('addBtn');
 const uploadExcelBtn = document.getElementById('uploadExcelBtn');
 
 async function checkAuthWithRetry() {
-  msg.style.color = '#7ee2a8';
-  msg.textContent = 'Verifying session and permissions...';
+  try {
+    msg.style.color = '#7ee2a8';
+    msg.textContent = 'Verifying session and permissions...';
 
-  let { data: { session } } = await sb.auth.getSession();
-  if (!session) {
-    await new Promise(resolve => setTimeout(resolve, 600));
-    let retry = await sb.auth.getSession();
-    session = retry.data.session;
-  }
+    let { data: { session }, error: sessErr } = await sb.auth.getSession();
+    if (sessErr) throw sessErr;
 
-  if (!session) {
-    msg.style.color = '#ff9b9b';
-    msg.textContent = 'Not logged in, redirecting to login page...';
-    setTimeout(() => { location.href = 'index.html'; }, 1200);
-    return;
-  }
+    if (!session) {
+      msg.style.color = '#ff9b9b';
+      msg.textContent = 'Not logged in, redirecting to login page...';
+      setTimeout(() => { location.href = 'index.html'; }, 1200);
+      return;
+    }
 
-  const { data: me, error: meErr } = await sb.from('profiles').select('role,status').eq('id', session.user.id).single();
+    const { data: me, error: meErr } = await sb.from('profiles').select('role,status').eq('id', session.user.id).maybeSingle();
 
-  if (meErr || !me || me.role !== 'admin') {
-    document.body.innerHTML = '<h2 style="text-align:center;margin-top:50px;color:#ff9b9b">Access denied — You are not authorized to view this admin panel</h2>';
-    return;
-  }
+    if (meErr) throw meErr;
 
-  // إرسال نبضة نشاط فورية للأدمن وجدولة التحديث
-  sb.rpc('update_last_seen').catch(e => console.error(e));
-  setInterval(() => {
+    if (!me || me.role !== 'admin') {
+      document.body.innerHTML = '<h2 style="text-align:center;margin-top:50px;color:#ff9b9b">Access denied — You are not authorized to view this admin panel</h2>';
+      return;
+    }
+
+    // إرسال نبضة نشاط فورية للأدمن وجدولة التحديث
     sb.rpc('update_last_seen').catch(e => console.error(e));
-  }, 20000);
+    setInterval(() => {
+      sb.rpc('update_last_seen').catch(e => console.error(e));
+    }, 20000);
 
-  loadUsers();
-  setInterval(loadUsers, 15000);
+    loadUsers();
+    setInterval(loadUsers, 15000);
+  } catch (err) {
+    console.error(err);
+    msg.style.color = '#ff9b9b';
+    msg.textContent = 'Auth Error: ' + err.message;
+  }
 }
 
 async function loadUsers(){
   const { data, error } = await sb.from('profiles').select('id,email,status,role,created_at,last_seen').order('created_at',{ascending:true});
-  if(error){ msg.style.color='#ff9b9b'; msg.textContent='Failed to load user accounts.'; return; }
+  if(error){ msg.style.color='#ff9b9b'; msg.textContent='Failed to load user accounts: ' + error.message; return; }
   
   users.innerHTML='';
   const now = Date.now();
