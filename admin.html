@@ -75,22 +75,44 @@ textarea.form-control{resize:vertical;min-height:90px}
 </div>
 
 <script>
-// تعطيل الزر الأيمن للماوس
-window.addEventListener('contextmenu', function(e) {
-  e.preventDefault();
-  return false;
+// إيقاف الزر الأيمن للماوس بشكل صارم في جميع مراحل الحدث
+['contextmenu'].forEach(evt => {
+  window.addEventListener(evt, e => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    return false;
+  }, { capture: true });
 });
 
-// تعطيل اختصارات الحفظ (Ctrl + S) والطباعة وعرض المصدر
-window.addEventListener('keydown', function(e) {
-  if (
-    (e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S' || e.key === 'p' || e.key === 'P' || e.key === 'u' || e.key === 'U') ||
-    e.key === 'F12' ||
-    ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c'))
-  ) {
-    e.preventDefault();
-    return false;
-  }
+// إيقاف Ctrl+S و F12 والطباعة والمصدر سواء كانت لوحة المفاتيح عربي أو إنجليزي
+['keydown', 'keypress'].forEach(evt => {
+  window.addEventListener(evt, e => {
+    const isCtrl = e.ctrlKey || e.metaKey;
+    const key = (e.key || '').toLowerCase();
+    const code = e.code || '';
+    
+    // منع الحفظ Ctrl + S
+    const isSave = isCtrl && (key === 's' || key === 'س' || code === 'KeyS' || e.keyCode === 83);
+    // منع الطباعة Ctrl + P
+    const isPrint = isCtrl && (key === 'p' || key === 'ح' || code === 'KeyP' || e.keyCode === 80);
+    // منع عرض السورس Ctrl + U
+    const isViewSource = isCtrl && (key === 'u' || key === 'ع' || code === 'KeyU' || e.keyCode === 85);
+    // منع فحص العنصر F12 أو Ctrl + Shift + I/J/C
+    const isDevTools = e.key === 'F12' || (isCtrl && e.shiftKey && ['i', 'j', 'c', 'I', 'J', 'C'].includes(e.key));
+
+    if (isSave || isPrint || isViewSource || isDevTools) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      return false;
+    }
+  }, { capture: true });
+});
+
+window.addEventListener('beforeprint', e => {
+  e.preventDefault();
+  return false;
 });
 
 const SUPABASE_URL = 'https://jdvkzdorjthljhwqmvmn.supabase.co';
