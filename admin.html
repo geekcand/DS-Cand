@@ -123,7 +123,7 @@ async function checkAuthWithRetry() {
     msg.textContent = 'Verifying session and permissions...';
 
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Connection timeout - Please check your internet or Supabase project status.')), 6000)
+      setTimeout(() => reject(new Error('Connection timeout - Please check your internet.')), 6000)
     );
 
     const sessionPromise = sb.auth.getSession();
@@ -155,7 +155,7 @@ async function checkAuthWithRetry() {
 
     msg.textContent = 'Verified! Loading dashboard...';
 
-    // إرسال نبضة نشاط فورية للأدمن وجدولة التحديث بطريقة سليمة وآمنة
+    // إرسال نبضة نشاط فورية للأدمن وجدولة التحديث بطريقة آمنة وخالية من الأخطاء
     try {
       await sb.rpc('update_last_seen');
     } catch (e) {
