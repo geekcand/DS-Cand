@@ -153,9 +153,7 @@ async function checkAuthWithRetry() {
       return;
     }
 
-    msg.textContent = 'Verified! Loading dashboard...';
-
-    // إرسال نبضة نشاط فورية للأدمن وجدولة التحديث بطريقة آمنة وخالية من الأخطاء
+    // إرسال نبضة نشاط فورية للأدمن وجدولة التحديث
     try {
       await sb.rpc('update_last_seen');
     } catch (e) {
@@ -171,6 +169,7 @@ async function checkAuthWithRetry() {
     }, 20000);
 
     loadUsers();
+    msg.textContent = ''; // مسح رسالة التحميل فوراً هنا لتصبح الشاشة نظيفة
     setInterval(loadUsers, 15000);
   } catch (err) {
     console.error(err);
@@ -183,6 +182,7 @@ async function loadUsers(){
   const { data, error } = await sb.from('profiles').select('id,email,status,role,created_at,last_seen').order('created_at',{ascending:true});
   if(error){ msg.style.color='#ff9b9b'; msg.textContent='Failed to load user accounts: ' + error.message; return; }
   
+  msg.textContent = '';
   users.innerHTML='';
   const now = Date.now();
 
