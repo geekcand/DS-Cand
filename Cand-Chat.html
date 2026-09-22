@@ -837,15 +837,17 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="cmd">انسخ ↗</span>
         </div>`;
       card.addEventListener('click', () => {
-        copyText(item.content);
+        // إعادة إدراج الـ p&nbsp; بین السطور لتتوافق مع نظام شات الشركة
+        const contentToCopy = item.content.replace(/\n/g, "\n<p>&nbsp;</p>\n");
+        copyText(contentToCopy);
         playClick();
         const footer = card.querySelector('.card-footer');
         const original = footer.getAttribute('data-original-text');
         footer.innerHTML = ' تم النسخ ✅';
         footer.classList.add('copied');
         setTimeout(() => {
-          footer.innerHTML = `<span class="path">${original}</span><span class="cmd">انسخ ↗</span>`;
-          footer.classList.remove('copied');
+        footer.innerHTML = `<span class="path">${original}</span><span class="cmd">انسخ ↗</span>`;
+        footer.classList.remove('copied');
         }, 1500);
       });
       cardsGrid.appendChild(card);
