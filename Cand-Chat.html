@@ -99,12 +99,6 @@ body{
 
 button{font-family:inherit;}
 
-.dots{display:inline-flex;gap:6px;direction:ltr;}
-.dots i{width:9px;height:9px;border-radius:50%;display:block;}
-.dots i:nth-child(1){background:#ff6167;}
-.dots i:nth-child(2){background:#ffbd2e;}
-.dots i:nth-child(3){background:#28c840;}
-
 #loginOverlay{
   position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
   background:#15161f;
@@ -624,7 +618,6 @@ button{font-family:inherit;}
   <source src="data:audio/mp3;base64,//uQZAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCA..." type="audio/mp3">
 </audio>
 
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
   // حماية صارمة مطلقة لمنع الحفظ (Ctrl+S / Cmd+S) نهائياً من جذور المتصفح
   document.addEventListener('keydown', function(e) {
@@ -702,6 +695,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function enterTool(){
     formContent.classList.add('hide');
     successMsg.classList.add('show');
+    loadCannedData();
     setTimeout(() => {
       overlay.style.opacity = '0';
       setTimeout(() => overlay.style.display = 'none', 400);
@@ -801,52 +795,6 @@ document.addEventListener("DOMContentLoaded", () => {
   forgotBtn.addEventListener('click', resetPassword);
 
   checkSession();
-
-
-  async function openAdmin(){
-    const {data:{session}} = await supabaseClient.auth.getSession();
-    if(!session) return;
-    const profile = await getProfile(session.user.id);
-    if(profile.role !== 'admin') return;
-    const {data, error} = await supabaseClient
-      .from('profiles')
-      .select('id,email,status,role,created_at')
-      .order('created_at',{ascending:true});
-    if(error) return;
-    let htmlRows = '<div class="auth-admin-title">Account Management</div>';
-    (data||[]).forEach(u=>{
-      if(u.role==='admin') return;
-      htmlRows += `<div class="auth-user-row">
-        <span class="auth-user-email" title="${escapeHtml(u.email)}">${escapeHtml(u.email)}</span>
-        <span>${escapeHtml(u.status)}</span>
-        <span class="auth-user-actions">
-          ${u.status==='pending' ? `<button class="auth-mini-btn auth-approve" data-a="${u.id}">Approve</button>
-          <button class="auth-mini-btn auth-reject" data-r="${u.id}">Reject</button>` : ''}
-        </span>
-      </div>`;
-    });
-    document.getElementById('adminPanel').innerHTML = htmlRows;
-    document.getElementById('adminPanel').style.display='block';
-    document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>changeUserStatus(b.dataset.a,'approved'));
-    document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>changeUserStatus(b.dataset.r,'rejected'));
-  }
-
-  async function changeUserStatus(userId,status){
-    const {data,error}=await supabaseClient.rpc('set_user_status',{target_user_id:userId,new_status:status});
-    if(error){ authMessage('تعذر تحديث حالة الحساب.'); console.error(error); return; }
-    authMessage('تم تحديث حالة الحساب.', 'ok');
-    openAdmin();
-  }
-
-  async function maybeShowAdmin(){
-    const {data:{session}}=await supabaseClient.auth.getSession();
-    if(!session) return;
-    try{
-      const p=await getProfile(session.user.id);
-      if(p.role==='admin') openAdmin();
-    }catch(e){}
-  }
-  setTimeout(maybeShowAdmin, 800);
 
   const splash = document.getElementById("splash");
   const sheetList = document.getElementById("sheetList");
@@ -952,29 +900,40 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem('candat_theme', next);
   });
 
-  fetch('candat_data.xlsx')
-    .then(resp => { if (!resp.ok) throw new Error("File not found"); return resp.arrayBuffer(); })
-    .then(buffer => { const wb = XLSX.read(buffer, { type: "array" }); handleWorkbook(wb); })
-    .catch(error => {
-      cardsGrid.innerHTML = '<div class="empty">⚠️ لم يتم العثور على ملف البيانات <b>candat_data.xlsx</b>.</div>';
-    });
+  // دالة لجلب الكندات مباشرة من جدول canned_items في Supabase
+  async function loadCannedData() {
+    try {
+      const { data, error } = await supabaseClient
+        .from('canned_items')
+        .select('sheet_name, title, content, reference_url, click_count');
+      if (error) throw error;
 
-  function handleWorkbook(wb) {
-    workbookData = {};
-    let total = 0;
-    wb.SheetNames.forEach(name => {
-      const rows = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1 });
-      const items = [];
-      for (let i = 1; i < rows.length; i++) {
-        if (rows[i] && rows[i][0] && rows[i][1]) items.push({ name:String(rows[i][0]), content:String(rows[i][1]), sheet:name });
-      }
-      workbookData[name] = items;
-      total += items.length;
-    });
-    toolCount.textContent = wb.SheetNames.length;
-    renderSheetList(wb.SheetNames);
-    if (wb.SheetNames.length) showSheet(wb.SheetNames[0]);
-    else cardsGrid.innerHTML = '<div class="empty">الملف فارغ أو لا يحتوي على شيتات قابلة للعرض.</div>';
+      workbookData = {};
+      const sheetNamesSet = [];
+
+      (data || []).forEach(item => {
+        const sName = item.sheet_name;
+        if (!workbookData[sName]) {
+          workbookData[sName] = [];
+          sheetNamesSet.push(sName);
+        }
+        workbookData[sName].push({
+          name: item.title,
+          content: item.content,
+          sheet: sName,
+          reference_url: item.reference_url,
+          click_count: item.click_count
+        });
+      });
+
+      toolCount.textContent = sheetNamesSet.length;
+      renderSheetList(sheetNamesSet);
+      if (sheetNamesSet.length) showSheet(sheetNamesSet[0]);
+      else cardsGrid.innerHTML = '<div class="empty">قاعدة البيانات فارغة أو لا توجد شيتات.</div>';
+    } catch (err) {
+      console.error(err);
+      cardsGrid.innerHTML = '<div class="empty">⚠️ تعذر تحميل البيانات من قاعدة البيانات. تأكد من صلاحيات الحساب.</div>';
+    }
   }
 
   function renderSheetList(names) {
@@ -1039,7 +998,7 @@ document.addEventListener("DOMContentLoaded", () => {
         footer.classList.add('copied');
         setTimeout(() => {
           footer.innerHTML = `<span class="path">${original}</span><span class="cmd">انسخ ↗</span>`;
-          footer.classList.remove('copied');
+          footer.footer?.classList.remove('copied');
         }, 1500);
       });
       cardsGrid.appendChild(card);
