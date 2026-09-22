@@ -571,7 +571,7 @@ button{font-family:inherit;}
 <div class="footer-wrapper">
   <span class="fseg"><span class="dot"></span> Ready</span>
   <span class="sep">·</span>
-  <span class="fseg">version 14</span>
+  <span class="fseg">version 15</span>
   <span class="sep">·</span>
   <span class="fseg">Developed By : Geek</span>
 </div>
@@ -632,16 +632,8 @@ document.addEventListener("DOMContentLoaded", () => {
     successMsg.classList.add('show');
     loadCannedData();
     
-    // إرسال نبضة نشاط فورية عند الدخول مباشرة للمستخدم الحالي
-    supabaseClient.auth.getSession().then(({ data: { session } }) => {
-      if (session && session.user) {
-        supabaseClient.from('profiles')
-          .update({ last_seen: new Date().toISOString() })
-          .eq('id', session.user.id)
-          .then(() => {});
-      }
-    });
-
+    // استدعاء دالة الـ RPC الآمنة فور الدخول لتحديث الحالة فوراً
+    supabaseClient.rpc('update_last_seen').catch(e => console.error(e));
     startHeartbeat(); 
 
     setTimeout(() => {
@@ -652,37 +644,28 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 650);
   }
 
-  // نظام نبضات مباشر وآمن يحدث حقل last_seen للموظف كل 25 ثانية وعند التفاعل
+  // نظام نبضات يعتمد على دالة الـ RPC الآمنة لضمان عمله مع جميع الموظفين بدون قيود RLS
   function startHeartbeat() {
-    const ping = async () => {
-      try {
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (session && session.user) {
-          await supabaseClient.from('profiles')
-            .update({ last_seen: new Date().toISOString() })
-            .eq('id', session.user.id);
-        }
-      } catch (e) {
-        console.error("Heartbeat error:", e);
-      }
+    const ping = () => {
+      supabaseClient.rpc('update_last_seen').catch(e => console.error(e));
     };
 
-    // إرسال نبضة تلقائية كل 25 ثانية
-    setInterval(ping, 25000);
+    // إرسال نبضة تلقائية كل 20 ثانية لتظل الحالة نشطة دائماً
+    setInterval(ping, 20000);
 
-    // إرسال نبضة فورية عند أي تفاعل للموظف (كتابة، ضغط، سكرول) بحد أقصى مرة كل 20 ثانية
+    // إرسال نبضة فورية عند أي تفاعل للموظف (كتابة، ضغط، سكرول)
     let lastActivityPing = 0;
     ['click', 'keydown', 'mousemove', 'scroll'].forEach(evt => {
       window.addEventListener(evt, () => {
         const now = Date.now();
-        if (now - lastActivityPing > 20000) {
+        if (now - lastActivityPing > 15000) {
           lastActivityPing = now;
           ping();
         }
       }, { passive: true });
     });
 
-    // تحديث الحالة فوراً إذا عاد المستخدم لفتح التبويب
+    // تحديث الحالة فوراً إذا عاد المستخدم لفتح تبويب الأداة
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
         ping();
