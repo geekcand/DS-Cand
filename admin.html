@@ -28,7 +28,7 @@ button{border:0;border-radius:8px;padding:8px 14px;cursor:pointer;margin-right:5
 textarea.form-control{resize:vertical;min-height:90px}
 </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
 <div class="wrap">
   <h1>Canned Tool Admin</h1>
   <div class="sub">User management and canned Upload</div>
@@ -75,6 +75,24 @@ textarea.form-control{resize:vertical;min-height:90px}
 </div>
 
 <script>
+// تعطيل الزر الأيمن للماوس
+window.addEventListener('contextmenu', function(e) {
+  e.preventDefault();
+  return false;
+});
+
+// تعطيل اختصارات الحفظ (Ctrl + S) والطباعة وعرض المصدر
+window.addEventListener('keydown', function(e) {
+  if (
+    (e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S' || e.key === 'p' || e.key === 'P' || e.key === 'u' || e.key === 'U') ||
+    e.key === 'F12' ||
+    ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c'))
+  ) {
+    e.preventDefault();
+    return false;
+  }
+});
+
 const SUPABASE_URL = 'https://jdvkzdorjthljhwqmvmn.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_6WQHg-zL775jpFaErofLog_1kd5X6bI';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
