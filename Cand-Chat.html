@@ -1,920 +1,282 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Canned Tool</title>
-<link rel="icon" href="https://cdn.phototourl.com/free/2026-09-22-b1fab4e8-5b89-495b-8f82-34d38455543d.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-<!-- Google tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-HSD4C2YLLV"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-HSD4C2YLLV');
-</script>
-
-<style>
-*{box-sizing:border-box;}
-
-:root{
-  --font-arabic:'IBM Plex Sans Arabic', sans-serif;
-  --font-mono:'IBM Plex Mono', monospace;
-
-  --acc-violet:#b18cff;
-  --acc-cyan:#6fe3d9;
-  --acc-amber:#ffb454;
-  --acc-rose:#ff8fab;
-  --acc-blue:#7aa2f7;
-
-  --header-h:46px;
-  --footer-h:32px;
-  --sidebar-w:272px;
-  --radius:10px;
-}
-
-[data-theme="dark"]{
-  --bg:#0d0e17;
-  --bg-grid:rgba(177,140,255,.05);
-  --panel:#12141f;
-  --panel-2:#171a29;
-  --inset:#0a0b12;
-  --line:#262a3d;
-  --line-soft:rgba(255,255,255,.06);
-  --ink:#e9eaf7;
-  --ink-dim:#8a8fac;
-  --ink-faint:#585d78;
-  --success:#8fdc9a;
-  --danger:#ff8095;
-  --shadow:0 18px 40px -18px rgba(0,0,0,.65);
-  --glow:0 0 0 1px rgba(177,140,255,.16), 0 14px 34px -14px rgba(177,140,255,.22);
-}
-[data-theme="light"]{
-  --bg:#eef0f8;
-  --bg-grid:rgba(109,63,214,.05);
-  --panel:#ffffff;
-  --panel-2:#f7f8fd;
-  --inset:#eef0f8;
-  --line:#dbdfef;
-  --line-soft:rgba(20,20,50,.06);
-  --ink:#171a2b;
-  --ink-dim:#5b6082;
-  --ink-faint:#9296b3;
-  --success:#1f8f4c;
-  --danger:#c22c46;
-  --shadow:0 18px 40px -20px rgba(30,30,70,.25);
-  --glow:0 0 0 1px rgba(109,63,214,.14), 0 14px 30px -16px rgba(109,63,214,.20);
-}
-
-html,body{height:100%;margin:0;}
-body{
-  font-family:var(--font-arabic);
-  background:var(--bg);
-  color:var(--ink-dim);
-  -webkit-font-smoothing:antialiased;
-  transition:background .25s ease,color .25s ease;
-  background-image:
-    linear-gradient(var(--bg-grid) 1px,transparent 1px),
-    linear-gradient(90deg,var(--bg-grid) 1px,transparent 1px);
-  background-size:34px 34px;
-  background-position:-1px -1px;
-}
-[data-theme="dark"] body::before{
-  content:"";
-  position:fixed;inset:0;pointer-events:none;z-index:0;
-  background-image:radial-gradient(circle at 82% 6%,rgba(177,140,255,.09),transparent 40%),
-                    radial-gradient(circle at 4% 96%,rgba(111,227,217,.07),transparent 38%);
-}
-::selection{background:var(--acc-violet);color:#100c1c;}
-
-*{scrollbar-width:thin;scrollbar-color:var(--line) transparent;}
-*::-webkit-scrollbar{width:8px;height:8px;}
-*::-webkit-scrollbar-track{background:transparent;}
-*::-webkit-scrollbar-thumb{background:var(--line);border-radius:20px;}
-*::-webkit-scrollbar-thumb:hover{background:var(--ink-faint);}
-
-button{font-family:inherit;}
-
-#loginOverlay{
-  position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:#0d0e17;
-  padding:20px;
-  animation:fadeIn .35s ease both;
-}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-
-.login-card{
-  position:relative;
-  width:min(92vw,400px);
-  background:#12141f;
-  border:1px solid #262a3d;
-  border-radius:24px;
-  padding:32px 24px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
-  box-shadow:0 20px 50px rgba(0,0,0,0.7);
-  animation:riseIn .5s cubic-bezier(.19,1,.22,1) both;
-}
-@keyframes riseIn{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
-
-.login-inner{
-  width:100%;display:flex;flex-direction:column;align-items:center;gap:12px;
-  transition:opacity .25s ease, transform .25s ease;
-}
-.login-inner.hide{opacity:0;transform:scale(.96);pointer-events:none;}
-
-.login-mark{
-  width:48px;height:48px;border-radius:14px;display:grid;place-items:center;margin-bottom:2px;
-  font-family:var(--font-mono);font-weight:700;font-size:20px;color:#0c0d16;
-  background:linear-gradient(135deg,#6fe3d9,#b18cff);
-  box-shadow:0 8px 20px rgba(111,227,217,.2);
-}
-.login-card h3{margin:0;font-size:18px;font-weight:700;color:#e9eaf7;font-family:var(--font-arabic);}
-.login-sub{margin:0;font-size:12px;color:#8a8fac;font-family:var(--font-arabic);margin-bottom:6px;}
-
-.auth-tabs{display:flex;gap:6px;width:100%;background:#171a29;padding:4px;border-radius:12px;margin-bottom:6px;border:1px solid #262a3d;}
-.auth-tab{flex:1;border:0;background:transparent;color:#8a8fac;border-radius:9px;padding:8px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;transition:all .2s ease;}
-.auth-tab.active{background:rgba(111,227,217,.15);color:#6fe3d9;}
-
-.neu-input{
-  width:100%;border:1px solid #262a3d;outline:none;border-radius:12px;
-  padding:12px 16px;background:#171a29;color:#e9eaf7;
-  font-family:var(--font-arabic);font-size:13px;font-weight:600;
-  direction:ltr !important;text-align:left !important;unicode-bidi:normal !important;
-  transition:border-color .2s ease, box-shadow .2s ease;
-  margin-bottom:10px;
-}
-.neu-input:focus{border-color:#6fe3d9;box-shadow:0 0 0 3px rgba(111,227,217,.12);}
-.neu-input::placeholder{color:#585d78;font-weight:500;}
-
-.neu-btn{
-  width:100%;border:none;border-radius:12px;padding:13px;cursor:pointer;margin-top:4px;
-  font-family:var(--font-arabic);font-weight:800;font-size:14px;color:#0c0d16;
-  background:linear-gradient(135deg,#6fe3d9,#b18cff);
-  box-shadow:0 8px 20px rgba(111,227,217,.25);
-  transition:filter .15s ease, transform .1s ease;
-}
-.neu-btn:hover{filter:brightness(1.06);}
-.neu-btn:active{transform:translateY(1px);}
-
-.auth-link{display:block;width:100%;margin-top:6px;border:0;background:transparent;color:#b18cff;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;}
-.auth-link:hover{text-decoration:underline;}
-
-.auth-note{font-size:11.5px;line-height:1.5;color:#8a8fac;margin-top:8px;text-align:center;}
-.auth-note b{color:#6fe3d9;}
-
-#loginMsg{min-height:16px;font-size:12px;color:var(--danger);font-family:var(--font-arabic);font-weight:600;margin-top:4px;}
-
-.login-success{
-  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
-  opacity:0;transform:scale(.95);pointer-events:none;
-  transition:opacity .3s ease, transform .3s ease;
-  background:#12141f;border-radius:24px;
-}
-.login-success.show{opacity:1;transform:scale(1);pointer-events:auto;}
-.success-check{
-  width:54px;height:54px;border-radius:50%;display:grid;place-items:center;margin-bottom:2px;
-  background:linear-gradient(135deg,#8fdc9a,#1f8f4c);color:#0c1f12;font-size:24px;font-weight:900;
-  box-shadow:0 8px 20px rgba(143,220,154,.25);
-}
-.login-footnote{font-size:11px;color:#585d78;font-family:var(--font-arabic);margin-top:16px;}
-
-#protectedApp{display:none;opacity:0;transition:opacity .5s ease;}
-
-.splash{
-  position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;
-  background:var(--bg);transition:opacity .4s ease;
-}
-.splash-box{
-  font-family:var(--font-arabic);font-weight:600;color:var(--ink-dim);font-size:14px;
-  display:flex;flex-direction:column;gap:7px;direction:rtl;text-align:right;min-width:230px;
-}
-.splash-box .ok{color:var(--acc-cyan);}
-
-.header-wrap{
-  position:fixed;top:0;left:0;right:0;height:var(--header-h);z-index:200;
-  display:flex;align-items:center;justify-content:space-between;gap:16px;
-  padding:0 18px;
-  background:var(--panel);border-bottom:1px solid var(--line);
-}
-.brand{display:flex;align-items:center;gap:10px;}
-.brand .mark{
-  width:28px;height:28px;border-radius:7px;display:grid;place-items:center;
-  font-family:var(--font-mono);font-weight:700;font-size:13px;color:#0c0d16;
-  background:linear-gradient(135deg,var(--acc-cyan),var(--acc-violet));
-}
-.brand .name{font-family:var(--font-mono);font-size:14px;font-weight:600;color:var(--ink);letter-spacing:-.01em;}
-.brand .name em{font-style:normal;color:var(--acc-violet);}
-
-.ticker{flex:1;min-width:0;overflow:hidden;position:relative;height:var(--header-h);display:flex;align-items:center;}
-.ticker-track{
-  display:inline-block;white-space:nowrap;width:max-content;
-  font-family:var(--font-arabic);font-weight:600;font-size:12px;color:var(--acc-amber);
-  animation:tickerOnce 15s linear 1 forwards;
-}
-@keyframes tickerOnce{from{transform:translateX(100%)}to{transform:translateX(-100%)}}
-
-.header-actions { display: flex; align-items: center; gap: 8px; }
-
-.link-btn, .about-btn, .feed-btn{
-  background:var(--panel-2); border:1px solid var(--line); color:var(--ink);
-  font-family:var(--font-arabic); font-size:12px; font-weight:600; padding:5px 12px;
-  border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:6px;
-  text-decoration:none; transition:border-color .2s ease, transform .2s ease;
-}
-.link-btn:hover, .about-btn:hover, .feed-btn:hover{border-color:var(--acc-violet); transform:translateY(-1px);}
-
-.theme-toggle{
-  flex:0 0 auto;width:30px;height:30px;border-radius:8px;
-  border:1px solid var(--line);background:var(--panel-2);color:var(--ink);
-  cursor:pointer;font-size:14px;display:grid;place-items:center;
-  transition:background .2s ease, border-color .2s ease, transform .2s ease;
-}
-.theme-toggle:hover{border-color:var(--acc-violet);transform:translateY(-1px);}
-
-.app{
-  display:grid;
-  grid-template-columns:var(--sidebar-w) 1fr;
-  gap:18px;
-  max-width:1560px;margin:0 auto;
-  padding:calc(var(--header-h) + 16px) 20px calc(var(--footer-h) + 20px);
-  position:relative;z-index:1;
-  align-items:start;
-}
-
-.sidebar{
-  position:sticky;top:calc(var(--header-h) + 16px);
-  height:calc(100vh - var(--header-h) - var(--footer-h) - 32px);
-  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
-  display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow);
-}
-.sidebar-top{padding:14px 14px 10px;border-bottom:1px solid var(--line-soft);}
-.sidebar-title{display:flex;align-items:center;justify-content:space-between;}
-.sidebar-title .label{font-family:var(--font-arabic);font-weight:700;font-size:12px;color:var(--ink-dim);}
-.tool-count{
-  font-family:var(--font-mono);font-size:10.5px;color:var(--acc-violet);
-  background:rgba(177,140,255,.12);border:1px solid rgba(177,140,255,.25);
-  padding:2px 8px;border-radius:20px;
-}
-.search-box{
-  margin:12px 12px 4px;display:flex;align-items:center;gap:8px;
-  background:var(--inset);border:1px solid var(--line);border-radius:8px;padding:0 10px;
-  transition:border-color .2s ease, box-shadow .2s ease;
-}
-.search-box:focus-within{border-color:var(--acc-cyan);box-shadow:0 0 0 3px rgba(111,227,217,.12);}
-.search-icon{font-size:14px;color:var(--acc-cyan);opacity:.9;font-family:var(--font-mono);}
-.search-box input{
-  flex:1;border:0;outline:0;background:transparent;color:var(--ink);
-  font-size:13.5px;font-weight:600;padding:11px 2px;font-family:var(--font-arabic);
-}
-.search-box input::placeholder{color:var(--ink-faint);font-weight:500;}
-
-.sheet-list{flex:1;overflow-y:auto;padding:8px 10px 16px;display:flex;flex-direction:column;gap:3px;}
-.sheet-item{
-  --accent:var(--acc-violet);
-  display:flex;align-items:center;gap:9px;
-  padding:9px 10px;border-radius:8px;cursor:pointer;
-  color:var(--ink);font-size:13.5px;font-weight:600;
-  border:1px solid transparent;
-  transition:background .15s ease, border-color .15s ease;
-}
-.sheet-item .chip{
-  width:6px;height:6px;border-radius:50%;flex:0 0 auto;background:var(--accent);
-  box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
-}
-.sheet-item .label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.sheet-item:hover{background:var(--panel-2);}
-.sheet-item.active{
-  background:color-mix(in srgb, var(--accent) 12%, var(--panel));
-  border-color:color-mix(in srgb, var(--accent) 35%, transparent);
-}
-.sheet-item.active .label{color:var(--accent);}
-
-.main{min-width:0;}
-.main-head{
-  display:flex;align-items:center;justify-content:space-between;gap:14px;
-  margin-bottom:16px;padding:0 2px;
-}
-.main-head-copy{display:flex;align-items:baseline;gap:10px;min-width:0;}
-.main-head-copy .hash{font-family:var(--font-mono);color:var(--acc-cyan);font-size:16px;}
-.main-head-copy h1{
-  margin:0;font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.01em;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-}
-.main-badge{
-  flex:0 0 auto;font-family:var(--font-arabic);font-weight:600;font-size:12px;color:var(--ink-dim);
-  border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:7px 11px;
-}
-.main-badge b{color:var(--ink);font-size:13px;}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(248px,1fr));
-  gap:14px;
-}
-
-.card{
-  --accent:var(--acc-violet);
-  background:var(--panel);border:1px solid var(--line);border-radius:11px;
-  display:flex;flex-direction:column;overflow:hidden;cursor:pointer;
-  min-height:206px;
-  opacity:0;transform:translateY(8px);
-  transition:opacity .35s ease, transform .35s ease, border-color .2s ease, box-shadow .2s ease;
-}
-.card.visible{opacity:1;transform:translateY(0);}
-.card:hover{border-color:color-mix(in srgb, var(--accent) 45%, var(--line));box-shadow:var(--glow);}
-
-.card-title{
-  display:flex;align-items:center;gap:8px;
-  padding:11px 13px;border-bottom:1px solid var(--line-soft);
-}
-.card-title .ext{
-  font-family:var(--font-arabic);font-size:10.5px;font-weight:700;
-  color:var(--accent);background:color-mix(in srgb, var(--accent) 14%, transparent);
-  border:1px solid color-mix(in srgb, var(--accent) 30%, transparent);
-  border-radius:5px;padding:2px 6px;flex:0 0 auto;
-}
-.card-title .t{
-  font-weight:700;font-size:14.5px;color:var(--ink);
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;
-}
-
-.card-content{flex:1;display:flex;padding:11px;overflow:hidden;}
-.frame{
-  flex:1;min-width:0;background:var(--inset);border:1px solid var(--line-soft);border-radius:7px;
-  padding:11px 12px;color:var(--ink);font-size:13.5px;line-height:1.9;overflow:hidden;
-  display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;text-overflow:ellipsis;
-}
-
-.card-footer{
-  display:flex;align-items:center;justify-content:space-between;gap:8px;
-  padding:9px 13px;border-top:1px solid var(--line-soft);
-  font-family:var(--font-arabic);font-weight:600;font-size:11.5px;color:var(--ink-faint);
-}
-.card-footer .path{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.card-footer .cmd{color:var(--accent);flex:0 0 auto;}
-.card-footer.copied{
-  background:color-mix(in srgb, var(--success) 14%, transparent);
-  color:var(--success);justify-content:center;font-weight:700;
-}
-.card-footer.copied .cmd{display:none;}
-
-.empty{
-  grid-column:1/-1;text-align:center;padding:54px 24px;
-  background:var(--panel);border:1px dashed var(--line);border-radius:var(--radius);
-  color:var(--ink-dim);font-size:14px;
-}
-.empty b{color:var(--ink);}
-
-.about-view, .feedback-view{
-  display:none; width:100%; animation:fadeIn .25s ease;
-}
-.about-view.show, .feedback-view.show{display:block;}
-
-.about-box-card, .feedback-box-card{
-  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
-  padding:30px; max-width:720px; margin:20px auto; width:100%;
-  box-shadow:var(--shadow); text-align:center; position:relative; overflow:hidden;
-}
-.about-box-card::before, .feedback-box-card::before{
-  content:''; position:absolute; top:0; left:0; right:0; height:3px;
-  background:linear-gradient(90deg,var(--acc-cyan),var(--acc-violet));
-}
-.about-box-card h2, .feedback-box-card h2{font-size:21px; font-weight:800; color:var(--ink); margin-bottom:6px;}
-.about-box-card p, .feedback-box-card p{font-size:13px; color:var(--ink-dim); margin-bottom:20px;}
-
-.contact-footer-box{
-  border-top:1px solid var(--line-soft); padding-top:16px; font-size:13px; color:var(--ink-faint);
-  display:flex; flex-direction:column; align-items:center; gap:4px; direction:ltr;
-}
-.contact-footer-box a{
-  color:var(--acc-cyan); text-decoration:none; font-weight:700; font-size:14.5px;
-}
-.contact-footer-box a:hover{text-decoration:underline; color:var(--acc-violet);}
-
-.feedback-form{display:flex; flex-direction:column; gap:14px; text-align:right;}
-.form-group{display:flex; flex-direction:column; gap:6px;}
-.form-group label{font-size:13px; font-weight:700; color:var(--ink);}
-.form-group input, .form-group select, .form-group textarea{
-  background:var(--inset); border:1px solid var(--line); border-radius:8px;
-  padding:11px 14px; color:var(--ink); font-family:var(--font-arabic); font-size:13.5px; outline:none;
-  transition:border-color .2s ease;
-}
-.form-group input:focus, .form-group select:focus, .form-group textarea:focus{
-  border-color:var(--acc-cyan);
-}
-.form-group textarea{resize:vertical; min-height:100px;}
-
-.submit-btn{
-  background:linear-gradient(135deg,var(--acc-cyan),var(--acc-violet));
-  border:none; border-radius:999px; padding:12px; cursor:pointer;
-  font-family:var(--font-arabic); font-weight:700; font-size:14px; color:#0c0d16;
-  transition:filter .15s ease, transform .1s ease; margin-top:6px;
-}
-.submit-btn:hover{filter:brightness(1.08);}
-
-.footer-wrapper{
-  position:fixed;left:0;right:0;bottom:0;z-index:100;height:var(--footer-h);
-  background:linear-gradient(90deg,#5b32b8,#3f6fce);
-  display:flex;align-items:center;justify-content:center;
-  gap:12px;
-  padding:0 16px;font-family:var(--font-arabic);font-weight:600;font-size:11px;color:#fff;
-  box-shadow:0 -8px 20px rgba(0,0,0,.18);
-}
-.footer-wrapper .fseg{display:flex;align-items:center;gap:6px;}
-.footer-wrapper .dot{width:6px;height:6px;border-radius:50%;background:#7ee2a8;box-shadow:0 0 0 3px rgba(126,226,168,.25);}
-.footer-wrapper .sep{opacity:.5;}
-.footer-wrapper a{color:#fff; text-decoration:none;}
-.footer-wrapper a:hover{text-decoration:underline;}
-</style>
-
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Canned Tool - Admin</title>
+<link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3685/3685367.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+body{margin:0;background:#0d1020;color:#eee;font-family:Arial,sans-serif;padding:28px;direction:ltr}
+.wrap{max-width:1050px;margin:auto}
+h1{margin:0 0 6px}.sub{color:#9da5b5;margin-bottom:22px}
+.card{background:#151a2c;border:1px solid #29304a;border-radius:14px;padding:18px;margin-bottom:16px}
+h3{margin-top:0;color:#7ee2a8;font-size:16px}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:11px 8px;border-bottom:1px solid #272d42;font-size:14px}
+.badge{padding:4px 8px;border-radius:8px;background:#252b40}
+button{border:0;border-radius:8px;padding:8px 14px;cursor:pointer;margin-right:5px;font-family:inherit;font-weight:bold}
+.approve{background:#173d2d;color:#7ee2a8}.reject{background:#482126;color:#ff9b9b}
+.primary-btn{background:#6fe3d9;color:#0c0d16;width:100%;margin-top:10px;padding:12px}
+.primary-btn:hover{filter:brightness(1.08)}
+#msg{min-height:22px;color:#7ee2a8;margin-bottom:12px;font-weight:bold}
+.muted{color:#9299aa}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:13px;color:#9da5b5;margin-bottom:5px}
+.form-control{width:100%;background:#0d1020;border:1px solid #29304a;border-radius:8px;padding:10px;color:#eee;font-family:inherit;font-size:14px;box-sizing:border-box}
+.form-control:focus{border-color:#6fe3d9;outline:none}
+textarea.form-control{resize:vertical;min-height:90px}
+</style>
 </head>
-<body data-theme="dark" oncontextmenu="return false;">
+<body oncontextmenu="return false;">
+<div class="wrap">
+  <h1>Canned Tool Admin</h1>
+  <div class="sub">User management and canned Upload</div>
+  <div id="msg"></div>
 
-<div id="loginOverlay">
-  <div class="login-card" id="loginCircle">
-    <div class="login-inner" id="loginFormContent">
-      <div class="login-mark">C</div>
-      <h3>Canned Tool</h3>
-      <p class="login-sub" id="authSubtitle">Secure Access</p>
-
-      <div class="auth-tabs">
-        <button type="button" class="auth-tab active" id="loginTab">Login</button>
-        <button type="button" class="auth-tab" id="registerTab">Register</button>
-      </div>
-
-      <div id="loginPanel" style="width:100%;">
-        <input id="loginEmail" class="neu-input" type="email" placeholder="Email address" autocomplete="username" dir="ltr">
-        <input id="loginPwd" class="neu-input" type="password" placeholder="Password" autocomplete="current-password" dir="ltr">
-        <button id="loginBtn" class="neu-btn">Login</button>
-        <button type="button" id="forgotBtn" class="auth-link">Forgot password?</button>
-      </div>
-
-      <div id="registerPanel" style="display:none; width:100%;">
-        <input id="registerEmail" class="neu-input" type="email" placeholder="Write Email (@te.eg)" autocomplete="email" dir="ltr">
-        <input id="registerPwd" class="neu-input" type="password" placeholder="Password (8+ characters)" autocomplete="new-password" dir="ltr">
-        <input id="registerPwd2" class="neu-input" type="password" placeholder="Confirm password" autocomplete="new-password" dir="ltr">
-        <button id="registerBtn" class="neu-btn">Create account</button>
-        <div class="auth-note">مسموح بالتسجيل بإيميل الشركة <b>@te.eg</b> فقط، والإيميلات المدرجة بالقائمة تتفعل تلقائياً.</div>
-      </div>
-
-      <div id="loginMsg"></div>
+  <!-- Excel Upload Card with Exact Row Ordering -->
+  <div class="card" style="border: 1px dashed #b18cff;">
+    <h3>📊 Excel Upload (Update sheets )</h3>
+    <p style="font-size: 12px; color: #9da5b5; margin-top: 0;">Select the Excel file</p>
+    <div class="form-group">
+      <input type="file" id="excelFile" class="form-control" accept=".xlsx, .xls">
     </div>
+    <button type="button" id="uploadExcelBtn" class="primary-btn" style="background: linear-gradient(135deg,#6fe3d9,#b18cff);">Read & Upload Excel Sheet 🚀</button>
+  </div>
 
-    <div class="login-success" id="loginSuccess">
-      <div class="success-check">✓</div>
-      <h3>Welcome Back!</h3>
-      <p class="login-sub">Login Successful</p>
-    </div>
-  </div>
-  <div class="login-footnote">For internal use only — Digital Chat Team</div>
-</div>
-
-<div id="protectedApp">
-<div class="splash" id="splash">
-  <div class="splash-box">
-    <div class="load-line"><span class="ok">✓</span> جارٍ تجهيز الأداة</div>
-    <div class="load-line"><span class="ok">✓</span> جارٍ تحميل الردود بدقة</div>
-    <div class="load-line"><span class="ok">✓</span> لحظات...</div>
-  </div>
-</div>
-
-<div class="header-wrap">
-  <div class="brand">
-    <span class="mark">C</span>
-    <span class="name">canned<em>.</em>tool</span>
-  </div>
-  <div class="ticker" aria-label="تنبيه">
-    <div class="ticker-track">⚠️ تذكر دائماً: استخدامك لهذه الأداة على مسؤوليتك الشخصية، ويجب التأكد من الويكي.</div>
-  </div>
-  <div class="header-actions">
-    <a href="https://agent.cand-chat.info/agent" target="_blank" class="link-btn" title="Agent Lite">Agent Lite</a>
-    <button class="about-btn" id="aboutBtn">About and Contact ℹ️</button>
-    <button class="feed-btn" id="feedBtn">💡 Suggestions & Feedback</button>
-    <button class="theme-toggle" id="themeToggle" title="تغيير المظهر">🌙</button>
-  </div>
-</div>
-
-<div class="app" id="appGridContainer">
-  <aside class="sidebar">
-    <div class="sidebar-top">
-      <div class="sidebar-title">
-        <span class="label">القائمة</span>
-        <span class="tool-count" id="toolCount">0</span>
+  <!-- Add Single Canned Item Card -->
+  <div class="card">
+    <h3>➕ Add Canned </h3>
+    <form id="addCannedForm">
+      <div class="form-group">
+        <label for="sheetName">Sheet section</label>
+        <input type="text" id="sheetName" class="form-control" placeholder="e.g. Sales DSL or Chatting & Idle" required>
       </div>
-      <div class="search-box">
-        <span class="search-icon">⌕</span>
-        <input type="text" id="searchInput" placeholder="ابحث عن كاند..." autocomplete="off">
+      <div class="form-group">
+        <label for="cannedTitle">Canned Name</label>
+        <input type="text" id="cannedTitle" class="form-control" placeholder="e.g. Basic Packages" required>
       </div>
-    </div>
-    <div class="sheet-list" id="sheetList"></div>
-  </aside>
+      <div class="form-group">
+        <label for="cannedContent"> Canned Content</label>
+        <textarea id="cannedContent" class="form-control" placeholder="Type canned content here..." required></textarea>
+      </div>
+      <button type="submit" id="addBtn" class="primary-btn">Save & Add Canned Item</button>
+    </form>
+  </div>
 
-  <main class="main">
-    <div class="main-head">
-      <div class="main-head-copy">
-        <span class="hash">#</span>
-        <h1 id="sectionTitle">اختر شيت للبدء</h1>
-      </div>
-      <div class="main-badge"><b id="resultCount">0</b> كاند</div>
-    </div>
-    <div class="grid" id="cardsGrid"><div class="empty">جارٍ تحميل البيانات... ⏳</div></div>
-  </main>
-</div>
-
-<!-- صفحة About -->
-<div class="app" id="aboutViewContainer" style="display:none;">
-  <div class="about-view show" style="grid-column: 1 / -1;">
-    <div class="about-box-card">
-      <h2>About Canned Tool</h2>
-      <p>نظام ذكي متكامل لمساعدة وكلاء الدعم الفني في الوصول للردود الجاهزة وإدارتها بدقة تامة.</p>
-      <div class="contact-footer-box">
-        <span>Contact us at:</span>
-        <a href="mailto:contact@cand-chat.info">contact@cand-chat.info</a>
-      </div>
-    </div>
+  <!-- Users Management Card -->
+  <div class="card">
+    <h3>👥 User Permissions Management</h3>
+    <table>
+      <thead><tr><th>Email</th><th>Activity</th><th>Status</th><th>Role</th><th>Created At</th><th>Actions</th></tr></thead>
+      <tbody id="users"><tr><td colspan="6" class="muted">Loading…</td></tr></tbody>
+    </table>
   </div>
 </div>
-
-<!-- صفحة Feedback -->
-<div class="app" id="feedbackViewContainer" style="display:none;">
-  <div class="feedback-view show" style="grid-column: 1 / -1;">
-    <div class="feedback-box-card">
-      <h2>Suggestions & Feedback</h2>
-      <p>شاركنا باقتراحاتك لتطوير الأداة.</p>
-      <form class="feedback-form" id="feedbackForm">
-        <div class="form-group">
-          <label for="empName">اسم الموظف</label>
-          <input type="text" id="empName" placeholder="اكتب اسمك أو اتركه فارغاً">
-        </div>
-        <div class="form-group">
-          <label for="suggType">نوع المشاركة</label>
-          <select id="suggType">
-            <option value="اقتراح تطوير أداة">اقتراح تطوير أداة</option>
-            <option value="تعديل / اضافه كاند">تعديل / اضافه كاند</option>
-            <option value="مشكلة تقنية">مشكلة تقنية</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="suggText">تفاصيل الاقتراح أو الملاحظة *</label>
-          <textarea id="suggText" placeholder="اكتب تفاصيل مقترحك هنا..." required></textarea>
-        </div>
-        <button type="submit" class="submit-btn">إرسال الاقتراح 🚀</button>
-      </form>
-    </div>
-  </div>
-</div>
-
-<div class="footer-wrapper">
-  <span class="fseg"><span class="dot"></span> Ready</span>
-  <span class="sep">·</span>
-  <span class="fseg">version 13</span>
-  <span class="sep">·</span>
-  <span class="fseg">Developed By : Geek</span>
-</div>
-
-<audio id="clickSound" preload="auto">
-  <source src="data:audio/mp3;base64,//uQZAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCA..." type="audio/mp3">
-</audio>
 
 <script>
-  document.addEventListener('keydown', function(e) {
-    if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S' || e.keyCode === 83)) {
-      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); return false;
-    }
-  }, true);
-
-document.addEventListener("DOMContentLoaded", () => {
-  const SUPABASE_URL = 'https://jdvkzdorjthljhwqmvmn.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_6WQHg-zL775jpFaErofLog_1kd5X6bI';
-  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  const overlay = document.getElementById('loginOverlay');
-  const btn = document.getElementById('loginBtn');
-  const pwd = document.getElementById('loginPwd');
-  const email = document.getElementById('loginEmail');
-  const msg = document.getElementById('loginMsg');
-  const app = document.getElementById('protectedApp');
-  const formContent = document.getElementById('loginFormContent');
-  const successMsg = document.getElementById('loginSuccess');
-  const loginTab = document.getElementById('loginTab');
-  const registerTab = document.getElementById('registerTab');
-  const loginPanel = document.getElementById('loginPanel');
-  const registerPanel = document.getElementById('registerPanel');
-  const registerEmail = document.getElementById('registerEmail');
-  const registerPwd = document.getElementById('registerPwd');
-  const registerPwd2 = document.getElementById('registerPwd2');
-  const registerBtn = document.getElementById('registerBtn');
-  const forgotBtn = document.getElementById('forgotBtn');
-  const subtitle = document.getElementById('authSubtitle');
-
-  function authMessage(text, type='error'){
-    msg.textContent = text || '';
-    msg.style.color = type === 'ok' ? '#7ee2a8' : '#ff9b9b';
-  }
-
-  loginTab.addEventListener('click', () => {
-    loginTab.classList.add('active'); registerTab.classList.remove('active');
-    loginPanel.style.display='block'; registerPanel.style.display='none';
-    subtitle.textContent='Secure Access';
-  });
-  registerTab.addEventListener('click', () => {
-    registerTab.classList.add('active'); loginTab.classList.remove('active');
-    loginPanel.style.display='none'; registerPanel.style.display='block';
-    subtitle.textContent='Create Your Account';
-  });
-
-  function enterTool(){
-    formContent.classList.add('hide');
-    successMsg.classList.add('show');
-    loadCannedData();
-    
-    // إرسال نبضة فورية عند الدخول وبدء نظام التتبع النشط
-    supabaseClient.rpc('update_last_seen').catch(e => console.error(e));
-    startHeartbeat(); 
-
-    setTimeout(() => {
-      overlay.style.opacity = '0';
-      setTimeout(() => overlay.style.display = 'none', 400);
-      app.style.display = 'block';
-      setTimeout(() => app.style.opacity = '1', 50);
-    }, 650);
-  }
-
-  // نظام نبضات متقدم يضمن ظهور الموظف Online باستمرار طالما الأداة مفتوحة ويتفاعل معها
-  function startHeartbeat() {
-    const ping = () => {
-      supabaseClient.rpc('update_last_seen').catch(e => console.error(e));
-    };
-
-    // إرسال نبضة تلقائية كل 25 ثانية
-    setInterval(ping, 25000);
-
-    // إرسال نبضة فورية عند أي تفاعل للموظف (كتابة، ضغط، سكرول) بحد أقصى مرة كل 20 ثانية
-    let lastActivityPing = 0;
-    ['click', 'keydown', 'mousemove', 'scroll'].forEach(evt => {
-      window.addEventListener(evt, () => {
-        const now = Date.now();
-        if (now - lastActivityPing > 20000) {
-          lastActivityPing = now;
-          ping();
-        }
-      }, { passive: true });
-    });
-
-    // تحديث الحالة فوراً إذا عاد المستخدم لفتح التبويب
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
-        ping();
-      }
-    });
-  }
-
-  async function getProfile(userId){
-    const { data, error } = await supabaseClient.from('profiles').select('id,email,status,role').eq('id', userId).single();
-    if(error) throw error;
-    return data;
-  }
-
-  async function checkSession(){
-    const { data:{session} } = await supabaseClient.auth.getSession();
-    if(!session) return;
-    try{
-      const profile = await getProfile(session.user.id);
-      if(profile.status === 'approved' || profile.role === 'admin') enterTool();
-      else if(profile.status === 'pending') authMessage('حسابك قيد المراجعة من الإدارة.');
-      else authMessage('هذا الحساب غير مفعل.');
-    }catch(e){console.error(e);}
-  }
-
-  async function login(){
-    const e = email.value.trim(), p = pwd.value;
-    if(!e || !p) return authMessage('اكتب البريد وكلمة المرور.');
-    btn.disabled = true; authMessage('');
-    const { data, error } = await supabaseClient.auth.signInWithPassword({email:e,password:p});
-    btn.disabled = false;
-    if(error) return authMessage('بيانات الدخول غير صحيحة أو الحساب غير متاح.');
-    try{
-      const profile = await getProfile(data.user.id);
-      if(profile.status === 'approved' || profile.role === 'admin') enterTool();
-      else {
-        await supabaseClient.auth.signOut();
-        authMessage('حسابك قيد المراجعة أو غير مفعل.');
-      }
-    }catch(err){await supabaseClient.auth.signOut(); authMessage('تعذر قراءة حالة الحساب.');}
-  }
-
-  async function register(){
-    const e = registerEmail.value.trim().toLowerCase(), p = registerPwd.value, p2 = registerPwd2.value;
-    if(!e || !p || !p2) return authMessage('اكمل كل البيانات.');
-    
-    if(!e.endsWith('@te.eg')){
-      return authMessage('عذراً، مسموح بالتسجيل باستخدام البريد الإلكتروني للشركة (@te.eg) فقط.');
-    }
-
-    if(p.length < 8) return authMessage('كلمة المرور يجب أن تكون 8 أحرف على الأقل.');
-    if(p !== p2) return authMessage('تأكيد كلمة المرور غير مطابق.');
-    
-    registerBtn.disabled = true; authMessage('');
-    const { data, error } = await supabaseClient.auth.signUp({email:e,password:p});
-    registerBtn.disabled = false;
-    
-    if(error) return authMessage(error.message);
-    if(data.user){
-      authMessage('تم تسجيل حسابك بنجاح. إذا كان إيميلك ضمن القائمة المعتمدة سيتم تفعليه تلقائياً.', 'ok');
-      registerPwd.value=''; registerPwd2.value='';
-    }
-  }
-
-  btn.addEventListener('click', login);
-  pwd.addEventListener('keydown', e => { if(e.key === 'Enter') login(); });
-  registerBtn.addEventListener('click', register);
-
-  checkSession();
-
-  const splash = document.getElementById("splash");
-  const sheetList = document.getElementById("sheetList");
-  const cardsGrid = document.getElementById("cardsGrid");
-  const searchInput = document.getElementById("searchInput");
-  const clickSound = document.getElementById("clickSound");
-  const themeToggle = document.getElementById("themeToggle");
-  const toolCount = document.getElementById("toolCount");
-  const sectionTitle = document.getElementById("sectionTitle");
-  const resultCount = document.getElementById("resultCount");
-  
-  const aboutBtn = document.getElementById("aboutBtn");
-  const feedBtn = document.getElementById("feedBtn");
-  const appGridContainer = document.getElementById("appGridContainer");
-  const aboutViewContainer = document.getElementById("aboutViewContainer");
-  const feedbackViewContainer = document.getElementById("feedbackViewContainer");
-
-  let activeTab = 'main', workbookData = {}, currentSheet = null;
-
-  function switchTab(tab) {
-    appGridContainer.style.display = "none";
-    aboutViewContainer.style.display = "none";
-    feedbackViewContainer.style.display = "none";
-    if (tab === 'about') {
-      if (activeTab === 'about') { activeTab = 'main'; appGridContainer.style.display = "grid"; }
-      else { activeTab = 'about'; aboutViewContainer.style.display = "block"; }
-    } else if (tab === 'feedback') {
-      if (activeTab === 'feedback') { activeTab = 'main'; appGridContainer.style.display = "grid"; }
-      else { activeTab = 'feedback'; feedbackViewContainer.style.display = "block"; }
-    } else { activeTab = 'main'; appGridContainer.style.display = "grid"; }
-  }
-
-  aboutBtn.addEventListener("click", () => switchTab('about'));
-  feedBtn.addEventListener("click", () => switchTab('feedback'));
-
-  document.getElementById("feedbackForm").addEventListener("submit", (e) => {
+['contextmenu'].forEach(evt => {
+  window.addEventListener(evt, e => {
     e.preventDefault();
-    alert("تم إرسال اقتراحك بنجاح ، شكراً لك! 🌟");
-    e.target.reset(); switchTab('main');
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    return false;
+  }, { capture: true });
+});
+
+['keydown', 'keypress'].forEach(evt => {
+  window.addEventListener(evt, e => {
+    const isCtrl = e.ctrlKey || e.metaKey;
+    const key = (e.key || '').toLowerCase();
+    const code = e.code || '';
+    const isSave = isCtrl && (key === 's' || key === 'س' || code === 'KeyS' || e.keyCode === 83);
+    const isPrint = isCtrl && (key === 'p' || key === 'ح' || code === 'KeyP' || e.keyCode === 80);
+    const isViewSource = isCtrl && (key === 'u' || key === 'ع' || code === 'KeyU' || e.keyCode === 85);
+    const isDevTools = e.key === 'F12' || (isCtrl && e.shiftKey && ['i', 'j', 'c', 'I', 'J', 'C'].includes(e.key));
+
+    if (isSave || isPrint || isViewSource || isDevTools) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      return false;
+    }
+  }, { capture: true });
+});
+
+window.addEventListener('beforeprint', e => {
+  e.preventDefault();
+  return false;
+});
+
+const SUPABASE_URL = 'https://jdvkzdorjthljhwqmvmn.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_6WQHg-zL775jpFaErofLog_1kd5X6bI';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const users = document.getElementById('users'), msg = document.getElementById('msg');
+const addCannedForm = document.getElementById('addCannedForm');
+const addBtn = document.getElementById('addBtn');
+const uploadExcelBtn = document.getElementById('uploadExcelBtn');
+
+async function checkAuthWithRetry() {
+  msg.style.color = '#7ee2a8';
+  msg.textContent = 'Verifying session and permissions...';
+
+  let { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    await new Promise(resolve => setTimeout(resolve, 600));
+    let retry = await sb.auth.getSession();
+    session = retry.data.session;
+  }
+
+  if (!session) {
+    msg.style.color = '#ff9b9b';
+    msg.textContent = 'Not logged in, redirecting to login page...';
+    setTimeout(() => { location.href = 'index.html'; }, 1200);
+    return;
+  }
+
+  const { data: me, error: meErr } = await sb.from('profiles').select('role,status').eq('id', session.user.id).single();
+
+  if (meErr || !me || me.role !== 'admin') {
+    document.body.innerHTML = '<h2 style="text-align:center;margin-top:50px;color:#ff9b9b">Access denied — You are not authorized to view this admin panel</h2>';
+    return;
+  }
+
+  loadUsers();
+  
+  // تحديث جدول المستخدمين تلقائياً في لوحة الأدمن كل 15 ثانية لرصد الأونلاين لحظياً
+  setInterval(loadUsers, 15000);
+}
+
+async function loadUsers(){
+  const { data, error } = await sb.from('profiles').select('id,email,status,role,created_at,last_seen').order('created_at',{ascending:true});
+  if(error){ msg.style.color='#ff9b9b'; msg.textContent='Failed to load user accounts.'; return; }
+  
+  users.innerHTML='';
+  const now = Date.now();
+
+  (data||[]).forEach(u=>{
+    const tr=document.createElement('tr');
+    
+    // حساب حالة الاتصال (أونلاين إذا كان التحديث خلال آخر 3 دقائق)
+    let onlineStatus = '<span style="color:#9299aa">⚪ Offline</span>';
+    if (u.last_seen) {
+      const diffMinutes = (now - new Date(u.last_seen).getTime()) / (1000 * 60);
+      if (diffMinutes <= 3) {
+        onlineStatus = '<span style="color:#7ee2a8; font-weight:bold;">🟢 Online</span>';
+      }
+    }
+
+    const actions = u.role==='admin' ? '<span class="muted">System Admin</span>' :
+      (u.status==='pending' ? `<button class="approve" data-id="${u.id}" data-status="approved">Approve</button>
+       <button class="reject" data-id="${u.id}" data-status="rejected">Reject</button>` :
+       `<button data-id="${u.id}" data-status="${u.status==='approved'?'disabled':'approved'}">${u.status==='approved'?'Disable':'Enable'}</button>`);
+       
+    tr.innerHTML=`<td>${esc(u.email)}</td><td>${onlineStatus}</td><td><span class="badge">${esc(u.status)}</span></td><td>${esc(u.role)}</td><td>${new Date(u.created_at).toLocaleString()}</td><td>${actions}</td>`;
+    users.appendChild(tr);
   });
-
-  const savedTheme = localStorage.getItem('candat_theme') || 'dark';
-  document.body.setAttribute('data-theme', savedTheme);
-  themeToggle.textContent = savedTheme === 'dark' ? '🌙' : '☀️';
-
-  setTimeout(() => splash.style.opacity = "0", 750);
-  setTimeout(() => splash.style.display = "none", 1150);
-
-  themeToggle.addEventListener("click", () => {
-    const next = document.body.getAttribute("data-theme") === "dark" ? "light" : "dark";
-    document.body.setAttribute("data-theme", next);
-    themeToggle.textContent = next === "dark" ? "🌙" : "☀️";
-    localStorage.setItem('candat_theme', next);
+  
+  document.querySelectorAll('[data-id]').forEach(b=>b.onclick=async()=>{
+    b.disabled=true;
+    const {error}=await sb.rpc('set_user_status',{target_user_id:b.dataset.id,new_status:b.dataset.status});
+    if(error){msg.style.color='#ff9b9b'; msg.textContent='Failed to update user status.'; b.disabled=false; return;}
+    msg.style.color='#7ee2a8';
+    msg.textContent='User status updated successfully.';
+    loadUsers();
   });
+}
 
-  async function loadCannedData() {
+uploadExcelBtn.addEventListener('click', async () => {
+  const fileInput = document.getElementById('excelFile');
+  if (!fileInput.files.length) {
+    msg.style.color = '#ff9b9b';
+    msg.textContent = '⚠️ Please select an Excel file first.';
+    return;
+  }
+
+  const file = fileInput.files[0];
+  uploadExcelBtn.disabled = true;
+  msg.style.color = '#7ee2a8';
+  msg.textContent = '📊 Reading Excel file...';
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
     try {
-      const { data, error } = await supabaseClient
-        .from('canned_items')
-        .select('sheet_name, title, content, reference_url, click_count, row_order')
-        .order('row_order', { ascending: true });
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      
+      let allItems = [];
+      let globalIndex = 0;
 
-      if (error) throw error;
-
-      workbookData = {};
-      const sheetNamesSet = [];
-
-      (data || []).forEach(item => {
-        const sName = item.sheet_name;
-        if (!workbookData[sName]) {
-          workbookData[sName] = [];
-          sheetNamesSet.push(sName);
+      wb.SheetNames.forEach(sheetName => {
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { header: 1 });
+        for (let i = 1; i < rows.length; i++) {
+          const r = rows[i];
+          if (r && r[0] && r[1]) {
+            globalIndex++;
+            allItems.push({
+              sheet_name: sheetName,
+              title: String(r[0]),
+              content: String(r[1]),
+              reference_url: r[2] ? String(r[2]) : null,
+              click_count: r[3] ? Number(r[3]) : 0,
+              row_order: globalIndex
+            });
+          }
         }
-        workbookData[sName].push({
-          name: item.title,
-          content: item.content,
-          sheet: sName,
-          reference_url: item.reference_url,
-          click_count: item.click_count
-        });
       });
 
-      toolCount.textContent = sheetNamesSet.length;
-      renderSheetList(sheetNamesSet);
-      if (sheetNamesSet.length) showSheet(sheetNamesSet[0]);
-      else cardsGrid.innerHTML = '<div class="empty">قاعدة البيانات فارغة أو لا توجد شيتات.</div>';
+      msg.textContent = `🔄 Updating responses and preserving exact order for ${allItems.length} items...`;
+      
+      await sb.from('canned_items').delete().neq('id', 0);
+
+      const chunkSize = 100;
+      for (let i = 0; i < allItems.length; i += chunkSize) {
+        const chunk = allItems.slice(i, i + chunkSize);
+        const { error: insertErr } = await sb.from('canned_items').insert(chunk);
+        if (insertErr) throw insertErr;
+      }
+
+      msg.style.color = '#7ee2a8';
+      msg.textContent = `✨ Upload completed successfully! Responses are now synced with exact Excel ordering (${allItems.length} items).`;
+      fileInput.value = '';
     } catch (err) {
       console.error(err);
-      cardsGrid.innerHTML = '<div class="empty">⚠️ تعذر تحميل البيانات من قاعدة البيانات.</div>';
+      msg.style.color = '#ff9b9b';
+      msg.textContent = '❌ Error processing file: ' + err.message;
+    } finally {
+      uploadExcelBtn.disabled = false;
     }
-  }
-
-  function renderSheetList(names) {
-    sheetList.innerHTML = '';
-    names.forEach(name => {
-      const btn = document.createElement('div');
-      btn.className = 'sheet-item';
-      btn.innerHTML = `<span class="chip"></span><span class="label">${escapeHtml(name)}</span>`;
-      btn.addEventListener('click', () => {
-        if(activeTab !== 'main') switchTab('main');
-        showSheet(name);
-      });
-      sheetList.appendChild(btn);
-    });
-  }
-
-  function showSheet(name) {
-    window.scrollTo({top:0,behavior:'smooth'});
-    currentSheet = name;
-    searchInput.value = '';
-    document.querySelectorAll('.sheet-item').forEach(el => {
-      el.classList.toggle('active', el.querySelector('.label').textContent === name);
-    });
-    sectionTitle.textContent = name;
-    renderCards(workbookData[name] || []);
-  }
-
-  function renderCards(items) {
-    cardsGrid.innerHTML = '';
-    const query = searchInput.value.trim();
-    resultCount.textContent = `${items.length} نتيجة`;
-    if (!items || !items.length) {
-      cardsGrid.innerHTML = `<div class="empty">${query ? `لا توجد نتائج مطابقة لبحثك: <b>"${escapeHtml(query)}"</b>` : 'اختر شيت للبدء'}</div>`;
-      return;
-    }
-    items.forEach((item, index) => {
-      const card = document.createElement('div');
-      card.className = 'card';
-      const displayContent = escapeHtml(item.content).replace(/\n/g,'<br>');
-      card.innerHTML = `
-        <div class="card-title">
-          <span class="ext">رد</span>
-          <span class="t">${escapeHtml(item.name)}</span>
-        </div>
-        <div class="card-content">
-          <div class="frame">${displayContent}</div>
-        </div>
-        <div class="card-footer" data-original-text="${escapeHtml(item.sheet)}">
-          <span class="path">${escapeHtml(item.sheet)}</span>
-          <span class="cmd">انسخ ↗</span>
-        </div>`;
-      card.addEventListener('click', () => {
-        const contentToCopy = item.content.replace(/\n/g, "\n<p>&nbsp;</p>\n");
-        copyText(contentToCopy);
-        playClick();
-        const footer = card.querySelector('.card-footer');
-        const original = footer.getAttribute('data-original-text');
-        footer.innerHTML = ' تم النسخ ✅';
-        footer.classList.add('copied');
-        setTimeout(() => {
-        footer.innerHTML = `<span class="path">${original}</span><span class="cmd">انسخ ↗</span>`;
-        footer.classList.remove('copied');
-        }, 1500);
-      });
-      cardsGrid.appendChild(card);
-      setTimeout(() => card.classList.add('visible'), 35 + index*15);
-    });
-  }
-
-  function escapeHtml(value){ return String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
-  function copyText(text) {
-    navigator.clipboard.writeText(text).catch(() => {
-      const temp = document.createElement('textarea'); temp.value = text; document.body.appendChild(temp); temp.select(); document.execCommand('copy'); temp.remove();
-    });
-  }
-  function playClick(){ clickSound.currentTime=0; clickSound.play().catch(()=>{}); }
-
-  searchInput.addEventListener('input', () => {
-    const q = searchInput.value.trim().toLowerCase();
-    if (activeTab !== 'main') switchTab('main');
-    if (!q) { if (currentSheet) showSheet(currentSheet); return; }
-    document.querySelectorAll('.sheet-item').forEach(el => el.classList.remove('active'));
-    const results = [];
-    Object.keys(workbookData).forEach(sheetName => (workbookData[sheetName] || []).forEach(item => {
-      if ((item.name + ' ' + item.content).toLowerCase().includes(q)) results.push({...item, sheet: sheetName});
-    }));
-    sectionTitle.textContent = 'نتائج البحث';
-    renderCards(results);
-  });
+  };
+  reader.readAsArrayBuffer(file);
 });
+
+addCannedForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  addBtn.disabled = true;
+  msg.style.color = '#7ee2a8';
+  msg.textContent = 'Adding canned item...';
+
+  const sheet_name = document.getElementById('sheetName').value.trim();
+  const title = document.getElementById('cannedTitle').value.trim();
+  const content = document.getElementById('cannedContent').value.trim();
+
+  const { error } = await sb.from('canned_items').insert([{ sheet_name, title, content, row_order: 999999 }]);
+
+  addBtn.disabled = false;
+  if(error){
+    msg.style.color = '#ff9b9b';
+    msg.textContent = 'Error adding item: ' + error.message;
+  } else {
+    msg.style.color = '#7ee2a8';
+    msg.textContent = 'Canned item added successfully and now available in the tool! 🌟';
+    addCannedForm.reset();
+  }
+});
+
+function esc(v){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+
+window.addEventListener('DOMContentLoaded', checkAuthWithRetry);
 </script>
-</div>
 </body>
 </html>
