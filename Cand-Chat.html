@@ -571,7 +571,7 @@ button{font-family:inherit;}
 <div class="footer-wrapper">
   <span class="fseg"><span class="dot"></span> Ready</span>
   <span class="sep">·</span>
-  <span class="fseg">version 18</span>
+  <span class="fseg">version 19</span>
   <span class="sep">·</span>
   <span class="fseg">Developed By : Geek</span>
 </div>
@@ -611,13 +611,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const forgotBtn = document.getElementById('forgotBtn');
   const subtitle = document.getElementById('authSubtitle');
 
-  // إنشاء رمز جلسة فريد لهذا المتصفح لمنع فتح الحساب على جهازين
-  let mySessionToken = localStorage.getItem('canned_session_token');
-  if (!mySessionToken) {
-    mySessionToken = 'sess_' + Math.random().toString(36).substring(2) + Date.now();
-    localStorage.setItem('canned_session_token', mySessionToken);
-  }
-
   function authMessage(text, type='error'){
     msg.textContent = text || '';
     msg.style.color = type === 'ok' ? '#7ee2a8' : '#ff9b9b';
@@ -651,42 +644,21 @@ document.addEventListener("DOMContentLoaded", () => {
           try {
             supabaseClient.rpc('update_last_seen');
           } catch(e) {}
-          startHeartbeatAndSessionCheck();
+          startHeartbeat();
         }, 50);
       }, 400);
     }, 700);
   }
 
-  // نظام النبضات وفحص الجلسة الواحدة للتأكد من عدم فتح الحساب على جهاز آخر
-  function startHeartbeatAndSessionCheck() {
-    const pingAndCheck = async () => {
+  // نظام النبضات المستمر لتحديث النشاط في الخلفية بدون طرد التابات الخاصة بنفس الجهاز
+  function startHeartbeat() {
+    const ping = () => {
       try {
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (!session) return;
-
-        // تحديث آخر ظهور
-        await supabaseClient.rpc('update_last_seen');
-
-        // التحقق من رمز الجلسة الفريد لمنع التعدد على جهازين
-        const { data, error } = await supabaseClient
-          .from('profiles')
-          .select('session_token')
-          .eq('id', session.user.id)
-          .maybeSingle();
-
-        if (data && data.session_token && data.session_token !== mySessionToken) {
-          alert('⚠️ الحساب مستخدم بالفعل علي جهاز أخر، سيتم تسجيل الخروج.');
-          localStorage.removeItem('canned_session_token');
-          await supabaseClient.auth.signOut();
-          location.reload();
-        }
-      } catch (e) {
-        console.error(e);
-      }
+        supabaseClient.rpc('update_last_seen').catch(e => console.error(e));
+      } catch (e) {}
     };
 
-    // فحص دوري كل 12 ثانية
-    setInterval(pingAndCheck, 12000);
+    setInterval(ping, 25000);
 
     let lastActivityPing = 0;
     ['click', 'keydown', 'mousemove', 'scroll'].forEach(evt => {
@@ -694,20 +666,20 @@ document.addEventListener("DOMContentLoaded", () => {
         const now = Date.now();
         if (now - lastActivityPing > 15000) {
           lastActivityPing = now;
-          try { supabaseClient.rpc('update_last_seen'); } catch(e){}
+          ping();
         }
       }, { passive: true });
     });
 
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
-        pingAndCheck();
+        ping();
       }
     });
   }
 
   async function getProfile(userId){
-    const { data, error } = await supabaseClient.from('profiles').select('id,email,status,role').eq('id', userId).single();
+    const { data, error } = await supabaseClient.from('profiles').select('id,email,status,role,last_seen').eq('id', userId).single();
     if(error) throw error;
     return data;
   }
@@ -718,8 +690,6 @@ document.addEventListener("DOMContentLoaded", () => {
     try{
       const profile = await getProfile(session.user.id);
       if(profile.status === 'approved' || profile.role === 'admin') {
-        // تحديث رمز الجلسة الحالية في قاعدة البيانات عند استعادة الجلسة
-        await supabaseClient.from('profiles').update({ session_token: mySessionToken }).eq('id', session.user.id);
         enterTool();
       }
       else if(profile.status === 'pending') authMessage('حسابك قيد المراجعة من الإدارة.');
@@ -731,20 +701,39 @@ document.addEventListener("DOMContentLoaded", () => {
     const e = email.value.trim(), p = pwd.value;
     if(!e || !p) return authMessage('اكتب البريد وكلمة المرور.');
     btn.disabled = true; authMessage('');
+    
     const { data, error } = await supabaseClient.auth.signInWithPassword({email:e,password:p});
-    btn.disabled = false;
-    if(error) return authMessage('بيانات الدخول غير صحيحة أو الحساب غير متاح.');
+    if(error) {
+      btn.disabled = false;
+      return authMessage('بيانات الدخول غير صحيحة أو الحساب غير متاح.');
+    }
+
     try{
       const profile = await getProfile(data.user.id);
+
+      // التحقق: هل الحساب مفتوح ونشط على جهاز آخر حالياً (آخر ظهور خلال آخر 35 ثانية)؟
+      if (profile.last_seen && profile.role !== 'admin') {
+        const diffSec = (Date.now() - new Date(profile.last_seen).getTime()) / 1000;
+        if (diffSec < 35) {
+          await supabaseClient.auth.signOut();
+          btn.disabled = false;
+          return authMessage('⚠️ الحساب مستخدم بالفعل علي جهاز أخر ولا يمكن تسجيل الدخول.');
+        }
+      }
+
       if(profile.status === 'approved' || profile.role === 'admin') {
-        // تسجيل رمز الجلسة الفريد في قاعدة البيانات لمنع فتحه من جهاز آخر
-        await supabaseClient.from('profiles').update({ session_token: mySessionToken }).eq('id', data.user.id);
+        btn.disabled = false;
         enterTool();
       } else {
         await supabaseClient.auth.signOut();
+        btn.disabled = false;
         authMessage('حسابك قيد المراجعة أو غير مفعل.');
       }
-    }catch(err){await supabaseClient.auth.signOut(); authMessage('تعذر قراءة حالة الحساب.');}
+    }catch(err){
+      await supabaseClient.auth.signOut();
+      btn.disabled = false;
+      authMessage('تعذر قراءة حالة الحساب.');
+    }
   }
 
   async function register(){
@@ -948,7 +937,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll('.sheet-item').forEach(el => el.classList.remove('active'));
     const results = [];
     Object.keys(workbookData).forEach(sheetName => (workbookData[sheetName] || []).forEach(item => {
-      if ((item.name + ' ' + item.content).toLowerCase().includes(q)) results.push({...item, sheet: sheetName});
+      if ((item.name + ' + item.content).toLowerCase().includes(q)) results.push({...item, sheet: sheetName});
     }));
     sectionTitle.textContent = 'نتائج البحث';
     renderCards(results);
