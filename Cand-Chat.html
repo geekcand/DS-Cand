@@ -579,7 +579,7 @@ button{font-family:inherit;}
 <div class="footer-wrapper">
   <span class="fseg"><span class="dot"></span> Ready</span>
   <span class="sep">·</span>
-  <span class="fseg">version 23</span>
+  <span class="fseg">version 24</span>
   <span class="sep">·</span>
   <span class="fseg">Developed By : Geek</span>
 </div>
@@ -639,7 +639,7 @@ document.addEventListener("DOMContentLoaded", () => {
     subtitle.textContent='Create Your Account';
   });
 
-  // طلب استعادة كلمة المرور مع تحديد علامة الاستعادة في الـ redirectTo
+  // طلب استعادة كلمة المرور
   forgotBtn.addEventListener('click', async () => {
     const e = email.value.trim();
     if (!e) {
@@ -659,7 +659,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // تحديث كلمة المرور الجديدة
+  // تحديث كلمة المرور الجديدة مع فحص الجلسة والرمز
   updatePwdBtn.addEventListener('click', async () => {
     const p1 = document.getElementById('newPwd').value;
     const p2 = document.getElementById('newPwd2').value;
@@ -740,9 +740,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function checkSession(){
     const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+
+    // إذا وجدنا كود PKCE قادماً من رابط الاستعادة، نبادله بجلسة نشطة فوراً
+    if (code) {
+      const { error } = await supabaseClient.auth.exchangeCodeForSession(code);
+      if (!error) {
+        overlay.style.display = 'flex';
+        formContent.classList.remove('hide');
+        authTabsContainer.style.display = 'none';
+        loginPanel.style.display = 'none';
+        registerPanel.style.display = 'none';
+        resetPanel.style.display = 'block';
+        subtitle.textContent = 'Set New Password';
+        return;
+      }
+    }
+
     const isResetFlow = urlParams.get('reset') === 'true';
 
-    // إذا كان الموظف قادماً من رابط الاستعادة، نظهر له شاشة تغيير الباسورد فوراً
     if (isResetFlow || window.location.hash.includes('type=recovery')) {
       overlay.style.display = 'flex';
       formContent.classList.remove('hide');
