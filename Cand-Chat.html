@@ -579,7 +579,7 @@ button{font-family:inherit;}
 <div class="footer-wrapper">
   <span class="fseg"><span class="dot"></span> Ready</span>
   <span class="sep">·</span>
-  <span class="fseg">version 22</span>
+  <span class="fseg">version 23</span>
   <span class="sep">·</span>
   <span class="fseg">Developed By : Geek</span>
 </div>
@@ -639,14 +639,23 @@ document.addEventListener("DOMContentLoaded", () => {
     subtitle.textContent='Create Your Account';
   });
 
-  // الاستماع لحدث استعادة كلمة المرور عند فتح الرابط من البريد
-  supabaseClient.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'PASSWORD_RECOVERY') {
-      authTabsContainer.style.display = 'none';
-      loginPanel.style.display = 'none';
-      registerPanel.style.display = 'none';
-      resetPanel.style.display = 'block';
-      subtitle.textContent = 'Set New Password';
+  // طلب استعادة كلمة المرور مع تحديد علامة الاستعادة في الـ redirectTo
+  forgotBtn.addEventListener('click', async () => {
+    const e = email.value.trim();
+    if (!e) {
+      return authMessage('من فضلك اكتب بريدك الإلكتروني في حقل البريد أولاً.');
+    }
+    
+    authMessage('جارٍ إرسال رابط استعادة كلمة المرور...', 'ok');
+    
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(e, {
+      redirectTo: window.location.origin + window.location.pathname + '?reset=true',
+    });
+
+    if (error) {
+      authMessage('تعذر إرسال رابط الاستعادة: ' + error.message);
+    } else {
+      authMessage('تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني بنجاح! ✉️ تحقق من رسائلك.', 'ok');
     }
   });
 
@@ -667,6 +676,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     authMessage('تم تحديث كلمة المرور بنجاح! جاري الدخول...', 'ok');
+    window.history.replaceState({}, document.title, window.location.pathname);
     setTimeout(() => {
       enterTool();
     }, 1500);
@@ -729,11 +739,23 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function checkSession(){
+    const urlParams = new URLSearchParams(window.location.search);
+    const isResetFlow = urlParams.get('reset') === 'true';
+
+    // إذا كان الموظف قادماً من رابط الاستعادة، نظهر له شاشة تغيير الباسورد فوراً
+    if (isResetFlow || window.location.hash.includes('type=recovery')) {
+      overlay.style.display = 'flex';
+      formContent.classList.remove('hide');
+      authTabsContainer.style.display = 'none';
+      loginPanel.style.display = 'none';
+      registerPanel.style.display = 'none';
+      resetPanel.style.display = 'block';
+      subtitle.textContent = 'Set New Password';
+      return;
+    }
+
     const { data:{session} } = await supabaseClient.auth.getSession();
     if(!session) return;
-    
-    // إذا كان رابط استعادة كلمة مرور، دع الـ onAuthStateChange يتعامل معه
-    if (window.location.hash.includes('type=recovery')) return;
 
     try{
       const profile = await getProfile(session.user.id);
@@ -810,25 +832,6 @@ document.addEventListener("DOMContentLoaded", () => {
       registerName.value=''; registerEmail.value=''; registerPwd.value=''; registerPwd2.value='';
     }
   }
-
-  forgotBtn.addEventListener('click', async () => {
-    const e = email.value.trim();
-    if (!e) {
-      return authMessage('من فضلك اكتب بريدك الإلكتروني في حقل البريد أولاً.');
-    }
-    
-    authMessage('جارٍ إرسال رابط استعادة كلمة المرور...', 'ok');
-    
-    const { error } = await supabaseClient.auth.resetPasswordForEmail(e, {
-      redirectTo: window.location.href,
-    });
-
-    if (error) {
-      authMessage('تعذر إرسال رابط الاستعادة: ' + error.message);
-    } else {
-      authMessage('تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني بنجاح! ✉️ تحقق من رسائلك.', 'ok');
-    }
-  });
 
   btn.addEventListener('click', login);
   pwd.addEventListener('keydown', e => { if(e.key === 'Enter') login(); });
