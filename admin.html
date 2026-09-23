@@ -66,7 +66,11 @@ textarea.form-control{resize:vertical;min-height:90px}
 
   <!-- Users Management Card -->
   <div class="card">
-    <h3>👥 User Permissions Management</h3>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+      <h3 style="margin: 0;">👥 User Permissions Management</h3>
+      <span id="memberCountBadge" style="font-size: 12px; background: #252b40; border: 1px solid #29304a; padding: 5px 12px; border-radius: 8px; color: #6fe3d9; font-weight: bold;">Total Members: 0</span>
+    </div>
+    <div id="emailsListPreview" style="font-size: 12px; color: #9da5b5; margin-bottom: 14px; word-break: break-all;"></div>
     <table>
       <thead><tr><th>Email</th><th>Activity</th><th>Status</th><th>Role</th><th>Created At</th><th>Actions</th></tr></thead>
       <tbody id="users"><tr><td colspan="6" class="muted">Loading…</td></tr></tbody>
@@ -116,6 +120,8 @@ const users = document.getElementById('users'), msg = document.getElementById('m
 const addCannedForm = document.getElementById('addCannedForm');
 const addBtn = document.getElementById('addBtn');
 const uploadExcelBtn = document.getElementById('uploadExcelBtn');
+const memberCountBadge = document.getElementById('memberCountBadge');
+const emailsListPreview = document.getElementById('emailsListPreview');
 
 async function checkAuthWithRetry() {
   try {
@@ -169,7 +175,7 @@ async function checkAuthWithRetry() {
     }, 20000);
 
     loadUsers();
-    msg.textContent = ''; // مسح رسالة التحميل فوراً هنا لتصبح الشاشة نظيفة
+    msg.textContent = ''; 
     setInterval(loadUsers, 15000);
   } catch (err) {
     console.error(err);
@@ -179,14 +185,24 @@ async function checkAuthWithRetry() {
 }
 
 async function loadUsers(){
-  const { data, error } = await sb.from('profiles').select('id,email,status,role,created_at,last_seen').order('created_at',{ascending:true});
+  // استبعاد الحسابات المرفوضة (rejected) تماماً من الجلب لكي تختفي من اللوحة
+  const { data, error } = await sb.from('profiles')
+    .select('id,email,status,role,created_at,last_seen')
+    .neq('status', 'rejected')
+    .order('created_at',{ascending:true});
+
   if(error){ msg.style.color='#ff9b9b'; msg.textContent='Failed to load user accounts: ' + error.message; return; }
   
   msg.textContent = '';
   users.innerHTML='';
   const now = Date.now();
+  const validUsers = data || [];
 
-  (data||[]).forEach(u=>{
+  // تحديث عداد الأعضاء وإظهار إيميلاتهم المسجلة
+  memberCountBadge.textContent = `Total Members: ${validUsers.length}`;
+  emailsListPreview.textContent = validUsers.length ? `Emails: ${validUsers.map(u => u.email).join(' • ')}` : 'No members registered yet.';
+
+  validUsers.forEach(u=>{
     const tr=document.createElement('tr');
     
     let onlineStatus = '<span style="color:#9299aa">⚪ Offline</span>';
