@@ -753,7 +753,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     if(error) return authMessage(error.message);
     if(data.user){
-      authMessage('تم تسجيل حسابك بنجاح. إذا كان إيميلك ضمن القائمة المعتمدة سيتم تفعليه تلقائياً.', 'ok');
+      authMessage('تم تسجيل حسابك بنجاح. سيتم تفعيله فور الموافقة عليه من ادارة الموقع.', 'ok');
       registerPwd.value=''; registerPwd2.value='';
     }
   }
