@@ -441,7 +441,7 @@ button{font-family:inherit;}
       <h3>Canned Tool</h3>
       <p class="login-sub" id="authSubtitle">Secure Access</p>
 
-      <div class="auth-tabs">
+      <div class="auth-tabs" id="authTabsContainer">
         <button type="button" class="auth-tab active" id="loginTab">Login</button>
         <button type="button" class="auth-tab" id="registerTab">Register</button>
       </div>
@@ -460,6 +460,13 @@ button{font-family:inherit;}
         <input id="registerPwd2" class="neu-input" type="password" placeholder="Confirm password" autocomplete="new-password" dir="ltr">
         <button id="registerBtn" class="neu-btn">Create account</button>
         <div class="auth-note">مسموح بالتسجيل بإيميل الشركة <b>@te.eg</b> فقط.</div>
+      </div>
+
+      <!-- شاشة تعيين كلمة المرور الجديدة -->
+      <div id="resetPanel" style="display:none; width:100%;">
+        <input id="newPwd" class="neu-input" type="password" placeholder="New password (8+ characters)" autocomplete="new-password" dir="ltr">
+        <input id="newPwd2" class="neu-input" type="password" placeholder="Confirm new password" autocomplete="new-password" dir="ltr">
+        <button id="updatePwdBtn" class="neu-btn">Update Password</button>
       </div>
 
       <div id="loginMsg"></div>
@@ -605,12 +612,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const registerTab = document.getElementById('registerTab');
   const loginPanel = document.getElementById('loginPanel');
   const registerPanel = document.getElementById('registerPanel');
+  const resetPanel = document.getElementById('resetPanel');
+  const authTabsContainer = document.getElementById('authTabsContainer');
   const registerName = document.getElementById('registerName');
   const registerEmail = document.getElementById('registerEmail');
   const registerPwd = document.getElementById('registerPwd');
   const registerPwd2 = document.getElementById('registerPwd2');
   const registerBtn = document.getElementById('registerBtn');
   const forgotBtn = document.getElementById('forgotBtn');
+  const updatePwdBtn = document.getElementById('updatePwdBtn');
   const subtitle = document.getElementById('authSubtitle');
 
   function authMessage(text, type='error'){
@@ -620,13 +630,46 @@ document.addEventListener("DOMContentLoaded", () => {
 
   loginTab.addEventListener('click', () => {
     loginTab.classList.add('active'); registerTab.classList.remove('active');
-    loginPanel.style.display='block'; registerPanel.style.display='none';
+    loginPanel.style.display='block'; registerPanel.style.display='none'; resetPanel.style.display='none';
     subtitle.textContent='Secure Access';
   });
   registerTab.addEventListener('click', () => {
     registerTab.classList.add('active'); loginTab.classList.remove('active');
-    loginPanel.style.display='none'; registerPanel.style.display='block';
+    loginPanel.style.display='none'; registerPanel.style.display='block'; resetPanel.style.display='none';
     subtitle.textContent='Create Your Account';
+  });
+
+  // الاستماع لحدث استعادة كلمة المرور عند فتح الرابط من البريد
+  supabaseClient.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      authTabsContainer.style.display = 'none';
+      loginPanel.style.display = 'none';
+      registerPanel.style.display = 'none';
+      resetPanel.style.display = 'block';
+      subtitle.textContent = 'Set New Password';
+    }
+  });
+
+  // تحديث كلمة المرور الجديدة
+  updatePwdBtn.addEventListener('click', async () => {
+    const p1 = document.getElementById('newPwd').value;
+    const p2 = document.getElementById('newPwd2').value;
+    if (!p1 || p1.length < 8) return authMessage('كلمة المرور يجب أن تكون 8 أحرف على الأقل.');
+    if (p1 !== p2) return authMessage('كلمة المرور غير متطابقة.');
+
+    updatePwdBtn.disabled = true;
+    authMessage('جارٍ تحديث كلمة المرور...', 'ok');
+
+    const { error } = await supabaseClient.auth.updateUser({ password: p1 });
+    if (error) {
+      updatePwdBtn.disabled = false;
+      return authMessage('فشل التحديث: ' + error.message);
+    }
+
+    authMessage('تم تحديث كلمة المرور بنجاح! جاري الدخول...', 'ok');
+    setTimeout(() => {
+      enterTool();
+    }, 1500);
   });
 
   function enterTool(){
@@ -688,6 +731,10 @@ document.addEventListener("DOMContentLoaded", () => {
   async function checkSession(){
     const { data:{session} } = await supabaseClient.auth.getSession();
     if(!session) return;
+    
+    // إذا كان رابط استعادة كلمة مرور، دع الـ onAuthStateChange يتعامل معه
+    if (window.location.hash.includes('type=recovery')) return;
+
     try{
       const profile = await getProfile(session.user.id);
       if(profile.status === 'approved' || profile.role === 'admin') {
@@ -764,7 +811,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // تفعيل زر استعادة كلمة المرور
   forgotBtn.addEventListener('click', async () => {
     const e = email.value.trim();
     if (!e) {
