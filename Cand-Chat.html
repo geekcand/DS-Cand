@@ -454,6 +454,7 @@ button{font-family:inherit;}
       </div>
 
       <div id="registerPanel" style="display:none; width:100%;">
+        <input id="registerName" class="neu-input" type="text" placeholder="Full Name" autocomplete="name" dir="ltr" style="text-align: right !important; direction: rtl !important;">
         <input id="registerEmail" class="neu-input" type="email" placeholder="Write Email (@te.eg)" autocomplete="email" dir="ltr">
         <input id="registerPwd" class="neu-input" type="password" placeholder="Password (8+ characters)" autocomplete="new-password" dir="ltr">
         <input id="registerPwd2" class="neu-input" type="password" placeholder="Confirm password" autocomplete="new-password" dir="ltr">
@@ -571,7 +572,7 @@ button{font-family:inherit;}
 <div class="footer-wrapper">
   <span class="fseg"><span class="dot"></span> Ready</span>
   <span class="sep">·</span>
-  <span class="fseg">version 20</span>
+  <span class="fseg">version 21</span>
   <span class="sep">·</span>
   <span class="fseg">Developed By : Geek</span>
 </div>
@@ -604,6 +605,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const registerTab = document.getElementById('registerTab');
   const loginPanel = document.getElementById('loginPanel');
   const registerPanel = document.getElementById('registerPanel');
+  const registerName = document.getElementById('registerName');
   const registerEmail = document.getElementById('registerEmail');
   const registerPwd = document.getElementById('registerPwd');
   const registerPwd2 = document.getElementById('registerPwd2');
@@ -735,8 +737,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function register(){
+    const nameVal = registerName.value.trim();
     const e = registerEmail.value.trim().toLowerCase(), p = registerPwd.value, p2 = registerPwd2.value;
-    if(!e || !p || !p2) return authMessage('اكمل كل البيانات.');
+    if(!nameVal || !e || !p || !p2) return authMessage('اكمل كل البيانات.');
     
     if(!e.endsWith('@te.eg')){
       return authMessage('عذراً، مسموح بالتسجيل باستخدام البريد الإلكتروني للشركة (@te.eg) فقط.');
@@ -747,12 +750,18 @@ document.addEventListener("DOMContentLoaded", () => {
     
     registerBtn.disabled = true; authMessage('');
     const { data, error } = await supabaseClient.auth.signUp({email:e,password:p});
-    registerBtn.disabled = false;
     
-    if(error) return authMessage(error.message);
+    if(error) {
+      registerBtn.disabled = false;
+      return authMessage(error.message);
+    }
+
     if(data.user){
-      authMessage('تم تسجيل حسابك بنجاح. سيتم تفعليه فور الموافقة عليه من ادارة الموقع.', 'ok');
-      registerPwd.value=''; registerPwd2.value='';
+      // تحديث الاسم في جدول profiles
+      await supabaseClient.from('profiles').update({ name: nameVal }).eq('id', data.user.id);
+      registerBtn.disabled = false;
+      authMessage('تم تسجيل حسابك بنجاح. سيتم تفعيله فور الموافقة عليه من ادارة الموقع.', 'ok');
+      registerName.value=''; registerEmail.value=''; registerPwd.value=''; registerPwd2.value='';
     }
   }
 
