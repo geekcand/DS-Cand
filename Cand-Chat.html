@@ -458,7 +458,7 @@ button{font-family:inherit;}
         <input id="registerPwd" class="neu-input" type="password" placeholder="Password (8+ characters)" autocomplete="new-password" dir="ltr">
         <input id="registerPwd2" class="neu-input" type="password" placeholder="Confirm password" autocomplete="new-password" dir="ltr">
         <button id="registerBtn" class="neu-btn">Create account</button>
-        <div class="auth-note">مسموح بالتسجيل بإيميل الشركة <b>@te.eg</b> فقط،.</div>
+        <div class="auth-note">مسموح بالتسجيل بإيميل الشركة <b>@te.eg</b> فقط، والإيميلات المدرجة بالقائمة تتفعل تلقائياً.</div>
       </div>
 
       <div id="loginMsg"></div>
@@ -571,7 +571,7 @@ button{font-family:inherit;}
 <div class="footer-wrapper">
   <span class="fseg"><span class="dot"></span> Ready</span>
   <span class="sep">·</span>
-  <span class="fseg">version 17</span>
+  <span class="fseg">version 18</span>
   <span class="sep">·</span>
   <span class="fseg">Developed By : Geek</span>
 </div>
@@ -611,6 +611,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const forgotBtn = document.getElementById('forgotBtn');
   const subtitle = document.getElementById('authSubtitle');
 
+  // إنشاء رمز جلسة فريد لهذا المتصفح لمنع فتح الحساب على جهازين
+  let mySessionToken = localStorage.getItem('canned_session_token');
+  if (!mySessionToken) {
+    mySessionToken = 'sess_' + Math.random().toString(36).substring(2) + Date.now();
+    localStorage.setItem('canned_session_token', mySessionToken);
+  }
+
   function authMessage(text, type='error'){
     msg.textContent = text || '';
     msg.style.color = type === 'ok' ? '#7ee2a8' : '#ff9b9b';
@@ -627,14 +634,12 @@ document.addEventListener("DOMContentLoaded", () => {
     subtitle.textContent='Create Your Account';
   });
 
-  // دالة الدخول الآمنة تماماً والتي تضمن عدم تجميد الشاشة أبداً
   function enterTool(){
     formContent.classList.add('hide');
     successMsg.classList.add('show');
     
     loadCannedData();
 
-    // تأجيل تشغيل الـ RPC والنبضات لضمان انتقال واجهة المستخدم بسلاسة بدون أي تعليق
     setTimeout(() => {
       overlay.style.transition = 'opacity 0.4s ease';
       overlay.style.opacity = '0';
@@ -643,35 +648,60 @@ document.addEventListener("DOMContentLoaded", () => {
         app.style.display = 'block';
         setTimeout(() => {
           app.style.opacity = '1';
-          supabaseClient.rpc('update_last_seen').catch(e => console.error(e));
-          startHeartbeat();
+          try {
+            supabaseClient.rpc('update_last_seen');
+          } catch(e) {}
+          startHeartbeatAndSessionCheck();
         }, 50);
       }, 400);
     }, 700);
   }
 
-  // نظام النبضات الآمن والمستمر لتحديث الحالة في الخلفية
-  function startHeartbeat() {
-    const ping = () => {
-      supabaseClient.rpc('update_last_seen').catch(e => console.error(e));
+  // نظام النبضات وفحص الجلسة الواحدة للتأكد من عدم فتح الحساب على جهاز آخر
+  function startHeartbeatAndSessionCheck() {
+    const pingAndCheck = async () => {
+      try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) return;
+
+        // تحديث آخر ظهور
+        await supabaseClient.rpc('update_last_seen');
+
+        // التحقق من رمز الجلسة الفريد لمنع التعدد على جهازين
+        const { data, error } = await supabaseClient
+          .from('profiles')
+          .select('session_token')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        if (data && data.session_token && data.session_token !== mySessionToken) {
+          alert('⚠️ الحساب مستخدم بالفعل علي جهاز أخر، سيتم تسجيل الخروج.');
+          localStorage.removeItem('canned_session_token');
+          await supabaseClient.auth.signOut();
+          location.reload();
+        }
+      } catch (e) {
+        console.error(e);
+      }
     };
 
-    setInterval(ping, 25000);
+    // فحص دوري كل 12 ثانية
+    setInterval(pingAndCheck, 12000);
 
     let lastActivityPing = 0;
     ['click', 'keydown', 'mousemove', 'scroll'].forEach(evt => {
       window.addEventListener(evt, () => {
         const now = Date.now();
-        if (now - lastActivityPing > 20000) {
+        if (now - lastActivityPing > 15000) {
           lastActivityPing = now;
-          ping();
+          try { supabaseClient.rpc('update_last_seen'); } catch(e){}
         }
       }, { passive: true });
     });
 
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
-        ping();
+        pingAndCheck();
       }
     });
   }
@@ -687,7 +717,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if(!session) return;
     try{
       const profile = await getProfile(session.user.id);
-      if(profile.status === 'approved' || profile.role === 'admin') enterTool();
+      if(profile.status === 'approved' || profile.role === 'admin') {
+        // تحديث رمز الجلسة الحالية في قاعدة البيانات عند استعادة الجلسة
+        await supabaseClient.from('profiles').update({ session_token: mySessionToken }).eq('id', session.user.id);
+        enterTool();
+      }
       else if(profile.status === 'pending') authMessage('حسابك قيد المراجعة من الإدارة.');
       else authMessage('هذا الحساب غير مفعل.');
     }catch(e){console.error(e);}
@@ -702,8 +736,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if(error) return authMessage('بيانات الدخول غير صحيحة أو الحساب غير متاح.');
     try{
       const profile = await getProfile(data.user.id);
-      if(profile.status === 'approved' || profile.role === 'admin') enterTool();
-      else {
+      if(profile.status === 'approved' || profile.role === 'admin') {
+        // تسجيل رمز الجلسة الفريد في قاعدة البيانات لمنع فتحه من جهاز آخر
+        await supabaseClient.from('profiles').update({ session_token: mySessionToken }).eq('id', data.user.id);
+        enterTool();
+      } else {
         await supabaseClient.auth.signOut();
         authMessage('حسابك قيد المراجعة أو غير مفعل.');
       }
@@ -727,7 +764,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     if(error) return authMessage(error.message);
     if(data.user){
-      authMessage('تم تسجيل حسابك بنجاح، وسيعمل فور الموافقة عليه من الادارة.', 'ok');
+      authMessage('تم تسجيل حسابك بنجاح. إذا كان إيميلك ضمن القائمة المعتمدة سيتم تفعليه تلقائياً.', 'ok');
       registerPwd.value=''; registerPwd2.value='';
     }
   }
