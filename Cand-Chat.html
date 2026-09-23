@@ -572,7 +572,7 @@ button{font-family:inherit;}
 <div class="footer-wrapper">
   <span class="fseg"><span class="dot"></span> Ready</span>
   <span class="sep">·</span>
-  <span class="fseg">version 21</span>
+  <span class="fseg">version 22</span>
   <span class="sep">·</span>
   <span class="fseg">Developed By : Geek</span>
 </div>
@@ -757,13 +757,32 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if(data.user){
-      // تحديث الاسم في جدول profiles
       await supabaseClient.from('profiles').update({ name: nameVal }).eq('id', data.user.id);
       registerBtn.disabled = false;
       authMessage('تم تسجيل حسابك بنجاح. سيتم تفعيله فور الموافقة عليه من ادارة الموقع.', 'ok');
       registerName.value=''; registerEmail.value=''; registerPwd.value=''; registerPwd2.value='';
     }
   }
+
+  // تفعيل زر استعادة كلمة المرور
+  forgotBtn.addEventListener('click', async () => {
+    const e = email.value.trim();
+    if (!e) {
+      return authMessage('من فضلك اكتب بريدك الإلكتروني في حقل البريد أولاً.');
+    }
+    
+    authMessage('جارٍ إرسال رابط استعادة كلمة المرور...', 'ok');
+    
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(e, {
+      redirectTo: window.location.href,
+    });
+
+    if (error) {
+      authMessage('تعذر إرسال رابط الاستعادة: ' + error.message);
+    } else {
+      authMessage('تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني بنجاح! ✉️ تحقق من رسائلك.', 'ok');
+    }
+  });
 
   btn.addEventListener('click', login);
   pwd.addEventListener('keydown', e => { if(e.key === 'Enter') login(); });
