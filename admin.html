@@ -183,7 +183,7 @@ async function checkAuthWithRetry() {
 }
 
 async function loadUsers(){
-  // استبعاد الحسابات المرفوضة (rejected) تماماً لعدم إظهارها في اللوحة
+  // استبعاد الحسابات المرفوضة (rejected) تماماً لعدم إظهارها في اللوحة[cite: 2]
   const { data, error } = await sb.from('profiles')
     .select('id,email,status,role,created_at,last_seen')
     .neq('status', 'rejected')
@@ -196,7 +196,7 @@ async function loadUsers(){
   const now = Date.now();
   const validUsers = data || [];
 
-  // تحديث عداد الأعضاء الإجمالي فقط
+  // تحديث عداد الأعضاء الإجمالي[cite: 2]
   memberCountBadge.textContent = `Total Members: ${validUsers.length}`;
 
   validUsers.forEach(u=>{
@@ -210,12 +210,16 @@ async function loadUsers(){
       }
     }
 
+    // تنسيق التاريخ ليصبح (اليوم / الشهر / السنة) بدلاً من (الشهر / اليوم / السنة)
+    const d = new Date(u.created_at);
+    const formattedDate = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}, ${d.toLocaleTimeString()}`;
+
     const actions = u.role==='admin' ? '<span class="muted">System Admin</span>' :
       (u.status==='pending' ? `<button class="approve" data-id="${u.id}" data-status="approved">Approve</button>
        <button class="reject" data-id="${u.id}" data-status="rejected">Reject</button>` :
        `<button data-id="${u.id}" data-status="${u.status==='approved'?'disabled':'approved'}">${u.status==='approved'?'Disable':'Enable'}</button>`);
        
-    tr.innerHTML=`<td>${esc(u.email)}</td><td>${onlineStatus}</td><td><span class="badge">${esc(u.status)}</span></td><td>${esc(u.role)}</td><td>${new Date(u.created_at).toLocaleString()}</td><td>${actions}</td>`;
+    tr.innerHTML=`<td>${esc(u.email)}</td><td>${onlineStatus}</td><td><span class="badge">${esc(u.status)}</span></td><td>${esc(u.role)}</td><td>${formattedDate}</td><td>${actions}</td>`;
     users.appendChild(tr);
   });
   
