@@ -82,6 +82,19 @@ body{
   background-size:34px 34px;
   background-position:-1px -1px;
 }
+body{
+  font-family:var(--font-arabic);
+  background:var(--bg);
+  color:var(--ink-dim);
+  zoom:0.75;
+  -webkit-font-smoothing:antialiased;
+  transition:background .25s ease,color .25s ease;
+  background-image:
+    linear-gradient(var(--bg-grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--bg-grid) 1px,transparent 1px);
+  background-size:34px 34px;
+  background-position:-1px -1px;
+}
 [data-theme="dark"] body::before{
   content:"";
   position:fixed;inset:0;pointer-events:none;z-index:0;
