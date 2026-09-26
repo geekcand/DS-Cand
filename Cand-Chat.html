@@ -541,7 +541,10 @@ button{font-family:inherit;}
     <div class="ticker-track">⚠️ تذكر دائماً: استخدامك لهذه الأداة على مسؤوليتك الشخصية، ويجب التأكد من الويكي.</div>
   </div>
   <div class="header-actions">
-    <a href="https://agent.cand-chat.info/agent" target="_blank" class="link-btn" title="Agent Lite">Agent Lite</a>
+    <a href="https://agent.cand-chat.info/agent" target="_blank" class="link-btn" title="Agent Lite">
+  <img src="https://agent.cand-chat.info/favicon.ico" alt="" class="agent-icon">
+  Agent Lite
+</a>
     <button class="about-btn" id="aboutBtn">About and Contact ℹ️</button>
     <button class="feed-btn" id="feedBtn">💡 Suggestions & Feedback</button>
     <button class="theme-toggle" id="themeToggle" title="تغيير المظهر">🌙</button>
@@ -1127,6 +1130,14 @@ document.addEventListener("DOMContentLoaded", () => {
       sheetList.appendChild(btn);
     });
   }
+
+  .agent-icon{
+  width:14px;
+  height:14px;
+  object-fit:contain;
+  border-radius:3px;
+  flex:0 0 auto;
+}
 
   function showSheet(name) {
     window.scrollTo({top:0,behavior:'smooth'});
