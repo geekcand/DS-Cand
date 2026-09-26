@@ -599,6 +599,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const SUPABASE_URL = 'https://jdvkzdorjthljhwqmvmn.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_6WQHg-zL775jpFaErofLog_1kd5X6bI';
   const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  let onlinePresenceChannel = null;
+  let presenceStartedFor = null;
 
   const overlay = document.getElementById('loginOverlay');
   const btn = document.getElementById('loginBtn');
@@ -682,6 +684,37 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 1500);
   });
 
+  async function startOnlinePresence(){
+    try {
+      const { data:{ session } } = await supabaseClient.auth.getSession();
+      const userId = session?.user?.id;
+      if(!userId || presenceStartedFor === userId) return;
+
+      if(onlinePresenceChannel){
+        try { await onlinePresenceChannel.untrack(); } catch(e) {}
+        try { await supabaseClient.removeChannel(onlinePresenceChannel); } catch(e) {}
+      }
+
+      presenceStartedFor = userId;
+      onlinePresenceChannel = supabaseClient.channel('cand-online-users', {
+        config: { presence: { key: userId } }
+      });
+
+      onlinePresenceChannel.subscribe(async status => {
+        if(status !== 'SUBSCRIBED') return;
+        try {
+          await onlinePresenceChannel.track({
+            user_id: userId,
+            online_at: new Date().toISOString(),
+            source: 'canned-tool'
+          });
+        } catch(e) { console.error('Presence track failed', e); }
+      });
+    } catch(e) {
+      console.error('Presence unavailable', e);
+    }
+  }
+
   function enterTool(){
     formContent.classList.add('hide');
     successMsg.classList.add('show');
@@ -700,6 +733,7 @@ document.addEventListener("DOMContentLoaded", () => {
             supabaseClient.rpc('update_last_seen');
           } catch(e) {}
           startHeartbeat();
+          startOnlinePresence();
         }, 50);
       }, 400);
     }, 700);
@@ -1032,6 +1066,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }));
     sectionTitle.textContent = 'نتائج البحث';
     renderCards(results);
+  });
+
+  window.addEventListener('pagehide', () => {
+    if(onlinePresenceChannel){
+      try { onlinePresenceChannel.untrack(); } catch(e) {}
+    }
   });
 });
 </script>
