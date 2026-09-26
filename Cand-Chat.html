@@ -181,6 +181,37 @@ button{font-family:inherit;}
 }
 .login-footnote{font-size:11px;color:#585d78;font-family:var(--font-arabic);margin-top:16px;}
 
+#profileNameOverlay{
+  position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;
+  padding:20px;background:rgba(7,8,15,.82);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+}
+#profileNameOverlay.show{display:flex;}
+.profile-name-card{
+  width:min(92vw,420px);background:#12141f;border:1px solid #2b3047;border-radius:20px;
+  padding:26px 24px;box-shadow:0 24px 60px rgba(0,0,0,.55);text-align:center;direction:rtl;
+}
+.profile-name-icon{
+  width:50px;height:50px;margin:0 auto 12px;border-radius:14px;display:grid;place-items:center;
+  background:linear-gradient(135deg,#6fe3d9,#b18cff);color:#0c0d16;font-size:22px;font-weight:900;
+}
+.profile-name-card h3{margin:0 0 8px;color:#e9eaf7;font-size:18px;font-weight:800;}
+.profile-name-card p{margin:0 0 18px;color:#9aa0bc;font-size:12.5px;line-height:1.8;}
+.profile-name-input{
+  width:100%;border:1px solid #2b3047;outline:none;border-radius:11px;padding:12px 14px;
+  background:#171a29;color:#e9eaf7;font-family:var(--font-arabic);font-size:14px;font-weight:600;
+  text-align:right;direction:rtl;transition:border-color .2s ease,box-shadow .2s ease;
+}
+.profile-name-input:focus{border-color:#6fe3d9;box-shadow:0 0 0 3px rgba(111,227,217,.12);}
+.profile-name-msg{min-height:18px;margin:8px 0 2px;font-size:12px;font-weight:600;color:#ff8095;}
+.profile-name-btn{
+  width:100%;border:0;border-radius:11px;padding:12px 14px;cursor:pointer;margin-top:4px;
+  font-family:var(--font-arabic);font-size:14px;font-weight:800;color:#0c0d16;
+  background:linear-gradient(135deg,#6fe3d9,#b18cff);transition:filter .15s ease,transform .1s ease;
+}
+.profile-name-btn:hover{filter:brightness(1.06);}
+.profile-name-btn:active{transform:translateY(1px);}
+.profile-name-btn:disabled{opacity:.65;cursor:not-allowed;}
+
 #protectedApp{display:none;opacity:0;transition:opacity .5s ease;}
 
 .splash{
@@ -481,6 +512,17 @@ button{font-family:inherit;}
   <div class="login-footnote">For internal use only — Digital Chat Team</div>
 </div>
 
+<div id="profileNameOverlay" aria-hidden="true">
+  <div class="profile-name-card" role="dialog" aria-modal="true" aria-labelledby="profileNameTitle">
+    <div class="profile-name-icon">👤</div>
+    <h3 id="profileNameTitle">استكمال بيانات الحساب</h3>
+    <p>من فضلك اكتب اسمك الكامل مرة واحدة لاستكمال بيانات حسابك. لن تظهر هذه الرسالة مرة أخرى بعد الحفظ.</p>
+    <input id="profileNameInput" class="profile-name-input" type="text" maxlength="80" placeholder="اكتب اسمك الكامل" autocomplete="name">
+    <div id="profileNameMsg" class="profile-name-msg"></div>
+    <button id="saveProfileNameBtn" class="profile-name-btn" type="button">حفظ ومتابعة</button>
+  </div>
+</div>
+
 <div id="protectedApp">
 <div class="splash" id="splash">
   <div class="splash-box">
@@ -624,6 +666,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const forgotBtn = document.getElementById('forgotBtn');
   const updatePwdBtn = document.getElementById('updatePwdBtn');
   const subtitle = document.getElementById('authSubtitle');
+  const profileNameOverlay = document.getElementById('profileNameOverlay');
+  const profileNameInput = document.getElementById('profileNameInput');
+  const profileNameMsg = document.getElementById('profileNameMsg');
+  const saveProfileNameBtn = document.getElementById('saveProfileNameBtn');
+  let pendingProfileAfterName = null;
+  let enteringTool = false;
 
   function authMessage(text, type='error'){
     msg.textContent = text || '';
@@ -715,7 +763,49 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function enterTool(){
+  function hasProfileName(profile){
+    return !!(profile && typeof profile.name === 'string' && profile.name.trim().length >= 3);
+  }
+
+  function showProfileNamePrompt(profile){
+    pendingProfileAfterName = profile || null;
+    profileNameMsg.textContent = '';
+    profileNameInput.value = '';
+    profileNameOverlay.classList.add('show');
+    profileNameOverlay.setAttribute('aria-hidden','false');
+    setTimeout(() => profileNameInput.focus(), 50);
+  }
+
+  function hideProfileNamePrompt(){
+    profileNameOverlay.classList.remove('show');
+    profileNameOverlay.setAttribute('aria-hidden','true');
+    profileNameMsg.textContent = '';
+  }
+
+  async function resolveProfileForEntry(profile){
+    if(profile) return profile;
+    const { data:{ session } } = await supabaseClient.auth.getSession();
+    if(!session?.user?.id) throw new Error('No active session');
+    return await getProfile(session.user.id);
+  }
+
+  async function enterTool(profile = null){
+    if(enteringTool) return;
+
+    try {
+      const resolvedProfile = await resolveProfileForEntry(profile);
+      if(!hasProfileName(resolvedProfile)){
+        showProfileNamePrompt(resolvedProfile);
+        return;
+      }
+    } catch(e) {
+      console.error('Profile name check failed', e);
+      authMessage('تعذر التحقق من بيانات الحساب. حاول مرة أخرى.');
+      return;
+    }
+
+    enteringTool = true;
+    hideProfileNamePrompt();
     formContent.classList.add('hide');
     successMsg.classList.add('show');
     
@@ -767,7 +857,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function getProfile(userId){
-    const { data, error } = await supabaseClient.from('profiles').select('id,email,status,role,last_seen').eq('id', userId).single();
+    const { data, error } = await supabaseClient.from('profiles').select('id,name,email,status,role,last_seen').eq('id', userId).single();
     if(error) throw error;
     return data;
   }
@@ -810,7 +900,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try{
       const profile = await getProfile(session.user.id);
       if(profile.status === 'approved' || profile.role === 'admin') {
-        enterTool();
+        enterTool(profile);
       }
       else if(profile.status === 'pending') authMessage('حسابك قيد المراجعة من الإدارة.');
       else authMessage('هذا الحساب غير مفعل.');
@@ -842,7 +932,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if(profile.status === 'approved' || profile.role === 'admin') {
         btn.disabled = false;
-        enterTool();
+        enterTool(profile);
       } else {
         await supabaseClient.auth.signOut();
         btn.disabled = false;
@@ -882,6 +972,50 @@ document.addEventListener("DOMContentLoaded", () => {
       registerName.value=''; registerEmail.value=''; registerPwd.value=''; registerPwd2.value='';
     }
   }
+
+  async function saveMissingProfileName(){
+    const cleanName = profileNameInput.value.trim().replace(/\s+/g, ' ');
+    if(cleanName.length < 3){
+      profileNameMsg.textContent = 'من فضلك اكتب اسمك الكامل بشكل صحيح.';
+      profileNameInput.focus();
+      return;
+    }
+
+    saveProfileNameBtn.disabled = true;
+    profileNameMsg.style.color = '#7ee2a8';
+    profileNameMsg.textContent = 'جارٍ حفظ الاسم...';
+
+    try {
+      const { data:{ session }, error: sessionError } = await supabaseClient.auth.getSession();
+      if(sessionError) throw sessionError;
+      if(!session?.user?.id) throw new Error('No active session');
+
+      const { error: updateError } = await supabaseClient
+        .from('profiles')
+        .update({ name: cleanName })
+        .eq('id', session.user.id);
+
+      if(updateError) throw updateError;
+
+      const updatedProfile = await getProfile(session.user.id);
+      if(!hasProfileName(updatedProfile)) throw new Error('Name was not saved');
+
+      pendingProfileAfterName = updatedProfile;
+      profileNameMsg.textContent = 'تم حفظ الاسم بنجاح ✓';
+      setTimeout(() => enterTool(updatedProfile), 250);
+    } catch(e) {
+      console.error('Profile name save failed', e);
+      profileNameMsg.style.color = '#ff8095';
+      profileNameMsg.textContent = 'تعذر حفظ الاسم. حاول مرة أخرى.';
+    } finally {
+      saveProfileNameBtn.disabled = false;
+    }
+  }
+
+  saveProfileNameBtn.addEventListener('click', saveMissingProfileName);
+  profileNameInput.addEventListener('keydown', e => {
+    if(e.key === 'Enter') saveMissingProfileName();
+  });
 
   btn.addEventListener('click', login);
   pwd.addEventListener('keydown', e => { if(e.key === 'Enter') login(); });
