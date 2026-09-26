@@ -24,9 +24,9 @@ h1{margin:0 0 5px;font-size:24px}.sub{color:var(--dim);font-size:13px}
 .live-dot{width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 4px rgba(255,180,84,.12)}
 .live-pill.connected .live-dot{background:var(--green);box-shadow:0 0 0 4px rgba(143,220,154,.12)}
 #msg{min-height:22px;color:var(--green);margin:0 0 12px;font-weight:700;font-size:13px}
-.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:16px}
 .stat{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:14px 16px;box-shadow:var(--shadow)}
-.stat .k{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.05em}.stat .v{font-size:24px;font-weight:800;margin-top:6px}.stat.online .v{color:var(--green)}.stat.pending .v{color:var(--amber)}.stat.disabled .v{color:var(--red)}
+.stat .k{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.05em}.stat .v{font-size:24px;font-weight:800;margin-top:6px}.stat.online .v{color:var(--green)}.stat.pending .v{color:var(--amber)}.stat.disabled .v{color:var(--red)}.stat.missing .v{color:var(--violet)}
 .layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px;align-items:start}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:var(--shadow)}
 h3{margin:0 0 14px;color:var(--ink);font-size:15px}.accent{color:var(--cyan)}
@@ -59,6 +59,7 @@ button{border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:po
     <div class="stat online"><div class="k">Online now</div><div class="v" id="statOnline">0</div></div>
     <div class="stat pending"><div class="k">Pending approval</div><div class="v" id="statPending">0</div></div>
     <div class="stat disabled"><div class="k">Disabled</div><div class="v" id="statDisabled">0</div></div>
+    <div class="stat missing"><div class="k">Missing names</div><div class="v" id="statMissingNames">0</div></div>
   </div>
 
   <div class="layout">
@@ -79,6 +80,11 @@ button{border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:po
           <option value="all">All activity</option>
           <option value="online">Online now</option>
           <option value="offline">Offline</option>
+        </select>
+        <select id="nameFilter" class="form-control">
+          <option value="all">All names</option>
+          <option value="missing">Missing name</option>
+          <option value="complete">Name completed</option>
         </select>
       </div>
       <div class="table-wrap">
@@ -155,10 +161,12 @@ const memberCountBadge = document.getElementById('memberCountBadge');
 const userSearch = document.getElementById('userSearch');
 const statusFilter = document.getElementById('statusFilter');
 const activityFilter = document.getElementById('activityFilter');
+const nameFilter = document.getElementById('nameFilter');
 const statTotal = document.getElementById('statTotal');
 const statOnline = document.getElementById('statOnline');
 const statPending = document.getElementById('statPending');
 const statDisabled = document.getElementById('statDisabled');
+const statMissingNames = document.getElementById('statMissingNames');
 const realtimeStatus = document.getElementById('realtimeStatus');
 const realtimeStatusText = document.getElementById('realtimeStatusText');
 
@@ -193,7 +201,9 @@ function startPresenceMonitor(){
     })
     .on('presence', { event:'join' }, () => {
       onlineUserIds = extractOnlineIds();
-      renderUsers();
+      // A newly joined user may have just completed their legacy profile name.
+      // Reload profiles so the Admin sees the saved name immediately.
+      loadUsers().catch(e => { console.error(e); renderUsers(); });
     })
     .on('presence', { event:'leave' }, () => {
       onlineUserIds = extractOnlineIds();
@@ -297,15 +307,18 @@ function renderUsers(){
   const q = (userSearch.value || '').trim().toLowerCase();
   const status = statusFilter.value;
   const activity = activityFilter.value;
+  const nameState = nameFilter.value;
 
   const total = allProfiles.length;
   const onlineCount = allProfiles.filter(u => onlineUserIds.has(String(u.id))).length;
   const pendingCount = allProfiles.filter(u => u.status === 'pending').length;
   const disabledCount = allProfiles.filter(u => u.status === 'disabled').length;
+  const missingNameCount = allProfiles.filter(u => !(u.name && String(u.name).trim().length >= 3)).length;
   statTotal.textContent = total;
   statOnline.textContent = onlineCount;
   statPending.textContent = pendingCount;
   statDisabled.textContent = disabledCount;
+  statMissingNames.textContent = missingNameCount;
 
   let filtered = allProfiles.filter(u => {
     const isOnline = onlineUserIds.has(String(u.id));
@@ -314,6 +327,9 @@ function renderUsers(){
     if(status !== 'all' && u.status !== status) return false;
     if(activity === 'online' && !isOnline) return false;
     if(activity === 'offline' && isOnline) return false;
+    const hasName = !!(u.name && String(u.name).trim().length >= 3);
+    if(nameState === 'missing' && hasName) return false;
+    if(nameState === 'complete' && !hasName) return false;
     return true;
   });
 
@@ -342,7 +358,7 @@ function renderUsers(){
 
     const d = new Date(u.created_at);
     const formattedDate = Number.isNaN(d.getTime()) ? '-' : d.toLocaleDateString();
-    const displayName = u.name ? esc(u.name) : '<span class="muted">-</span>';
+    const displayName = (u.name && String(u.name).trim().length >= 3) ? esc(String(u.name).trim()) : '<span class="muted">Missing name</span>';
     const statusClass = `status-${String(u.status || '').toLowerCase()}`;
     const actions = u.role==='admin' ? '<span class="muted">System Admin</span>' :
       (u.status==='pending' ? `<button class="approve" data-id="${u.id}" data-status="approved">Approve</button><button class="reject" data-id="${u.id}" data-status="rejected">Reject</button>` :
@@ -362,9 +378,10 @@ function renderUsers(){
   });
 }
 
-[userSearch,statusFilter,activityFilter].forEach(el => el.addEventListener('input', renderUsers));
+[userSearch,statusFilter,activityFilter,nameFilter].forEach(el => el.addEventListener('input', renderUsers));
 statusFilter.addEventListener('change', renderUsers);
 activityFilter.addEventListener('change', renderUsers);
+nameFilter.addEventListener('change', renderUsers);
 
 uploadExcelBtn.addEventListener('click', async () => {
   const fileInput = document.getElementById('excelFile');
