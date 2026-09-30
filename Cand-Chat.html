@@ -815,11 +815,22 @@ document.addEventListener("DOMContentLoaded", () => {
       const userId = session?.user?.id;
       if(!userId) return;
 
+      // Admin accounts manage messages from the Admin Panel and should never
+      // receive employee-facing notices inside the Canned Tool itself.
+      const currentProfile = await getProfile(userId);
+      if(currentProfile?.role === 'admin'){
+        stack.innerHTML = '';
+        return;
+      }
+
       const [{ data: messages, error: messagesError }, { data: dismissals, error: dismissalsError }] = await Promise.all([
         supabaseClient
           .from('admin_messages')
           .select('id,title,message,target_type,target_user_id,created_at,active')
           .eq('active', true)
+          // Defense in depth: even if RLS grants broader access in the future,
+          // the employee client only requests broadcast messages or its own messages.
+          .or(`target_type.eq.all,target_user_id.eq.${userId}`)
           .order('created_at', { ascending: true })
           .limit(30),
         supabaseClient
@@ -893,6 +904,18 @@ document.addEventListener("DOMContentLoaded", () => {
       const { data:{ session } } = await supabaseClient.auth.getSession();
       const userId = session?.user?.id;
       if(!userId) return;
+
+      const currentProfile = await getProfile(userId);
+      if(currentProfile?.role === 'admin'){
+        const stack = document.getElementById('adminNoticeStack');
+        if(stack) stack.innerHTML = '';
+        if(adminMessageChannel){
+          try { await supabaseClient.removeChannel(adminMessageChannel); } catch(e) {}
+          adminMessageChannel = null;
+        }
+        adminMessagesStartedFor = userId;
+        return;
+      }
 
       await loadAdminMessages();
       if(adminMessagesStartedFor === userId && adminMessageChannel) return;
