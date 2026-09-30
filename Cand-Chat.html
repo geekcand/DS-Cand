@@ -453,6 +453,37 @@ button{font-family:inherit;}
 }
 .submit-btn:hover{filter:brightness(1.08);}
 
+
+/* Admin messages */
+#adminNoticeStack{
+  position:fixed;top:calc(var(--header-h) + 12px);right:18px;z-index:420;
+  width:min(440px,calc(100vw - 36px));max-height:calc(100vh - var(--header-h) - var(--footer-h) - 34px);
+  overflow:auto;display:flex;flex-direction:column;gap:10px;pointer-events:none;
+}
+.admin-notice{
+  --notice-accent:var(--acc-violet);
+  position:relative;pointer-events:auto;overflow:hidden;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--panel) 95%,var(--notice-accent) 5%),var(--panel));
+  border:1px solid color-mix(in srgb,var(--notice-accent) 35%,var(--line));border-radius:14px;
+  box-shadow:0 18px 42px -18px rgba(0,0,0,.75),0 0 0 1px rgba(177,140,255,.06);
+  padding:14px 46px 13px 15px;direction:rtl;text-align:right;
+  animation:adminNoticeIn .28s cubic-bezier(.2,.8,.2,1) both;
+}
+.admin-notice::before{content:"";position:absolute;top:0;right:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--acc-cyan),var(--acc-violet));}
+.admin-notice-title{font-size:13.5px;font-weight:800;color:var(--ink);margin-bottom:5px;line-height:1.5;}
+.admin-notice-body{font-size:13px;line-height:1.8;color:var(--ink-dim);white-space:pre-wrap;overflow-wrap:anywhere;}
+.admin-notice-meta{font-family:var(--font-arabic);font-size:10.5px;color:var(--ink-faint);margin-top:8px;}
+.admin-notice-close{
+  position:absolute;top:9px;left:9px;width:28px;height:28px;border:1px solid var(--line);border-radius:8px;
+  background:var(--panel-2);color:var(--ink-dim);cursor:pointer;font-size:19px;line-height:1;display:grid;place-items:center;
+  transition:transform .15s ease,border-color .15s ease,color .15s ease,background .15s ease;
+}
+.admin-notice-close:hover{transform:scale(1.05);border-color:var(--acc-rose);color:var(--acc-rose);}
+.admin-notice.removing{animation:adminNoticeOut .22s ease forwards;}
+@keyframes adminNoticeIn{from{opacity:0;transform:translateY(-8px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes adminNoticeOut{to{opacity:0;transform:translateX(18px) scale(.98)}}
+@media(max-width:620px){#adminNoticeStack{top:calc(var(--header-h) + 8px);right:10px;width:calc(100vw - 20px)}.admin-notice{padding:13px 44px 12px 13px}}
+
 .footer-wrapper{
   position:fixed;left:0;right:0;bottom:0;z-index:100;height:var(--footer-h);
   background:linear-gradient(90deg,#5b32b8,#3f6fce);
@@ -555,6 +586,8 @@ button{font-family:inherit;}
   </div>
 </div>
 
+<div id="adminNoticeStack" aria-live="polite" aria-label="رسائل الإدارة"></div>
+
 <div class="app" id="appGridContainer">
   <aside class="sidebar">
     <div class="sidebar-top">
@@ -628,7 +661,7 @@ button{font-family:inherit;}
 <div class="footer-wrapper">
   <span class="fseg"><span class="dot"></span> Ready</span>
   <span class="sep">·</span>
-  <span class="fseg">version 8</span>
+  <span class="fseg">version 9</span>
   <span class="sep">·</span>
   <span class="fseg">Developed By : Geek</span>
 </div>
@@ -650,6 +683,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   let onlinePresenceChannel = null;
   let presenceStartedFor = null;
+  let adminMessageChannel = null;
+  let adminMessagesStartedFor = null;
 
   const overlay = document.getElementById('loginOverlay');
   const btn = document.getElementById('loginBtn');
@@ -770,6 +805,113 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function loadAdminMessages(){
+    const stack = document.getElementById('adminNoticeStack');
+    if(!stack) return;
+
+    try {
+      const { data:{ session }, error: sessionError } = await supabaseClient.auth.getSession();
+      if(sessionError) throw sessionError;
+      const userId = session?.user?.id;
+      if(!userId) return;
+
+      const [{ data: messages, error: messagesError }, { data: dismissals, error: dismissalsError }] = await Promise.all([
+        supabaseClient
+          .from('admin_messages')
+          .select('id,title,message,target_type,target_user_id,created_at,active')
+          .eq('active', true)
+          .order('created_at', { ascending: true })
+          .limit(30),
+        supabaseClient
+          .from('admin_message_dismissals')
+          .select('message_id')
+          .eq('user_id', userId)
+      ]);
+
+      if(messagesError) throw messagesError;
+      if(dismissalsError) throw dismissalsError;
+
+      const dismissed = new Set((dismissals || []).map(x => String(x.message_id)));
+      const visible = (messages || []).filter(m => !dismissed.has(String(m.id)));
+      renderAdminMessages(visible);
+    } catch(e) {
+      // Messaging is non-blocking: the main tool must remain usable if the table is unavailable.
+      console.error('Admin messages unavailable', e);
+    }
+  }
+
+  function renderAdminMessages(messages){
+    const stack = document.getElementById('adminNoticeStack');
+    if(!stack) return;
+    stack.innerHTML = '';
+
+    (messages || []).forEach(m => {
+      const box = document.createElement('section');
+      box.className = 'admin-notice';
+      box.dataset.messageId = m.id;
+
+      const created = m.created_at ? new Date(m.created_at) : null;
+      const when = created && !Number.isNaN(created.getTime())
+        ? created.toLocaleString('ar-EG', { dateStyle:'medium', timeStyle:'short' })
+        : '';
+
+      box.innerHTML = `
+        <button type="button" class="admin-notice-close" aria-label="إغلاق الرسالة" title="إغلاق">×</button>
+        <div class="admin-notice-title">${escapeHtml(m.title || 'رسالة من الإدارة')}</div>
+        <div class="admin-notice-body">${escapeHtml(m.message || '')}</div>
+        ${when ? `<div class="admin-notice-meta">${escapeHtml(when)}</div>` : ''}
+      `;
+
+      const closeBtn = box.querySelector('.admin-notice-close');
+      closeBtn.addEventListener('click', () => dismissAdminMessage(m.id, box, closeBtn));
+      stack.appendChild(box);
+    });
+  }
+
+  async function dismissAdminMessage(messageId, box, closeBtn){
+    closeBtn.disabled = true;
+    try {
+      const { data:{ session } } = await supabaseClient.auth.getSession();
+      const userId = session?.user?.id;
+      if(!userId) throw new Error('No active session');
+
+      const { error } = await supabaseClient
+        .from('admin_message_dismissals')
+        .insert([{ message_id: messageId, user_id: userId }]);
+
+      if(error && error.code !== '23505') throw error;
+      box.classList.add('removing');
+      setTimeout(() => box.remove(), 220);
+    } catch(e) {
+      console.error('Failed to dismiss admin message', e);
+      closeBtn.disabled = false;
+    }
+  }
+
+  async function startAdminMessaging(){
+    try {
+      const { data:{ session } } = await supabaseClient.auth.getSession();
+      const userId = session?.user?.id;
+      if(!userId) return;
+
+      await loadAdminMessages();
+      if(adminMessagesStartedFor === userId && adminMessageChannel) return;
+
+      if(adminMessageChannel){
+        try { await supabaseClient.removeChannel(adminMessageChannel); } catch(e) {}
+      }
+
+      adminMessagesStartedFor = userId;
+      adminMessageChannel = supabaseClient
+        .channel(`cand-admin-messages-${userId}`)
+        .on('postgres_changes', { event:'INSERT', schema:'public', table:'admin_messages' }, () => loadAdminMessages())
+        .on('postgres_changes', { event:'UPDATE', schema:'public', table:'admin_messages' }, () => loadAdminMessages())
+        .subscribe();
+    } catch(e) {
+      console.error('Admin messaging start failed', e);
+    }
+  }
+
   function hasProfileName(profile){
     return !!(profile && typeof profile.name === 'string' && profile.name.trim().length >= 3);
   }
@@ -831,6 +973,7 @@ document.addEventListener("DOMContentLoaded", () => {
           } catch(e) {}
           startHeartbeat();
           startOnlinePresence();
+          startAdminMessaging();
         }, 50);
       }, 400);
     }, 700);
@@ -1211,6 +1354,9 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener('pagehide', () => {
     if(onlinePresenceChannel){
       try { onlinePresenceChannel.untrack(); } catch(e) {}
+    }
+    if(adminMessageChannel){
+      try { supabaseClient.removeChannel(adminMessageChannel); } catch(e) {}
     }
   });
 });
