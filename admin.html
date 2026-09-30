@@ -74,6 +74,15 @@ button{border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:po
   .user-management-card .toolbar select.form-control{flex-basis:108px;min-width:96px}
 }
 
+
+.message-audience-grid{display:grid;grid-template-columns:1fr;gap:10px}
+.recipient-picker{display:none;padding:10px;border:1px solid var(--line);border-radius:10px;background:#0f111b;margin-bottom:12px}
+.recipient-picker.show{display:block}
+.recipient-list{min-height:110px;max-height:180px}
+.audience-summary{font-size:11px;color:var(--cyan);line-height:1.6;margin:-2px 0 9px;min-height:18px}
+.message-card .primary-btn{margin-top:6px}
+.message-card textarea.form-control{min-height:115px}
+
 @media(max-width:980px){.layout{grid-template-columns:1fr}.side-stack{position:static}.stats{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:620px){body{padding:14px}.topbar{flex-direction:column}.stats{grid-template-columns:1fr 1fr}.toolbar .form-control,.toolbar select.form-control{min-width:100%;flex:1 1 100%}}
 </style>
@@ -131,6 +140,38 @@ button{border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:po
     </div>
 
     <div class="side-stack">
+      <div class="card message-card" style="border-color:#43506f">
+        <h3>📣 Admin Messages</h3>
+        <div class="hint">Send an in-tool message that stays visible until each employee closes it.</div>
+        <div class="message-audience-grid">
+          <div class="form-group">
+            <label for="messageAudience">Send to</label>
+            <select id="messageAudience" class="form-control">
+              <option value="all">All users</option>
+              <option value="specific">Specific user</option>
+              <option value="missing">Missing name users</option>
+              <option value="filtered">Current filtered users</option>
+            </select>
+          </div>
+
+          <div id="recipientPicker" class="recipient-picker">
+            <div class="form-group" style="margin-bottom:8px">
+              <label for="recipientSearch">Search user</label>
+              <input id="recipientSearch" class="form-control" type="search" placeholder="Search name or email…" autocomplete="off">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label for="recipientSelect">Recipient</label>
+              <select id="recipientSelect" class="form-control recipient-list" size="5"></select>
+            </div>
+          </div>
+
+          <div id="messageAudienceHint" class="audience-summary">One message will be visible to every non-admin user.</div>
+          <div class="form-group"><label for="adminMessageTitle">Title</label><input id="adminMessageTitle" class="form-control" type="text" maxlength="100" value="رسالة من الإدارة"></div>
+          <div class="form-group"><label for="adminMessageBody">Message</label><textarea id="adminMessageBody" class="form-control" maxlength="1500" placeholder="Write the message employees should see..."></textarea></div>
+          <button type="button" id="sendAdminMessageBtn" class="primary-btn">Send Message</button>
+        </div>
+      </div>
+
       <div class="card" style="border-style:dashed;border-color:#66558f">
         <h3>📊 Excel Upload</h3>
         <div class="hint">Replaces canned rows using the exact sheet and row ordering from the selected Excel file.</div>
@@ -204,8 +245,17 @@ const statDisabled = document.getElementById('statDisabled');
 const statMissingNames = document.getElementById('statMissingNames');
 const realtimeStatus = document.getElementById('realtimeStatus');
 const realtimeStatusText = document.getElementById('realtimeStatusText');
+const messageAudience = document.getElementById('messageAudience');
+const recipientPicker = document.getElementById('recipientPicker');
+const recipientSearch = document.getElementById('recipientSearch');
+const recipientSelect = document.getElementById('recipientSelect');
+const messageAudienceHint = document.getElementById('messageAudienceHint');
+const adminMessageTitle = document.getElementById('adminMessageTitle');
+const adminMessageBody = document.getElementById('adminMessageBody');
+const sendAdminMessageBtn = document.getElementById('sendAdminMessageBtn');
 
 let allProfiles = [];
+let currentFilteredProfiles = [];
 let onlineUserIds = new Set();
 let presenceChannel = null;
 
@@ -321,6 +371,7 @@ async function loadUsers(){
   if(error){ msg.style.color='#ff9b9b'; msg.textContent='Failed to load user accounts: ' + error.message; return; }
   allProfiles = data || [];
   renderUsers();
+  renderRecipientOptions();
 }
 
 function formatLastSeen(value){
@@ -377,7 +428,9 @@ function renderUsers(){
     return new Date(a.created_at) - new Date(b.created_at);
   });
 
+  currentFilteredProfiles = filtered.slice();
   memberCountBadge.textContent = `Showing ${filtered.length} / ${total}`;
+  updateMessageAudienceHint();
   users.innerHTML = '';
   if(!filtered.length){
     users.innerHTML = '<tr><td colspan="7" class="muted" style="text-align:center;padding:24px">No users match the current filters.</td></tr>';
@@ -412,6 +465,108 @@ function renderUsers(){
     await loadUsers();
   });
 }
+
+
+function nonAdminProfiles(list){
+  return (list || []).filter(u => u.role !== 'admin');
+}
+
+function getMissingNameProfiles(){
+  return nonAdminProfiles(allProfiles).filter(u => !(u.name && String(u.name).trim().length >= 3));
+}
+
+function renderRecipientOptions(){
+  if(!recipientSelect) return;
+  const q = (recipientSearch.value || '').trim().toLowerCase();
+  const rows = nonAdminProfiles(allProfiles).filter(u => {
+    const hay = `${u.name || ''} ${u.email || ''}`.toLowerCase();
+    return !q || hay.includes(q);
+  });
+
+  const current = recipientSelect.value;
+  recipientSelect.innerHTML = rows.map(u => {
+    const labelName = (u.name && String(u.name).trim().length >= 3) ? String(u.name).trim() : 'Missing name';
+    return `<option value="${esc(u.id)}">${esc(labelName)} — ${esc(u.email || '')}</option>`;
+  }).join('');
+
+  if(current && rows.some(u => String(u.id) === current)) recipientSelect.value = current;
+}
+
+function updateMessageAudienceHint(){
+  if(!messageAudienceHint) return;
+  const mode = messageAudience.value;
+  recipientPicker.classList.toggle('show', mode === 'specific');
+
+  if(mode === 'all'){
+    const count = nonAdminProfiles(allProfiles).length;
+    messageAudienceHint.textContent = `One message will be visible to all ${count} non-admin users.`;
+  } else if(mode === 'specific'){
+    messageAudienceHint.textContent = 'Search by employee name or email, then choose one recipient.';
+  } else if(mode === 'missing'){
+    messageAudienceHint.textContent = `This will send to ${getMissingNameProfiles().length} users whose profile name is missing.`;
+  } else {
+    const count = nonAdminProfiles(currentFilteredProfiles).length;
+    messageAudienceHint.textContent = `This will send to ${count} non-admin users currently visible after your search and filters.`;
+  }
+}
+
+async function sendAdminMessage(){
+  const title = (adminMessageTitle.value || '').trim() || 'رسالة من الإدارة';
+  const body = (adminMessageBody.value || '').trim();
+  if(!body){
+    msg.style.color = '#ff9b9b';
+    msg.textContent = 'Please write the message first.';
+    adminMessageBody.focus();
+    return;
+  }
+
+  const mode = messageAudience.value;
+  let rows = [];
+
+  if(mode === 'all'){
+    rows = [{ title, message: body, target_type:'all', target_user_id:null }];
+  } else if(mode === 'specific'){
+    const userId = recipientSelect.value;
+    if(!userId){
+      msg.style.color = '#ff9b9b';
+      msg.textContent = 'Please choose a recipient.';
+      return;
+    }
+    rows = [{ title, message: body, target_type:'user', target_user_id:userId }];
+  } else {
+    const recipients = mode === 'missing' ? getMissingNameProfiles() : nonAdminProfiles(currentFilteredProfiles);
+    if(!recipients.length){
+      msg.style.color = '#ff9b9b';
+      msg.textContent = 'There are no users in this target group.';
+      return;
+    }
+    rows = recipients.map(u => ({ title, message: body, target_type:'user', target_user_id:u.id }));
+  }
+
+  sendAdminMessageBtn.disabled = true;
+  msg.style.color = '#7ee2a8';
+  msg.textContent = 'Sending message...';
+
+  const { error } = await sb.from('admin_messages').insert(rows);
+  sendAdminMessageBtn.disabled = false;
+
+  if(error){
+    console.error(error);
+    msg.style.color = '#ff9b9b';
+    msg.textContent = 'Failed to send message: ' + error.message;
+    return;
+  }
+
+  adminMessageBody.value = '';
+  msg.style.color = '#7ee2a8';
+  const targetCount = mode === 'all' ? nonAdminProfiles(allProfiles).length : rows.length;
+  msg.textContent = `Message sent successfully to ${targetCount} user${targetCount === 1 ? '' : 's'}.`;
+}
+
+messageAudience.addEventListener('change', updateMessageAudienceHint);
+recipientSearch.addEventListener('input', renderRecipientOptions);
+sendAdminMessageBtn.addEventListener('click', sendAdminMessage);
+updateMessageAudienceHint();
 
 [userSearch,statusFilter,activityFilter,nameFilter].forEach(el => el.addEventListener('input', renderUsers));
 statusFilter.addEventListener('change', renderUsers);
