@@ -456,7 +456,7 @@ button{font-family:inherit;}
 
 /* Admin messages */
 #adminNoticeStack{
-  position:fixed;top:calc(var(--header-h) + 12px);right:18px;z-index:420;
+  position:fixed;top:calc(var(--header-h) + 12px);left:18px;right:auto;z-index:420;
   width:min(440px,calc(100vw - 36px));max-height:calc(100vh - var(--header-h) - var(--footer-h) - 34px);
   overflow:auto;display:flex;flex-direction:column;gap:10px;pointer-events:none;
 }
@@ -469,7 +469,7 @@ button{font-family:inherit;}
   padding:14px 46px 13px 15px;direction:rtl;text-align:right;
   animation:adminNoticeIn .28s cubic-bezier(.2,.8,.2,1) both;
 }
-.admin-notice::before{content:"";position:absolute;top:0;right:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--acc-cyan),var(--acc-violet));}
+.admin-notice::before{content:"";position:absolute;top:0;left:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--acc-cyan),var(--acc-violet));}
 .admin-notice-title{font-size:13.5px;font-weight:800;color:var(--ink);margin-bottom:5px;line-height:1.5;}
 .admin-notice-body{font-size:13px;line-height:1.8;color:var(--ink-dim);white-space:pre-wrap;overflow-wrap:anywhere;}
 .admin-notice-meta{font-family:var(--font-arabic);font-size:10.5px;color:var(--ink-faint);margin-top:8px;}
@@ -479,10 +479,23 @@ button{font-family:inherit;}
   transition:transform .15s ease,border-color .15s ease,color .15s ease,background .15s ease;
 }
 .admin-notice-close:hover{transform:scale(1.05);border-color:var(--acc-rose);color:var(--acc-rose);}
+.admin-reply-history{display:flex;flex-direction:column;gap:7px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft)}
+.admin-reply-history-item{background:var(--inset);border:1px solid var(--line-soft);border-radius:9px;padding:8px 10px}
+.admin-reply-history-label{font-size:10.5px;font-weight:800;color:var(--acc-cyan);margin-bottom:3px}
+.admin-reply-history-text{font-size:12px;line-height:1.65;color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere}
+.admin-reply-history-meta{font-size:9.5px;color:var(--ink-faint);margin-top:4px}
+.admin-reply-box{margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);display:flex;flex-direction:column;gap:7px}
+.admin-reply-input{width:100%;min-height:58px;max-height:120px;resize:vertical;border:1px solid var(--line);outline:none;border-radius:9px;background:var(--inset);color:var(--ink);padding:9px 10px;font-family:var(--font-arabic);font-size:12.5px;line-height:1.6;direction:rtl;text-align:right}
+.admin-reply-input:focus{border-color:var(--acc-cyan);box-shadow:0 0 0 3px rgba(111,227,217,.10)}
+.admin-reply-actions{display:flex;align-items:center;gap:8px}
+.admin-reply-send{border:0;border-radius:8px;padding:7px 12px;cursor:pointer;background:linear-gradient(135deg,var(--acc-cyan),var(--acc-violet));color:#0c0d16;font-family:var(--font-arabic);font-size:11.5px;font-weight:800}
+.admin-reply-send:disabled{opacity:.6;cursor:not-allowed}
+.admin-reply-status{flex:1;min-height:16px;font-size:10.5px;color:var(--ink-faint)}
+.admin-reply-closed{margin-top:10px;padding:8px 10px;border-radius:9px;background:color-mix(in srgb,var(--success) 12%,transparent);border:1px solid color-mix(in srgb,var(--success) 28%,var(--line));font-size:11px;font-weight:700;color:var(--success)}
 .admin-notice.removing{animation:adminNoticeOut .22s ease forwards;}
 @keyframes adminNoticeIn{from{opacity:0;transform:translateY(-8px) scale(.985)}to{opacity:1;transform:none}}
-@keyframes adminNoticeOut{to{opacity:0;transform:translateX(18px) scale(.98)}}
-@media(max-width:620px){#adminNoticeStack{top:calc(var(--header-h) + 8px);right:10px;width:calc(100vw - 20px)}.admin-notice{padding:13px 44px 12px 13px}}
+@keyframes adminNoticeOut{to{opacity:0;transform:translateX(-18px) scale(.98)}}
+@media(max-width:620px){#adminNoticeStack{top:calc(var(--header-h) + 8px);left:10px;right:auto;width:calc(100vw - 20px)}.admin-notice{padding:13px 44px 12px 13px}}
 
 .footer-wrapper{
   position:fixed;left:0;right:0;bottom:0;z-index:100;height:var(--footer-h);
@@ -844,17 +857,43 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const dismissed = new Set((dismissals || []).map(x => String(x.message_id)));
       const visible = (messages || []).filter(m => !dismissed.has(String(m.id)));
-      renderAdminMessages(visible);
+
+      let replies = [];
+      if(visible.length){
+        try {
+          const messageIds = visible.map(m => String(m.id));
+          const { data: replyRows, error: repliesError } = await supabaseClient
+            .from('admin_message_replies')
+            .select('id,message_id,reply,created_at,closed')
+            .eq('user_id', userId)
+            .in('message_id', messageIds)
+            .order('created_at', { ascending: true });
+          if(repliesError) throw repliesError;
+          replies = replyRows || [];
+        } catch(replyError) {
+          // Keep admin notices working even before the optional replies table is installed.
+          console.warn('Admin reply history unavailable', replyError);
+        }
+      }
+
+      renderAdminMessages(visible, replies);
     } catch(e) {
       // Messaging is non-blocking: the main tool must remain usable if the table is unavailable.
       console.error('Admin messages unavailable', e);
     }
   }
 
-  function renderAdminMessages(messages){
+  function renderAdminMessages(messages, replies = []){
     const stack = document.getElementById('adminNoticeStack');
     if(!stack) return;
     stack.innerHTML = '';
+
+    const repliesByMessage = new Map();
+    (replies || []).forEach(r => {
+      const key = String(r.message_id);
+      if(!repliesByMessage.has(key)) repliesByMessage.set(key, []);
+      repliesByMessage.get(key).push(r);
+    });
 
     (messages || []).forEach(m => {
       const box = document.createElement('section');
@@ -866,17 +905,101 @@ document.addEventListener("DOMContentLoaded", () => {
         ? created.toLocaleString('ar-EG', { dateStyle:'medium', timeStyle:'short' })
         : '';
 
+      const messageReplies = repliesByMessage.get(String(m.id)) || [];
+      const threadClosed = messageReplies.length > 0 && messageReplies.every(r => r.closed === true);
+      const historyHtml = messageReplies.length ? `
+        <div class="admin-reply-history">
+          ${messageReplies.map(r => {
+            const rt = r.created_at ? new Date(r.created_at) : null;
+            const rwhen = rt && !Number.isNaN(rt.getTime()) ? rt.toLocaleString('ar-EG', { dateStyle:'short', timeStyle:'short' }) : '';
+            return `<div class="admin-reply-history-item">
+              <div class="admin-reply-history-label">ردك</div>
+              <div class="admin-reply-history-text">${escapeHtml(r.reply || '')}</div>
+              ${rwhen ? `<div class="admin-reply-history-meta">${escapeHtml(rwhen)}</div>` : ''}
+            </div>`;
+          }).join('')}
+        </div>` : '';
+
       box.innerHTML = `
         <button type="button" class="admin-notice-close" aria-label="إغلاق الرسالة" title="إغلاق">×</button>
         <div class="admin-notice-title">${escapeHtml(m.title || 'رسالة من الإدارة')}</div>
         <div class="admin-notice-body">${escapeHtml(m.message || '')}</div>
         ${when ? `<div class="admin-notice-meta">${escapeHtml(when)}</div>` : ''}
+        ${historyHtml}
+        ${threadClosed ? `<div class="admin-reply-closed">✓ تمت مراجعة المحادثة وإغلاقها من الإدارة</div>` : `
+          <div class="admin-reply-box">
+            <textarea class="admin-reply-input" maxlength="1500" placeholder="اكتب ردك للإدارة هنا..."></textarea>
+            <div class="admin-reply-actions">
+              <button type="button" class="admin-reply-send">إرسال الرد</button>
+              <div class="admin-reply-status" aria-live="polite"></div>
+            </div>
+          </div>`}
       `;
 
       const closeBtn = box.querySelector('.admin-notice-close');
       closeBtn.addEventListener('click', () => dismissAdminMessage(m.id, box, closeBtn));
+
+      const replyBtn = box.querySelector('.admin-reply-send');
+      const replyInput = box.querySelector('.admin-reply-input');
+      const replyStatus = box.querySelector('.admin-reply-status');
+      if(replyBtn && replyInput){
+        replyBtn.addEventListener('click', () => sendAdminReply(m, replyInput, replyBtn, replyStatus));
+        replyInput.addEventListener('keydown', e => {
+          if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){
+            e.preventDefault();
+            sendAdminReply(m, replyInput, replyBtn, replyStatus);
+          }
+        });
+      }
       stack.appendChild(box);
     });
+  }
+
+  async function sendAdminReply(message, input, sendBtn, statusEl){
+    const reply = (input.value || '').trim();
+    if(!reply){
+      statusEl.textContent = 'اكتب الرد أولاً.';
+      statusEl.style.color = 'var(--danger)';
+      input.focus();
+      return;
+    }
+
+    sendBtn.disabled = true;
+    input.disabled = true;
+    statusEl.textContent = 'جارٍ إرسال الرد...';
+    statusEl.style.color = 'var(--ink-faint)';
+
+    try {
+      const { data:{ session }, error: sessionError } = await supabaseClient.auth.getSession();
+      if(sessionError) throw sessionError;
+      const userId = session?.user?.id;
+      if(!userId) throw new Error('No active session');
+
+      const profile = await getProfile(userId);
+      const { error } = await supabaseClient
+        .from('admin_message_replies')
+        .insert([{
+          message_id: String(message.id),
+          user_id: userId,
+          employee_name: profile?.name || null,
+          employee_email: profile?.email || session?.user?.email || null,
+          message_title: message.title || 'رسالة من الإدارة',
+          admin_message: message.message || '',
+          reply
+        }]);
+      if(error) throw error;
+
+      input.value = '';
+      statusEl.textContent = 'تم إرسال ردك للإدارة ✓';
+      statusEl.style.color = 'var(--success)';
+      await loadAdminMessages();
+    } catch(e) {
+      console.error('Failed to send admin reply', e);
+      statusEl.textContent = 'تعذر إرسال الرد. حاول مرة أخرى.';
+      statusEl.style.color = 'var(--danger)';
+      sendBtn.disabled = false;
+      input.disabled = false;
+    }
   }
 
   async function dismissAdminMessage(messageId, box, closeBtn){
@@ -929,6 +1052,12 @@ document.addEventListener("DOMContentLoaded", () => {
         .channel(`cand-admin-messages-${userId}`)
         .on('postgres_changes', { event:'INSERT', schema:'public', table:'admin_messages' }, () => loadAdminMessages())
         .on('postgres_changes', { event:'UPDATE', schema:'public', table:'admin_messages' }, () => loadAdminMessages())
+        .on('postgres_changes', { event:'INSERT', schema:'public', table:'admin_message_replies' }, payload => {
+          if(String(payload.new?.user_id || '') === String(userId)) loadAdminMessages();
+        })
+        .on('postgres_changes', { event:'UPDATE', schema:'public', table:'admin_message_replies' }, payload => {
+          if(String(payload.new?.user_id || '') === String(userId)) loadAdminMessages();
+        })
         .subscribe();
     } catch(e) {
       console.error('Admin messaging start failed', e);
