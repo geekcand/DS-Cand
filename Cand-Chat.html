@@ -597,6 +597,21 @@ button{font-family:inherit;}
   .onehome-copy{width:100%}
 }
 
+
+/* OneHome multi-category selector - retains the parent theme tokens */
+.onehome-category-block{padding:14px;border:1px solid color-mix(in srgb,var(--acc-violet) 33%,var(--line));border-radius:13px;background:color-mix(in srgb,var(--acc-violet) 5%,var(--panel));display:flex;flex-direction:column;gap:9px;margin-bottom:17px}
+.onehome-category-block .onehome-select{font-weight:700;font-size:13px;line-height:1.5;height:44px}
+.onehome-category-meta{color:var(--acc-cyan);font-size:11.5px;font-weight:650;min-height:18px}
+.onehome-families{grid-template-columns:repeat(var(--onehome-family-count,4),minmax(0,1fr))}
+.onehome-top{align-items:stretch}
+.onehome-top .onehome-field{justify-content:end}
+.onehome-extra[hidden]{display:none!important}
+.onehome-extras{margin-top:13px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.onehome-extra{padding:11px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;display:flex;flex-direction:column;gap:5px;min-width:0;line-height:1.7}
+.onehome-extra>span{font-size:11px;color:var(--ink-dim);font-weight:750}
+.onehome-extra strong{font-size:12px;color:var(--ink);font-weight:650;white-space:normal;overflow-wrap:anywhere}
+.onehome-notes{grid-column:1 / -1;border-color:color-mix(in srgb,var(--acc-amber) 33%,var(--line))}
+@media(max-width:720px){.onehome-extras{grid-template-columns:1fr}.onehome-category-block{padding:11px}.onehome-families{gap:5px}}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -723,23 +738,31 @@ button{font-family:inherit;}
     <div class="onehome-head">
       <div>
         <h2 id="onehomeHeading" class="onehome-heading">📦 OneHome Packages</h2>
-        <p class="onehome-sub">اختار الباقة، راجع التفاصيل، وانسخ الكاند مباشرة</p>
+        <p class="onehome-sub">حدد التصنيف أولًا، ثم فئة الباقة وسعتها، وانسخ الكاند المناسب للعميل.</p>
       </div>
       <button type="button" id="onehomeCloseBtn" class="onehome-close" aria-label="إغلاق نافذة الباقات" title="إغلاق">×</button>
     </div>
     <div class="onehome-body">
+      <div class="onehome-category-block">
+        <label class="onehome-label" for="onehomeCategorySelect">① اختر تصنيف الباقات</label>
+        <select id="onehomeCategorySelect" class="onehome-select" aria-label="تصنيف باقات OneHome">
+          <option value="m600">الباقات الشهرية مع باقة صوت 600 دقيقة</option>
+          <option value="m3750">الباقات الشهرية مع باقة الصوت 3750 دقيقة</option>
+          <option value="g600">باقات PLUS / GAMERZ / STREAMERZ الشهرية مع باقة الصوت 600 دقيقة</option>
+          <option value="g3750">باقات STREAMERS / GAMERS / PLUS الشهرية مع باقة صوت 3750 دقيقة</option>
+          <option value="a7200">الباقات السنوية مع باقة صوت 7200 دقيقة</option>
+          <option value="a45000">الباقات السنوية مع باقة صوت 45000 دقيقة</option>
+          <option value="sahel">باقات الساحل السنوية</option>
+        </select>
+        <div id="onehomeCategoryMeta" class="onehome-category-meta"></div>
+      </div>
       <div class="onehome-top">
         <div class="onehome-field">
-          <label class="onehome-label">نوع الباقة</label>
-          <div class="onehome-families" role="group" aria-label="نوع الباقة">
-            <button type="button" class="onehome-family" data-onehome-family="super" aria-pressed="true">Super</button>
-            <button type="button" class="onehome-family" data-onehome-family="mega" aria-pressed="false">Mega</button>
-            <button type="button" class="onehome-family" data-onehome-family="ultra" aria-pressed="false">Ultra</button>
-            <button type="button" class="onehome-family" data-onehome-family="max" aria-pressed="false">Max</button>
-          </div>
+          <span class="onehome-label">② فئة الباقة</span>
+          <div id="onehomeFamilies" class="onehome-families" role="group" aria-label="فئة الباقة"></div>
         </div>
         <div class="onehome-field">
-          <label class="onehome-label" for="onehomePlanSelect">الباقة والسعة</label>
+          <label class="onehome-label" for="onehomePlanSelect">③ اختر الباقة والسعة</label>
           <select id="onehomePlanSelect" class="onehome-select" aria-label="اختيار باقة OneHome"></select>
         </div>
       </div>
@@ -749,6 +772,12 @@ button{font-family:inherit;}
         <div class="onehome-stat"><span class="label">قبل الضريبة</span><span id="onehomeStatBefore" class="value">300 <span class="unit">جنيه</span></span></div>
         <div class="onehome-stat is-price"><span class="label">شامل الضريبة</span><span id="onehomeStatAfter" class="value">342 <span class="unit">جنيه</span></span></div>
       </div>
+      <div class="onehome-extras" aria-live="polite">
+        <div class="onehome-extra"><span>📞 تفاصيل المكالمات</span><strong id="onehomeVoiceDetail"></strong></div>
+        <div class="onehome-extra"><span>🧾 تفاصيل السعر</span><strong id="onehomeBreakdown"></strong></div>
+        <div id="onehomeNotesRow" class="onehome-extra onehome-notes" hidden><span>ℹ️ توزيع سعة الإنترنت</span><strong id="onehomeNotes"></strong></div>
+        <div id="onehomeDiscountRow" class="onehome-extra" hidden><span>🏷️ الخصم المذكور في الجدول</span><strong id="onehomeDiscount"></strong></div>
+      </div>
       <div class="onehome-variants" role="group" aria-label="نوع الرد">
         <button type="button" class="onehome-variant" data-onehome-format="detailed" aria-pressed="true">الرد التفصيلي</button>
         <button type="button" class="onehome-variant" data-onehome-format="short" aria-pressed="false">الرد المختصر</button>
@@ -756,13 +785,13 @@ button{font-family:inherit;}
       <div class="onehome-preview-card">
         <div class="onehome-preview-top">
           <strong>معاينة الكاند قبل النسخ</strong>
-          <span id="onehomeSeparatorNote" class="onehome-preview-note">يُضاف بين كل سطر عند النسخ: <code>&lt;p&gt;&amp;nbsp;&lt;/p&gt;</code></span>
+          <span id="onehomeSeparatorNote" class="onehome-preview-note"></span>
         </div>
         <div id="onehomePreview" class="onehome-preview" aria-live="polite"></div>
       </div>
     </div>
     <div class="onehome-foot">
-      <span id="onehomeCopyFeedback" class="onehome-copy-feedback" role="status" aria-live="polite">جميع الأسعار بالجنيه المصري حسب الجدول المُرسل</span>
+      <span id="onehomeCopyFeedback" class="onehome-copy-feedback" role="status" aria-live="polite">الأسعار بالجنيه المصري حسب الصور — يُرجى مراجعة الويكي قبل الإرسال</span>
       <button type="button" id="onehomeCopyBtn" class="onehome-copy">⧉ نسخ الكاند</button>
     </div>
   </section>
@@ -1506,166 +1535,215 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 
-  // OneHome Packages — local, fixed source data from the supplied tariff table.
-  // The current Supabase canned_items flow is deliberately unchanged.
-  const onehomePlans = [{"id":"s150","family":"super","name":"OneHome Super","gb":150,"speed":30,"internet":260,"before":300,"after":342},{"id":"s200","family":"super","name":"OneHome Super","gb":200,"speed":30,"internet":330,"before":370,"after":422},{"id":"s250","family":"super","name":"OneHome Super","gb":250,"speed":30,"internet":395,"before":435,"after":496},{"id":"s300","family":"super","name":"OneHome Super","gb":300,"speed":30,"internet":460,"before":500,"after":570},{"id":"s400","family":"super","name":"OneHome Super","gb":400,"speed":30,"internet":580,"before":620,"after":707},{"id":"s500","family":"super","name":"OneHome Super","gb":500,"speed":30,"internet":660,"before":700,"after":798},{"id":"s750","family":"super","name":"OneHome Super","gb":750,"speed":30,"internet":925,"before":965,"after":1101},{"id":"s1500","family":"super","name":"OneHome Super","gb":1500,"speed":30,"internet":1650,"before":1690,"after":1927},{"id":"m250","family":"mega","name":"OneHome Mega","gb":250,"speed":70,"internet":590,"before":630,"after":719},{"id":"m500","family":"mega","name":"OneHome Mega","gb":500,"speed":70,"internet":900,"before":940,"after":1072},{"id":"m750","family":"mega","name":"OneHome Mega","gb":750,"speed":70,"internet":1175,"before":1215,"after":1386},{"id":"m1500","family":"mega","name":"OneHome Mega","gb":1500,"speed":70,"internet":2000,"before":2040,"after":2326},{"id":"u250","family":"ultra","name":"OneHome Ultra","gb":250,"speed":100,"internet":785,"before":825,"after":941},{"id":"u500","family":"ultra","name":"OneHome Ultra","gb":500,"speed":100,"internet":1150,"before":1190,"after":1357},{"id":"u750","family":"ultra","name":"OneHome Ultra","gb":750,"speed":100,"internet":1425,"before":1465,"after":1671},{"id":"sv1500","family":"max","name":"OneHome Max SV","gb":1500,"speed":200,"internet":2350,"before":2390,"after":2725},{"id":"x1500","family":"max","name":"OneHome Max+","gb":1500,"speed":500,"internet":2700,"before":2740,"after":3124}];
-  const onehomeModal = document.getElementById('onehomeModal');
-  const onehomeOpenBtn = document.getElementById('onehomeOpenBtn');
-  const onehomeCloseBtn = document.getElementById('onehomeCloseBtn');
-  const onehomePlanSelect = document.getElementById('onehomePlanSelect');
-  const onehomePreview = document.getElementById('onehomePreview');
-  const onehomeCopyBtn = document.getElementById('onehomeCopyBtn');
-  const onehomeCopyFeedback = document.getElementById('onehomeCopyFeedback');
-  const onehomeSeparatorNote = document.getElementById('onehomeSeparatorNote');
-  const onehomeFamilyButtons = Array.from(document.querySelectorAll('[data-onehome-family]'));
-  const onehomeFormatButtons = Array.from(document.querySelectorAll('[data-onehome-format]'));
-  const onehomeNum = new Intl.NumberFormat('en-US');
-  const formatOnehomeNum = n => onehomeNum.format(n);
-  const onehomeSeparator = '\n<p>&nbsp;</p>\n';
-  let onehomeFamily = 'super';
-  let onehomeFormat = 'detailed';
-  let onehomeSelected = 's150';
-  let onehomePreviousOverflow = '';
-  let onehomeFeedbackTimer = null;
+  // OneHome packages. Static tariff data transcribed from 7 supplied screenshots.
+  // These data are separated from Supabase, account approval and existing canned items.
+  const onehomePlans = [{"id":"s150","family":"super","name":"OneHome Super","gb":150,"speed":30,"internet":260,"before":300,"after":342,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"s200","family":"super","name":"OneHome Super","gb":200,"speed":30,"internet":330,"before":370,"after":422,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"s250","family":"super","name":"OneHome Super","gb":250,"speed":30,"internet":395,"before":435,"after":496,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"s300","family":"super","name":"OneHome Super","gb":300,"speed":30,"internet":460,"before":500,"after":570,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"s400","family":"super","name":"OneHome Super","gb":400,"speed":30,"internet":580,"before":620,"after":707,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"s500","family":"super","name":"OneHome Super","gb":500,"speed":30,"internet":660,"before":700,"after":798,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"s750","family":"super","name":"OneHome Super","gb":750,"speed":30,"internet":925,"before":965,"after":1101,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"s1500","family":"super","name":"OneHome Super","gb":1500,"speed":30,"internet":1650,"before":1690,"after":1927,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"m250","family":"mega","name":"OneHome Mega","gb":250,"speed":70,"internet":590,"before":630,"after":719,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"m500","family":"mega","name":"OneHome Mega","gb":500,"speed":70,"internet":900,"before":940,"after":1072,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"m750","family":"mega","name":"OneHome Mega","gb":750,"speed":70,"internet":1175,"before":1215,"after":1386,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"m1500","family":"mega","name":"OneHome Mega","gb":1500,"speed":70,"internet":2000,"before":2040,"after":2326,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"u250","family":"ultra","name":"OneHome Ultra","gb":250,"speed":100,"internet":785,"before":825,"after":941,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"u500","family":"ultra","name":"OneHome Ultra","gb":500,"speed":100,"internet":1150,"before":1190,"after":1357,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"u750","family":"ultra","name":"OneHome Ultra","gb":750,"speed":100,"internet":1425,"before":1465,"after":1671,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"sv1500","family":"max","name":"OneHome Max SV","gb":1500,"speed":200,"internet":2350,"before":2390,"after":2725,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"x1500","family":"max","name":"OneHome Max+","gb":1500,"speed":500,"internet":2700,"before":2740,"after":3124,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"m3750-super-0","category":"m3750","family":"super","name":"OneHome Super","gb":150,"speed":30,"internet":260,"sound":50,"before":310,"after":354,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-super-1","category":"m3750","family":"super","name":"OneHome Super","gb":200,"speed":30,"internet":330,"sound":50,"before":380,"after":434,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-super-2","category":"m3750","family":"super","name":"OneHome Super","gb":250,"speed":30,"internet":395,"sound":50,"before":445,"after":508,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-super-3","category":"m3750","family":"super","name":"OneHome Super","gb":300,"speed":30,"internet":460,"sound":50,"before":510,"after":582,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-super-4","category":"m3750","family":"super","name":"OneHome Super","gb":400,"speed":30,"internet":580,"sound":50,"before":630,"after":719,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-super-5","category":"m3750","family":"super","name":"OneHome Super","gb":500,"speed":30,"internet":660,"sound":50,"before":710,"after":810,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-super-6","category":"m3750","family":"super","name":"OneHome Super","gb":750,"speed":30,"internet":925,"sound":50,"before":975,"after":1112,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-super-7","category":"m3750","family":"super","name":"OneHome Super","gb":1500,"speed":30,"internet":1650,"sound":50,"before":1700,"after":1939,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-mega-0","category":"m3750","family":"mega","name":"OneHome Mega","gb":250,"speed":70,"internet":590,"sound":50,"before":640,"after":731,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-mega-1","category":"m3750","family":"mega","name":"OneHome Mega","gb":500,"speed":70,"internet":900,"sound":50,"before":950,"after":1084,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-mega-2","category":"m3750","family":"mega","name":"OneHome Mega","gb":750,"speed":70,"internet":1175,"sound":50,"before":1225,"after":1397,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-mega-3","category":"m3750","family":"mega","name":"OneHome Mega","gb":1500,"speed":70,"internet":2000,"sound":50,"before":2050,"after":2338,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-ultra-0","category":"m3750","family":"ultra","name":"OneHome Ultra","gb":250,"speed":100,"internet":785,"sound":50,"before":835,"after":953,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-ultra-1","category":"m3750","family":"ultra","name":"OneHome Ultra","gb":500,"speed":100,"internet":1150,"sound":50,"before":1200,"after":1369,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-ultra-2","category":"m3750","family":"ultra","name":"OneHome Ultra","gb":750,"speed":100,"internet":1425,"sound":50,"before":1475,"after":1682,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-max-0","category":"m3750","family":"max","name":"OneHome Max","gb":1500,"speed":200,"internet":2350,"sound":50,"before":2400,"after":2737,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-max-1","category":"m3750","family":"max","name":"OneHome Max+","gb":1500,"speed":500,"internet":2700,"sound":50,"before":2750,"after":3136,"minutes":3750,"period":"monthly","discount":null},{"id":"g600-streamerz","category":"g600","family":"streaming","name":"STREAMERZ","gb":500,"speed":80,"internet":650,"sound":40,"before":690,"after":787,"minutes":600,"period":"monthly","discount":null,"baseGB":200,"bonusType":"ستريمنج","bonusGB":150,"bonusMaxGB":300,"notes":"سعة أساسية 200 جيجابايت + سعة ستريمنج 150 جيجابايت تصل إلى 300 جيجابايت."},{"id":"g600-gamerz","category":"g600","family":"gaming","name":"GAMERZ","gb":500,"speed":80,"internet":650,"sound":40,"before":690,"after":787,"minutes":600,"period":"monthly","discount":null,"baseGB":250,"bonusType":"جيمنج","bonusGB":125,"bonusMaxGB":250,"notes":"سعة أساسية 250 جيجابايت + سعة جيمنج 125 جيجابايت تصل إلى 250 جيجابايت."},{"id":"g600-plus","category":"g600","family":"mixed","name":"PLUS","gb":1500,"speed":150,"internet":1400,"sound":40,"before":1440,"after":1642,"minutes":600,"period":"monthly","discount":null,"baseGB":500,"bonusType":"جيمنج وستريمنج","bonusGB":500,"bonusMaxGB":1000,"notes":"سعة أساسية 500 جيجابايت + سعة جيمنج وستريمنج 500 جيجابايت تصل إلى 1,000 جيجابايت."},{"id":"g3750-streamerz","category":"g3750","family":"streaming","name":"STREAMERZ","gb":500,"speed":80,"internet":650,"sound":50,"before":700,"after":799,"minutes":3750,"period":"monthly","discount":null,"baseGB":200,"bonusType":"ستريمنج","bonusGB":150,"bonusMaxGB":300,"notes":"سعة أساسية 200 جيجابايت + سعة ستريمنج 150 جيجابايت تصل إلى 300 جيجابايت."},{"id":"g3750-gamerz","category":"g3750","family":"gaming","name":"GAMERZ","gb":500,"speed":80,"internet":650,"sound":50,"before":700,"after":799,"minutes":3750,"period":"monthly","discount":null,"baseGB":250,"bonusType":"جيمنج","bonusGB":125,"bonusMaxGB":250,"notes":"سعة أساسية 250 جيجابايت + سعة جيمنج 125 جيجابايت تصل إلى 250 جيجابايت."},{"id":"g3750-plus","category":"g3750","family":"mixed","name":"PLUS","gb":1500,"speed":150,"internet":1400,"sound":50,"before":1450,"after":1654,"minutes":3750,"period":"monthly","discount":null,"baseGB":500,"bonusType":"جيمنج وستريمنج","bonusGB":500,"bonusMaxGB":1000,"notes":"سعة أساسية 500 جيجابايت + سعة جيمنج وستريمنج 500 جيجابايت تصل إلى 1,000 جيجابايت."},{"id":"a7200-0","category":"a7200","family":"super","name":"OneHome Super","gb":1800,"speed":30,"internet":3120,"sound":480,"before":3600,"after":4104,"minutes":7200,"period":"annual","discount":null},{"id":"a7200-1","category":"a7200","family":"super","name":"OneHome Super","gb":2400,"speed":30,"internet":3960,"sound":480,"before":4440,"after":5062,"minutes":7200,"period":"annual","discount":null},{"id":"a7200-2","category":"a7200","family":"super","name":"OneHome Super","gb":3000,"speed":30,"internet":4345,"sound":440,"before":4785,"after":5455,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-3","category":"a7200","family":"super","name":"OneHome Super","gb":3600,"speed":30,"internet":5060,"sound":440,"before":5500,"after":6270,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-4","category":"a7200","family":"super","name":"OneHome Super","gb":4800,"speed":30,"internet":6380,"sound":440,"before":6820,"after":7775,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-5","category":"a7200","family":"super","name":"OneHome Super","gb":6000,"speed":30,"internet":6930,"sound":440,"before":7370,"after":8402,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-6","category":"a7200","family":"super","name":"OneHome Super","gb":9000,"speed":30,"internet":9715,"sound":440,"before":10155,"after":11577,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-7","category":"a7200","family":"super","name":"OneHome Super","gb":"18TB","speed":30,"internet":16500,"sound":440,"before":16940,"after":19312,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-8","category":"a7200","family":"mega","name":"OneHome Mega","gb":3000,"speed":70,"internet":6490,"sound":440,"before":6930,"after":7901,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-9","category":"a7200","family":"mega","name":"OneHome Mega","gb":6000,"speed":70,"internet":9450,"sound":440,"before":9890,"after":11275,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-10","category":"a7200","family":"mega","name":"OneHome Mega","gb":9000,"speed":70,"internet":12340,"sound":440,"before":12780,"after":14570,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-11","category":"a7200","family":"mega","name":"OneHome Mega","gb":"18TB","speed":70,"internet":20000,"sound":440,"before":20440,"after":23302,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-12","category":"a7200","family":"ultra","name":"OneHome Ultra","gb":3000,"speed":100,"internet":8635,"sound":440,"before":9075,"after":10312,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-13","category":"a7200","family":"ultra","name":"OneHome Ultra","gb":6000,"speed":100,"internet":12075,"sound":440,"before":12515,"after":14268,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-14","category":"a7200","family":"ultra","name":"OneHome Ultra","gb":9000,"speed":100,"internet":14965,"sound":440,"before":15405,"after":17562,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-15","category":"a7200","family":"max","name":"OneHome Max SV","gb":"18TB","speed":200,"internet":23500,"sound":440,"before":23940,"after":27292,"minutes":7200,"period":"annual","discount":40},{"id":"a45000-0","category":"a45000","family":"super","name":"OneHome Super","gb":1800,"speed":30,"internet":3120,"sound":500,"before":3620,"after":4132,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-1","category":"a45000","family":"super","name":"OneHome Super","gb":2400,"speed":30,"internet":3960,"sound":500,"before":4460,"after":5089,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-2","category":"a45000","family":"super","name":"OneHome Super","gb":3000,"speed":30,"internet":4345,"sound":500,"before":4845,"after":5528,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-3","category":"a45000","family":"super","name":"OneHome Super","gb":3600,"speed":30,"internet":5060,"sound":500,"before":5560,"after":6343,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-4","category":"a45000","family":"super","name":"OneHome Super","gb":4800,"speed":30,"internet":6380,"sound":500,"before":6880,"after":7848,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-5","category":"a45000","family":"super","name":"OneHome Super","gb":6000,"speed":30,"internet":6930,"sound":500,"before":7430,"after":8475,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-6","category":"a45000","family":"super","name":"OneHome Super","gb":9000,"speed":30,"internet":9715,"sound":500,"before":10215,"after":11650,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-7","category":"a45000","family":"super","name":"OneHome Super","gb":"18TB","speed":30,"internet":16500,"sound":500,"before":17000,"after":19385,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-8","category":"a45000","family":"mega","name":"OneHome Mega","gb":3000,"speed":70,"internet":6490,"sound":500,"before":6990,"after":7974,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-9","category":"a45000","family":"mega","name":"OneHome Mega","gb":6000,"speed":70,"internet":9450,"sound":500,"before":9950,"after":11348,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-10","category":"a45000","family":"mega","name":"OneHome Mega","gb":9000,"speed":70,"internet":12340,"sound":500,"before":12840,"after":14643,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-11","category":"a45000","family":"mega","name":"OneHome Mega","gb":"18TB","speed":70,"internet":20000,"sound":500,"before":20500,"after":23375,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-12","category":"a45000","family":"ultra","name":"OneHome Ultra","gb":3000,"speed":100,"internet":8635,"sound":500,"before":9135,"after":10419,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-13","category":"a45000","family":"ultra","name":"OneHome Ultra","gb":6000,"speed":100,"internet":12075,"sound":500,"before":12575,"after":14341,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-14","category":"a45000","family":"ultra","name":"OneHome Ultra","gb":9000,"speed":100,"internet":14965,"sound":500,"before":15465,"after":17635,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-15","category":"a45000","family":"max","name":"OneHome Max","gb":"18TB","speed":200,"internet":23500,"sound":500,"before":24000,"after":27365,"minutes":45000,"period":"annual","discount":100},{"id":"asahel","category":"sahel","family":"sahel","name":"OneHome SAHEL","gb":"1TB","speed":30,"internet":1500,"sound":480,"before":1980,"after":2258,"minutes":7200,"period":"annual","discount":null}];
+  const onehomeCategories = {
+    m600: {label:'الباقات الشهرية مع باقة صوت 600 دقيقة', period:'شهري'},
+    m3750:{label:'الباقات الشهرية مع باقة الصوت 3750 دقيقة',period:'شهري'},
+    g600:{label:'باقات PLUS / GAMERZ / STREAMERZ الشهرية مع باقة الصوت 600 دقيقة',period:'شهري'},
+    g3750:{label:'باقات STREAMERS / GAMERS / PLUS الشهرية مع باقة صوت 3750 دقيقة',period:'شهري'},
+    a7200:{label:'الباقات السنوية مع باقة صوت 7200 دقيقة',period:'سنوي'},
+    a45000:{label:'الباقات السنوية مع باقة صوت 45000 دقيقة',period:'سنوي'},
+    sahel:{label:'باقات الساحل السنوية',period:'سنوي'}
+  };
+  const onehomeModal=document.getElementById('onehomeModal');
+  const onehomeOpenBtn=document.getElementById('onehomeOpenBtn');
+  const onehomeCloseBtn=document.getElementById('onehomeCloseBtn');
+  const onehomeCategorySelect=document.getElementById('onehomeCategorySelect');
+  const onehomeFamilyWrap=document.getElementById('onehomeFamilies');
+  const onehomePlanSelect=document.getElementById('onehomePlanSelect');
+  const onehomePreview=document.getElementById('onehomePreview');
+  const onehomeCopyBtn=document.getElementById('onehomeCopyBtn');
+  const onehomeCopyFeedback=document.getElementById('onehomeCopyFeedback');
+  const onehomeSeparatorNote=document.getElementById('onehomeSeparatorNote');
+  const onehomeFormatButtons=Array.from(document.querySelectorAll('[data-onehome-format]'));
+  const formatOnehomeNum=n=>typeof n === 'number'?new Intl.NumberFormat('en-US').format(n):String(n);
+  // Do not use innerHTML for this: the separator must stay LITERAL in copied text.
+  const onehomeSeparator='\n<p>&nbsp;</p>\n';
+  let onehomeCategory='m600';
+  let onehomeFamily='super';
+  let onehomeFormat='detailed';
+  let onehomeSelected='s150';
+  let onehomePreviousOverflow='';
+  let onehomeFeedbackTimer=null;
+  let onehomePreviousFocus=null;
 
-  function getOnehomePlan(){
-    return onehomePlans.find(p => p.id === onehomeSelected) || onehomePlans[0];
+  function onehomeSelectedPlan(){
+    return onehomePlans.find(p=>p.id===onehomeSelected && p.category===onehomeCategory)
+      || onehomePlans.find(p=>p.category===onehomeCategory);
   }
-  function onehomeLines(plan){
-    return [
-      `حضرتك، تفاصيل باقة ${plan.name} كالتالي:`,
-      `• سعة الإنترنت: ${formatOnehomeNum(plan.gb)} جيجابايت.`,
-      `• السرعة: تصل إلى ${plan.speed} ميجابت/ثانية.`,
-      '• المكالمات: 600 دقيقة محلي ومحافظات.',
-      `• السعر قبل الضريبة: ${formatOnehomeNum(plan.before)} جنيه (${formatOnehomeNum(plan.internet)} جنيه إنترنت + 40 جنيه صوت).`,
-      `• السعر شامل الضريبة: ${formatOnehomeNum(plan.after)} جنيه.`
+  function onehomeCap(plan){
+    return typeof plan.gb==='number'?`${formatOnehomeNum(plan.gb)} جيجابايت`:plan.gb.replace('TB',' تيرابايت');
+  }
+  function onehomeCapLabel(plan){
+    return typeof plan.gb==='number'?`${formatOnehomeNum(plan.gb)} GB`:plan.gb;
+  }
+  function onehomeVoiceText(plan){
+    if(plan.minutes===3750) return '3,750 دقيقة (2,500 دقيقة محلي ومحافظات + 1,250 دقيقة لموبايل WE)';
+    if(plan.minutes===45000) return '45,000 دقيقة (30,000 دقيقة محلي ومحافظات + 15,000 دقيقة لموبايل WE)';
+    return `${formatOnehomeNum(plan.minutes)} دقيقة محلي ومحافظات`;
+  }
+  function onehomeBreakdownText(plan){
+    return `${formatOnehomeNum(plan.internet)} جنيه إنترنت + ${formatOnehomeNum(plan.sound)} جنيه صوت`;
+  }
+  function onehomeCannedLines(plan){
+    const period=plan.period==='annual'?'السنوية':'الشهرية';
+    const lines=[
+      `تفاصيل باقة ${plan.name} ${period} كالتالي:`,
+      `• سعة الإنترنت: ${onehomeCap(plan)}${plan.baseGB?' (إجمالي السعة الموضح بالجدول)':''}.`,
+      `• السرعة: تصل إلى ${formatOnehomeNum(plan.speed)} ميجابت/ثانية.`,
+      `• المكالمات: ${onehomeVoiceText(plan)}.`,
     ];
+    if(plan.baseGB){
+      lines.push(`• توزيع السعة: ${formatOnehomeNum(plan.baseGB)} جيجابايت أساسية + ${formatOnehomeNum(plan.bonusGB)} جيجابايت ${plan.bonusType} تصل إلى ${formatOnehomeNum(plan.bonusMaxGB)} جيجابايت.`);
+    }
+    lines.push(`• سعر الباقة ${plan.period==='annual'?'السنوي ':''}قبل الضريبة: ${formatOnehomeNum(plan.before)} جنيه (${onehomeBreakdownText(plan)}).`);
+    lines.push(`• سعر الباقة ${plan.period==='annual'?'السنوي ':''}شامل الضريبة: ${formatOnehomeNum(plan.after)} جنيه.`);
+    if(plan.discount!==null && plan.discount!==undefined){
+      lines.push(`• قيمة التخفيض الموضحة في الجدول: ${formatOnehomeNum(plan.discount)} جنيه.`);
+    }
+    return lines;
   }
-  function onehomeShort(plan){
-    return `حضرتك، باقة ${plan.name} بتوفر لحضرتك ${formatOnehomeNum(plan.gb)} جيجابايت إنترنت بسرعة تصل إلى ${plan.speed} ميجابت/ثانية، بالإضافة إلى 600 دقيقة مكالمات محلي ومحافظات، بسعر ${formatOnehomeNum(plan.before)} جنيه قبل الضريبة، و${formatOnehomeNum(plan.after)} جنيه شامل الضريبة.`;
+  function onehomeShortText(plan){
+    const period=plan.period==='annual'?'السنوية':'الشهرية';
+    let body=`حضرتك، باقة ${plan.name} ${period} بتوفر ${onehomeCap(plan)} إنترنت بسرعة تصل إلى ${formatOnehomeNum(plan.speed)} ميجابت/ثانية، و${onehomeVoiceText(plan)}`;
+    if(plan.baseGB) body+=`، والسعة موزعة إلى ${formatOnehomeNum(plan.baseGB)} جيجابايت أساسية + سعة ${plan.bonusType} ${formatOnehomeNum(plan.bonusGB)} جيجابايت تصل إلى ${formatOnehomeNum(plan.bonusMaxGB)} جيجابايت`;
+    body+=`، بسعر ${formatOnehomeNum(plan.before)} جنيه قبل الضريبة، و${formatOnehomeNum(plan.after)} جنيه شامل الضريبة${plan.period==='annual'?' سنويًا':''}.`;
+    return body;
   }
   function onehomeCanned(){
-    const plan = getOnehomePlan();
-    // Literal text for the company's chat editor, NOT HTML rendering.
-    return onehomeFormat === 'detailed' ? onehomeLines(plan).join(onehomeSeparator) : onehomeShort(plan);
+    const plan=onehomeSelectedPlan();
+    return onehomeFormat==='detailed'?onehomeCannedLines(plan).join(onehomeSeparator):onehomeShortText(plan);
   }
-  function onehomeStat(id, value, unit){
-    document.getElementById(id).textContent = `${formatOnehomeNum(value)} ${unit}`;
+  function onehomePlanOptions(){
+    return onehomePlans.filter(p=>p.category===onehomeCategory && p.family===onehomeFamily);
+  }
+  function onehomeNoticeReset(){
+    if(onehomeFeedbackTimer) clearTimeout(onehomeFeedbackTimer);
+    onehomeCopyBtn.textContent='⧉ نسخ الكاند';
+    onehomeCopyFeedback.style.color='';
+    onehomeCopyFeedback.textContent='يُرجى مراجعة الويكي قبل الرد علي العميل';
   }
   function onehomeRefresh(){
-    const plan = getOnehomePlan();
-    onehomeFamilyButtons.forEach(btn => btn.setAttribute('aria-pressed', String(btn.dataset.onehomeFamily === onehomeFamily)));
-    onehomeFormatButtons.forEach(btn => btn.setAttribute('aria-pressed', String(btn.dataset.onehomeFormat === onehomeFormat)));
-    onehomePlanSelect.value = plan.id;
-    onehomeStat('onehomeStatGB', plan.gb, 'GB');
-    onehomeStat('onehomeStatSpeed', plan.speed, 'Mbps');
-    onehomeStat('onehomeStatBefore', plan.before, 'جنيه');
-    onehomeStat('onehomeStatAfter', plan.after, 'جنيه');
-    onehomeSeparatorNote.style.display = onehomeFormat === 'detailed' ? '' : 'none';
+    const plan=onehomeSelectedPlan();
+    if(!plan)return;
+    onehomeCategorySelect.value=onehomeCategory;
+    Array.from(onehomeFamilyWrap.querySelectorAll('[data-onehome-family]')).forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.onehomeFamily===onehomeFamily)));
+    onehomeFormatButtons.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.onehomeFormat===onehomeFormat)));
+    onehomePlanSelect.value=plan.id;
+    document.getElementById('onehomeStatGB').textContent=onehomeCapLabel(plan);
+    document.getElementById('onehomeStatSpeed').textContent=`${plan.speed} Mbps`;
+    document.getElementById('onehomeStatBefore').textContent=`${formatOnehomeNum(plan.before)} جنيه`;
+    document.getElementById('onehomeStatAfter').textContent=`${formatOnehomeNum(plan.after)} جنيه`;
+    document.getElementById('onehomeVoiceDetail').textContent=onehomeVoiceText(plan);
+    document.getElementById('onehomeBreakdown').textContent=onehomeBreakdownText(plan);
+    document.getElementById('onehomeNotesRow').hidden=!plan.notes;
+    document.getElementById('onehomeNotes').textContent=plan.notes||'';
+    document.getElementById('onehomeDiscountRow').hidden=plan.discount==null;
+    document.getElementById('onehomeDiscount').textContent=plan.discount==null?'':`${formatOnehomeNum(plan.discount)} جنيه`;
+    document.getElementById('onehomeSeparatorNote').style.display=onehomeFormat==='detailed'?'':'none';
+    // Category may have annual pricing; label it before presenting the amounts.
+    document.querySelector('#onehomeStatBefore').parentElement.querySelector('.label').textContent=`قبل الضريبة (${onehomeCategories[onehomeCategory].period})`;
+    document.querySelector('#onehomeStatAfter').parentElement.querySelector('.label').textContent=`شامل الضريبة (${onehomeCategories[onehomeCategory].period})`;
     onehomePreview.replaceChildren();
-    const lines = onehomeFormat === 'detailed' ? onehomeLines(plan) : [onehomeShort(plan)];
-    lines.forEach(line => {
-      const p = document.createElement('p');
-      p.textContent = line;
-      onehomePreview.appendChild(p);
-    });
-    if(onehomeFeedbackTimer) clearTimeout(onehomeFeedbackTimer);
-    onehomeCopyBtn.textContent = '⧉ نسخ الكاند';
-    onehomeCopyFeedback.style.color = '';
-    onehomeCopyFeedback.textContent = 'جميع الأسعار بالجنيه المصري حسب الجدول المُرسل';
+    const lines=onehomeFormat==='detailed'?onehomeCannedLines(plan):[onehomeShortText(plan)];
+    for(const line of lines){const elt=document.createElement('p');elt.textContent=line;onehomePreview.appendChild(elt);}
+    onehomeNoticeReset();
   }
-  function onehomePopulate(){
+  function onehomePopulatePlans(){
+    const rows=onehomePlanOptions();
     onehomePlanSelect.replaceChildren();
-    const options = onehomePlans.filter(p => p.family === onehomeFamily);
-    options.forEach(plan => {
-      const option = document.createElement('option');
-      option.value = plan.id;
-      option.textContent = `${plan.name} — ${formatOnehomeNum(plan.gb)} GB — ${formatOnehomeNum(plan.after)} جنيه`;
-      onehomePlanSelect.appendChild(option);
-    });
-    if(!options.some(p=>p.id===onehomeSelected)) onehomeSelected = options[0].id;
+    for(const plan of rows){
+      const opt=document.createElement('option');
+      opt.value=plan.id;
+      opt.textContent=`${plan.name} — ${onehomeCapLabel(plan)} — ${formatOnehomeNum(plan.after)} جنيه`;
+      onehomePlanSelect.appendChild(opt);
+    }
+    if(!rows.some(p=>p.id===onehomeSelected))onehomeSelected=rows[0]?.id;
     onehomeRefresh();
   }
+  function onehomeSetCategory(category){
+    if(!onehomeCategories[category])return;
+    onehomeCategory=category;
+    const rows=onehomePlans.filter(p=>p.category===category);
+    const families=[...new Set(rows.map(p=>p.family))];
+    onehomeFamily=families[0];
+    onehomeFamilyWrap.replaceChildren();
+    onehomeFamilyWrap.style.setProperty('--onehome-family-count',String(families.length));
+    const labels={super:'Super',mega:'Mega',ultra:'Ultra',max:'Max',streaming:'STREAMERZ',gaming:'GAMERZ',mixed:'PLUS',sahel:'SAHEL'};
+    for(const family of families){
+      const b=document.createElement('button');
+      b.type='button';b.className='onehome-family';b.dataset.onehomeFamily=family;
+      b.setAttribute('aria-pressed',String(family===onehomeFamily));b.textContent=labels[family]||family;
+      b.addEventListener('click',()=>{onehomeFamily=family;onehomePopulatePlans();});
+      onehomeFamilyWrap.appendChild(b);
+    }
+    document.getElementById('onehomeCategoryMeta').textContent=`${rows.length} باقة متاحة في هذا التصنيف • أسعار ${onehomeCategories[category].period}ة`;
+    onehomeSelected=null;
+    onehomePopulatePlans();
+  }
   function onehomeOpen(){
-    onehomePreviousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    onehomePreviousFocus=document.activeElement;
+    onehomePreviousOverflow=document.body.style.overflow;
+    document.body.style.overflow='hidden';
     onehomeModal.classList.add('is-open');
     onehomeModal.setAttribute('aria-hidden','false');
     onehomeRefresh();
-    onehomePlanSelect.focus();
+    onehomeCategorySelect.focus();
   }
   function onehomeClose(){
     onehomeModal.classList.remove('is-open');
     onehomeModal.setAttribute('aria-hidden','true');
-    document.body.style.overflow = onehomePreviousOverflow;
-    onehomeOpenBtn.focus();
+    document.body.style.overflow=onehomePreviousOverflow;
+    (onehomePreviousFocus||onehomeOpenBtn).focus();
   }
   async function onehomeCopy(){
-    const canned = onehomeCanned();
-    let didCopy = false;
-    onehomeCopyBtn.disabled = true;
-    try {
-      if(navigator.clipboard?.writeText){
-        try { await navigator.clipboard.writeText(canned); didCopy = true; }
-        catch(err) { console.warn('Primary clipboard unavailable:',err); }
-      }
+    const canned=onehomeCanned();
+    let didCopy=false;
+    onehomeCopyBtn.disabled=true;
+    try{
+      if(navigator.clipboard?.writeText){try{await navigator.clipboard.writeText(canned);didCopy=true;}catch(err){console.warn('Clipboard API blocked',err);}}
       if(!didCopy){
-        const area = document.createElement('textarea');
-        area.value = canned;
-        area.setAttribute('readonly','');
-        area.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
-        document.body.appendChild(area);
-        area.focus(); area.select();
-        try { didCopy = document.execCommand('copy'); }
-        finally { area.remove(); }
+        const area=document.createElement('textarea');area.value=canned;area.readOnly=true;
+        area.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0';
+        document.body.appendChild(area);area.focus();area.select();
+        try{didCopy=document.execCommand('copy');}finally{area.remove();}
       }
-      if(!didCopy) throw new Error('Clipboard copy failed');
-      onehomeCopyBtn.textContent = '✓ تم النسخ';
-      onehomeCopyFeedback.textContent = onehomeFormat === 'detailed' ? 'تم النسخ بالفواصل المطلوبة بين كل سطر ✓' : 'تم نسخ الرد المختصر ✓';
-      onehomeCopyFeedback.style.color = 'var(--success)';
-      try { playClick(); } catch(err) {}
-    } catch(err){
-      console.error('Failed to copy OneHome canned',err);
-      onehomeCopyBtn.textContent = 'حاول النسخ مرة أخرى';
-      onehomeCopyFeedback.textContent = 'تعذّر النسخ تلقائياً. تأكد من سماح المتصفح بالحافظة.';
-      onehomeCopyFeedback.style.color = 'var(--danger)';
-    } finally {
-      onehomeCopyBtn.disabled = false;
-      if(onehomeFeedbackTimer) clearTimeout(onehomeFeedbackTimer);
-      onehomeFeedbackTimer = setTimeout(() => {
-        onehomeCopyBtn.textContent = '⧉ نسخ الكاند';
-        onehomeCopyFeedback.style.color = '';
-        onehomeCopyFeedback.textContent = 'جميع الأسعار بالجنيه المصري حسب الجدول المُرسل';
-      }, 2400);
+      if(!didCopy)throw new Error('Clipboard copy unavailable');
+      onehomeCopyBtn.textContent='✓ تم النسخ';
+      onehomeCopyFeedback.textContent=onehomeFormat==='detailed'?'تم النسخ بفواصل السطور حرفيًا ✓':'تم نسخ الرد المختصر ✓';
+      onehomeCopyFeedback.style.color='var(--success)';
+      try{playClick();}catch(err){}
+    }catch(err){
+      console.error('OneHome copy error',err);
+      onehomeCopyBtn.textContent='حاول النسخ مرة أخرى';
+      onehomeCopyFeedback.textContent='تعذر النسخ؛ تحقق من أذونات الحافظة في المتصفح.';
+      onehomeCopyFeedback.style.color='var(--danger)';
+    }finally{
+      onehomeCopyBtn.disabled=false;
+      if(onehomeFeedbackTimer)clearTimeout(onehomeFeedbackTimer);
+      onehomeFeedbackTimer=setTimeout(onehomeNoticeReset,2500);
     }
   }
-  onehomeFamilyButtons.forEach(button => button.addEventListener('click', () => {
-    onehomeFamily = button.dataset.onehomeFamily;
-    onehomePopulate();
-  }));
-  onehomePlanSelect.addEventListener('change', () => {
-    onehomeSelected = onehomePlanSelect.value;
-    onehomeRefresh();
-  });
-  onehomeFormatButtons.forEach(button => button.addEventListener('click', () => {
-    onehomeFormat = button.dataset.onehomeFormat;
-    onehomeRefresh();
-  }));
+  onehomeCategorySelect.addEventListener('change',()=>onehomeSetCategory(onehomeCategorySelect.value));
+  onehomePlanSelect.addEventListener('change',()=>{onehomeSelected=onehomePlanSelect.value;onehomeRefresh();});
+  onehomeFormatButtons.forEach(b=>b.addEventListener('click',()=>{onehomeFormat=b.dataset.onehomeFormat;onehomeRefresh();}));
   onehomeOpenBtn.addEventListener('click',onehomeOpen);
   onehomeCloseBtn.addEventListener('click',onehomeClose);
-  onehomeModal.addEventListener('click',e=>{if(e.target===onehomeModal) onehomeClose();});
+  onehomeModal.addEventListener('click',e=>{if(e.target===onehomeModal)onehomeClose();});
   document.addEventListener('keydown',e=>{
-    if(!onehomeModal.classList.contains('is-open')) return;
-    if(e.key === 'Escape'){e.preventDefault();onehomeClose();}
-    if(e.key === 'Tab'){
-      const focusables = Array.from(onehomeModal.querySelectorAll('button:not(:disabled),select:not(:disabled)'));
-      const first = focusables[0],last = focusables[focusables.length-1];
-      if(e.shiftKey && document.activeElement===first){e.preventDefault();last.focus();}
-      else if(!e.shiftKey && document.activeElement===last){e.preventDefault();first.focus();}
+    if(!onehomeModal.classList.contains('is-open'))return;
+    if(e.key==='Escape'){e.preventDefault();onehomeClose();}
+    if(e.key==='Tab'){
+      const items=Array.from(onehomeModal.querySelectorAll('button:not(:disabled),select:not(:disabled)'));
+      const first=items[0],last=items[items.length-1];
+      if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+      else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
     }
   });
   onehomeCopyBtn.addEventListener('click',onehomeCopy);
-  onehomePopulate();
+  onehomeSetCategory('m600');
 
   const savedTheme = localStorage.getItem('candat_theme') || 'dark';
   document.body.setAttribute('data-theme', savedTheme);
