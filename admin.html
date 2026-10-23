@@ -202,6 +202,10 @@ button{border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:po
         <div class="hint">Upload the 5-column workbook (A: Name, B: Content, C: URL, D: Click Count, E: Skills). Only ALL / GSM accepted. Replaces all canned items atomically; incomplete uploads are rolled back.</div>
         <div class="form-group"><input type="file" id="excelFile" class="form-control" accept=".xlsx, .xls"></div>
         <button type="button" id="uploadExcelBtn" class="primary-btn">Read & Upload Excel Sheet</button>
+        <div style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px">
+          <button type="button" id="verifyCannedBtn" style="width:100%;background:#17323b;color:#6fe3d9;border-color:#2c5d64">🔍 Check Published Canned (Read-only)</button>
+          <div id="cannedVerifyResult" aria-live="polite" style="margin-top:10px;padding:10px;border-radius:8px;background:#0c1120;color:#8a8fac;font-size:12px;line-height:1.8;white-space:pre-wrap">Click Check Published Canned to inspect database totals and access without changing data.</div>
+        </div>
       </div>
 
       <div class="card">
@@ -753,6 +757,51 @@ activityFilter.addEventListener('change', renderUsers);
 nameFilter.addEventListener('change', renderUsers);
 skillFilter.addEventListener('change', renderUsers);
 
+// Server-side audit: real DB totals bypass row filtering only for an admin.
+// The separate visible count uses the same RLS permissions as normal clients.
+async function verifyPublishedCanned(expectedCount = null){
+  const out = document.getElementById('cannedVerifyResult');
+  out.textContent = 'Checking live data and database access...';
+  const { data: stats, error: statsError } = await sb.rpc('canned_admin_stats_v3');
+  if(statsError){
+    out.style.color = '#ffb454';
+    out.textContent = 'Diagnostic function unavailable: ' + statsError.message +
+      '\nRun Canned_Skills_v3_RLS_Fix.sql in Supabase SQL Editor first.';
+    return null;
+  }
+  const total = Number(stats?.total ?? 0);
+  const totalAll = Number(stats?.all ?? 0);
+  const totalGsm = Number(stats?.gsm ?? 0);
+  const sheets = Number(stats?.sheets ?? 0);
+  const { count, error: visibleError } = await sb.from('canned_items')
+    .select('id', { head: true, count: 'exact' });
+  const visible = visibleError ? null : Number(count ?? 0);
+  let status = '';
+  if(total === 0) status = '⚠️ Database has ZERO canned rows. Restore by uploading the classified workbook after confirming the right project.';
+  else if(totalAll === 0) status = '⚠️ No ALL rows. Fixed users will see NO canned items. Check that the 5-column Excel was uploaded using the NEW admin.';
+  else if(visibleError || visible !== total) status = '⚠️ Admin can see fewer rows than exist: likely RLS / permissions issue. Check SQL policies.';
+  else status = '✅ Rows exist and are visible to the administrator.';
+  if(expectedCount !== null && total !== expectedCount){
+    status += '\n⚠️ Expected ' + expectedCount + ' but the database contains ' + total + '.';
+  }
+  out.style.color = total > 0 && totalAll > 0 && visible === total ? '#8fdc9a' : '#ffb454';
+  out.textContent = [
+    'Database rows: ' + total,
+    'ALL: ' + totalAll + ' | GSM: ' + totalGsm + ' | Other: ' + Number(stats?.other ?? 0),
+    'Sheets: ' + sheets,
+    'Visible to admin via site: ' + (visibleError ? ('ERROR: ' + visibleError.message) : visible),
+    status
+  ].join('\n');
+  return { total, all:totalAll, gsm:totalGsm, visible };
+}
+document.getElementById('verifyCannedBtn').addEventListener('click', () => {
+  verifyPublishedCanned().catch(err => {
+    const out = document.getElementById('cannedVerifyResult');
+    out.style.color = '#ff8095';
+    out.textContent = 'Audit error: ' + err.message;
+  });
+});
+
 // Skills v2: strict validation and a single server-side transaction.
 function parseCannedWorkbook(workbook){
   const allItems = [];
@@ -821,8 +870,13 @@ uploadExcelBtn.addEventListener('click', async () => {
     const { data, error } = await sb.rpc('replace_canned_items_v2', { p_rows: allItems });
     if(error) throw error;
     msg.style.color = '#7ee2a8';
-    msg.textContent = `✅ Upload completed! ${data ?? allItems.length} items | ALL: ${all} | GSM: ${gsm} | skipped: ${skippedRows.length}.`;
+    msg.textContent = `✅ Upload request succeeded! ${data ?? allItems.length} rows submitted | ALL: ${all} | GSM: ${gsm} | skipped: ${skippedRows.length}. Checking published rows below...`;
     fileInput.value = '';
+    const verified = await verifyPublishedCanned(allItems.length);
+    if(!verified || verified.total !== allItems.length || verified.visible !== allItems.length){
+      msg.style.color = '#ffb454';
+      msg.textContent = '⚠️ Upload returned success, but published rows could not be fully verified. See the Database Check section below.';
+    }
   }catch(err){
     console.error(err);
     msg.style.color = '#ff9b9b';
