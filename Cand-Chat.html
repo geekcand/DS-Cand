@@ -717,7 +717,6 @@ button{font-family:inherit;}
       </div>
     </div>
     <div class="sheet-list" id="sheetList"></div>
-    <div id="skillAccessHint" style="font-size:10px;padding:8px 12px;border-top:1px solid var(--line);color:var(--ink-dim)">جارٍ تحديد صلاحيات العرض...</div>
   </aside>
 
   <main class="main">
@@ -1329,7 +1328,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function getProfile(userId){
-    const { data, error } = await supabaseClient.from('profiles').select('id,name,email,status,role,skill_access,last_seen').eq('id', userId).single();
+    const { data, error } = await supabaseClient.from('profiles').select('id,name,email,status,role,last_seen').eq('id', userId).single();
     if(error) throw error;
     return data;
   }
@@ -1760,40 +1759,21 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem('candat_theme', next);
   });
 
-  // Database RLS is authoritative; client-side filtering also prevents stale/misconfigured UI.
-  let lastSkillAccess = null;
-  let skillReloadInProgress = false;
   async function loadCannedData() {
-    if(skillReloadInProgress) return;
-    skillReloadInProgress = true;
     try {
-      const { data: authData, error: authError } = await supabaseClient.auth.getUser();
-      if(authError || !authData?.user?.id) throw new Error('No authenticated user');
-      const profile = await getProfile(authData.user.id);
-      if(profile.role !== 'admin' && profile.status !== 'approved'){
-        workbookData = {};
-        sheetList.innerHTML = '';
-        cardsGrid.innerHTML = '<div class="empty">الحساب غير مفعل. سجل الدخول من جديد.</div>';
-        await supabaseClient.auth.signOut();
-        return;
-      }
-      const canSeeGsm = profile.role === 'admin' || profile.skill_access === 'universal';
-      lastSkillAccess = canSeeGsm ? 'universal' : 'fixed';
-      const hint = document.getElementById('skillAccessHint');
-      if(hint) hint.textContent = canSeeGsm ? 'Skill Access: Universal · ALL + GSM' : 'Skill Access: Fixed · ALL فقط';
       const { data, error } = await supabaseClient
         .from('canned_items')
-        .select('sheet_name, title, content, reference_url, click_count, row_order, skills')
+        .select('sheet_name, title, content, reference_url, click_count, row_order')
         .order('row_order', { ascending: true });
-      if(error) throw error;
-      const permitted = (data || []).filter(item =>
-        canSeeGsm ? (item.skills === 'ALL' || item.skills === 'GSM') : item.skills === 'ALL'
-      );
+
+      if (error) throw error;
+
       workbookData = {};
       const sheetNamesSet = [];
-      permitted.forEach(item => {
+
+      (data || []).forEach(item => {
         const sName = item.sheet_name;
-        if(!workbookData[sName]){
+        if (!workbookData[sName]) {
           workbookData[sName] = [];
           sheetNamesSet.push(sName);
         }
@@ -1802,60 +1782,19 @@ document.addEventListener("DOMContentLoaded", () => {
           content: item.content,
           sheet: sName,
           reference_url: item.reference_url,
-          click_count: item.click_count,
-          skills: item.skills
+          click_count: item.click_count
         });
       });
+
       toolCount.textContent = sheetNamesSet.length;
       renderSheetList(sheetNamesSet);
-      if(sheetNamesSet.length) showSheet(sheetNamesSet.includes(currentSheet) ? currentSheet : sheetNamesSet[0]);
-      else {
-        currentSheet = null;
-        sectionTitle.textContent = 'لا توجد كاندات متاحة';
-        cardsGrid.innerHTML = '<div class="empty">لا توجد كاندات ظاهرة لحسابك حاليًا. ربما لم تُرفع كندات ALL، أو توجد مشكلة في سياسة القراءة بقاعدة البيانات. اطلب من الأدمن استخدام Check Published Canned.</div>';
-        resultCount.textContent = '0 نتيجة';
-      }
-    }catch(err){
+      if (sheetNamesSet.length) showSheet(sheetNamesSet[0]);
+      else cardsGrid.innerHTML = '<div class="empty">قاعدة البيانات فارغة أو لا توجد شيتات.</div>';
+    } catch (err) {
       console.error(err);
-      // Fail closed: do not leave previously loaded, now-restricted canned text visible.
-      lastSkillAccess = null;
-      workbookData = {};
-      sheetList.innerHTML = '';
-      toolCount.textContent = '0';
-      cardsGrid.innerHTML = '<div class="empty">⚠️ تعذر التحقق من الصلاحيات أو تحميل البيانات. اطلب من الأدمن مراجعة الحالة.</div>';
-      const errorDetail = document.createElement('div');
-      errorDetail.style.cssText = 'font-size:11px;color:var(--ink-dim);margin-top:8px;direction:ltr;text-align:left;overflow-wrap:anywhere;';
-      errorDetail.textContent = 'Diagnostic: ' + (err?.message || String(err));
-      cardsGrid.firstElementChild?.appendChild(errorDetail);
-      sectionTitle.textContent = 'خطأ في تحميل الكاندات';
-      resultCount.textContent = '0 نتيجة';
-    }finally{
-      skillReloadInProgress = false;
+      cardsGrid.innerHTML = '<div class="empty">⚠️ تعذر تحميل البيانات من قاعدة البيانات.</div>';
     }
   }
-
-  // Apply administrator changes without relying on the user to manually refresh.
-  async function recheckSkillAccess(){
-    if(skillReloadInProgress || document.getElementById('protectedApp').style.display === 'none') return;
-    try{
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      if(!session?.user?.id) return;
-      const profile = await getProfile(session.user.id);
-      const nextAccess = profile.role === 'admin' || profile.skill_access === 'universal' ? 'universal' : 'fixed';
-      if(nextAccess !== lastSkillAccess || (profile.role !== 'admin' && profile.status !== 'approved')){
-        await loadCannedData();
-      }
-    }catch(err){
-      console.warn('Access recheck failed', err);
-      // On errors, don't retain unrestricted content in the current DOM.
-      lastSkillAccess = null;
-      workbookData = {};
-      sheetList.innerHTML = '';
-      cardsGrid.innerHTML = '<div class="empty">⚠️ تعذر تأكيد الصلاحيات. حاول تحديث الصفحة.</div>';
-    }
-  }
-  setInterval(recheckSkillAccess, 30000);
-  document.addEventListener('visibilitychange', () => { if(!document.hidden) recheckSkillAccess(); });
 
   function renderSheetList(names) {
     sheetList.innerHTML = '';
