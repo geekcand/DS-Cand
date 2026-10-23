@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Canned Tool</title>
+<title>Canned Tool — Clean Start</title>
 <link rel="icon" type="image/png" href="./logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -1759,23 +1759,25 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem('candat_theme', next);
   });
 
+  // CLEAN START: isolated library, server-filtered by auth.uid() (NOT legacy canned_items).
+  // No client-side GSM filter is used: unauthorized GSM text is never sent by the server.
   async function loadCannedData() {
+    cardsGrid.innerHTML = '<div class="empty">جارٍ تحميل الكاندات المسموح بها...</div>';
+    sheetList.innerHTML = '';
+    toolCount.textContent = '…';
     try {
-      const { data, error } = await supabaseClient
-        .from('canned_items')
-        .select('sheet_name, title, content, reference_url, click_count, row_order')
-        .order('row_order', { ascending: true });
-
+      const { data, error } = await supabaseClient.rpc('cand_fresh_read');
       if (error) throw error;
+      if (!data || !Array.isArray(data.items)) throw new Error('INVALID_CATALOG_RESPONSE');
 
       workbookData = {};
-      const sheetNamesSet = [];
-
-      (data || []).forEach(item => {
-        const sName = item.sheet_name;
-        if (!workbookData[sName]) {
+      const sheetNames = [];
+      data.items.forEach(item => {
+        const sName = String(item.sheet_name || '').trim();
+        if (!sName) return;
+        if (!Object.prototype.hasOwnProperty.call(workbookData, sName)) {
           workbookData[sName] = [];
-          sheetNamesSet.push(sName);
+          sheetNames.push(sName);
         }
         workbookData[sName].push({
           name: item.title,
@@ -1786,13 +1788,35 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       });
 
-      toolCount.textContent = sheetNamesSet.length;
-      renderSheetList(sheetNamesSet);
-      if (sheetNamesSet.length) showSheet(sheetNamesSet[0]);
-      else cardsGrid.innerHTML = '<div class="empty">قاعدة البيانات فارغة أو لا توجد شيتات.</div>';
+      toolCount.textContent = String(sheetNames.length);
+      renderSheetList(sheetNames);
+      if (sheetNames.length) {
+        showSheet(sheetNames[0]);
+      } else {
+        sectionTitle.textContent = 'لا توجد كاندات متاحة';
+        resultCount.textContent = '0 نتيجة';
+        cardsGrid.innerHTML = '<div class="empty">تم التحميل لكن لا توجد كاندات مسموحة لحسابك. تواصل مع الأدمن لمراجعة التصنيف.</div>';
+      }
+      console.info('Fresh canned library ready:', {
+        access: data.skill_access, visible: data.visible_count,
+        catalog: data.total_catalog, sheets: sheetNames.length
+      });
     } catch (err) {
-      console.error(err);
-      cardsGrid.innerHTML = '<div class="empty">⚠️ تعذر تحميل البيانات من قاعدة البيانات.</div>';
+      console.error('Fresh canned catalog load failed:', err);
+      const reason = String(err?.message || err || 'Unknown error');
+      let label = 'حدث خطأ أثناء تحميل الكاندات. أرسل تفاصيل الخطأ للأدمن.';
+      if (reason.includes('CATALOG_NOT_PUBLISHED'))
+        label = 'مكتبة الكاندات الجديدة لسه ما اترفعتش. الأدمن محتاج يعمل Publish للإكسيل.';
+      else if (reason.includes('ACCOUNT_NOT_APPROVED') || reason.includes('AUTH_REQUIRED'))
+        label = 'حسابك غير معتمد أو انتهت جلسة الدخول. سجّل دخول من جديد.';
+      else if (reason.includes('NO_ALL_ITEMS_FOR_FIXED'))
+        label = 'خطأ في تصنيف الشيت: مفيش كاندات ALL متاحة للـ Fixed. راجع ملف الإكسيل.';
+      else if (reason.includes('Could not find the function') || reason.includes('does not exist'))
+        label = 'إعداد قاعدة البيانات الجديدة غير مكتمل. الأدمن محتاج يشغّل SQL الجديد.';
+      toolCount.textContent = '!';
+      sectionTitle.textContent = 'تعذر تحميل الكاندات';
+      resultCount.textContent = 'خطأ';
+      cardsGrid.innerHTML = '<div class="empty">⚠️ ' + escapeHtml(label) + '<div style="margin-top:12px;font-size:11px;direction:ltr;overflow-wrap:anywhere">' + escapeHtml(reason) + '</div></div>';
     }
   }
 
