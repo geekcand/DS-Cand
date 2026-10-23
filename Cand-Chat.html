@@ -1812,7 +1812,7 @@ document.addEventListener("DOMContentLoaded", () => {
       else {
         currentSheet = null;
         sectionTitle.textContent = 'لا توجد كاندات متاحة';
-        cardsGrid.innerHTML = '<div class="empty">لا توجد كاندات متاحة لهذا الحساب حاليًا.</div>';
+        cardsGrid.innerHTML = '<div class="empty">لا توجد كاندات ظاهرة لحسابك حاليًا. ربما لم تُرفع كندات ALL، أو توجد مشكلة في سياسة القراءة بقاعدة البيانات. اطلب من الأدمن استخدام Check Published Canned.</div>';
         resultCount.textContent = '0 نتيجة';
       }
     }catch(err){
@@ -1822,7 +1822,13 @@ document.addEventListener("DOMContentLoaded", () => {
       workbookData = {};
       sheetList.innerHTML = '';
       toolCount.textContent = '0';
-      cardsGrid.innerHTML = '<div class="empty">⚠️ تعذر التحقق من الصلاحيات أو تحميل البيانات.</div>';
+      cardsGrid.innerHTML = '<div class="empty">⚠️ تعذر التحقق من الصلاحيات أو تحميل البيانات. اطلب من الأدمن مراجعة الحالة.</div>';
+      const errorDetail = document.createElement('div');
+      errorDetail.style.cssText = 'font-size:11px;color:var(--ink-dim);margin-top:8px;direction:ltr;text-align:left;overflow-wrap:anywhere;';
+      errorDetail.textContent = 'Diagnostic: ' + (err?.message || String(err));
+      cardsGrid.firstElementChild?.appendChild(errorDetail);
+      sectionTitle.textContent = 'خطأ في تحميل الكاندات';
+      resultCount.textContent = '0 نتيجة';
     }finally{
       skillReloadInProgress = false;
     }
