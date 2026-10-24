@@ -420,6 +420,17 @@ button{font-family:inherit;}
   content:''; position:absolute; top:0; left:0; right:0; height:3px;
   background:linear-gradient(90deg,var(--acc-cyan),var(--acc-violet));
 }
+.info-view-close{
+  position:absolute;top:12px;left:12px;z-index:2;
+  width:35px;height:35px;display:grid;place-items:center;
+  border:1px solid var(--line);border-radius:9px;
+  background:var(--panel-2);color:var(--ink);
+  font-size:23px;line-height:1;cursor:pointer;
+  transition:background .18s,border-color .18s,color .18s,transform .18s;
+}
+.info-view-close:hover{border-color:var(--acc-rose);color:var(--acc-rose);transform:scale(1.05);}
+.info-view-close:focus-visible{outline:2px solid var(--acc-cyan);outline-offset:2px;}
+
 .about-box-card h2, .feedback-box-card h2{font-size:21px; font-weight:800; color:var(--ink); margin-bottom:6px;}
 .about-box-card p, .feedback-box-card p{font-size:13px; color:var(--ink-dim); margin-bottom:20px;}
 
@@ -801,6 +812,7 @@ button{font-family:inherit;}
 <div class="app" id="aboutViewContainer" style="display:none;">
   <div class="about-view show" style="grid-column: 1 / -1;">
     <div class="about-box-card">
+      <button type="button" id="aboutCloseBtn" class="info-view-close" aria-label="Close About and return to Canned Tool" title="العودة إلى التول">×</button>
       <h2>About Canned Tool</h2>
       <p>نظام ذكي متكامل لمساعدة وكلاء الدعم الفني في الوصول للردود الجاهزة وإدارتها بدقة تامة.</p>
       <div class="contact-footer-box">
@@ -815,6 +827,7 @@ button{font-family:inherit;}
 <div class="app" id="feedbackViewContainer" style="display:none;">
   <div class="feedback-view show" style="grid-column: 1 / -1;">
     <div class="feedback-box-card">
+      <button type="button" id="feedbackCloseBtn" class="info-view-close" aria-label="Close Feedback and return to Canned Tool" title="العودة إلى التول">×</button>
       <h2>Suggestions & Feedback</h2>
       <p>شاركنا باقتراحاتك لتطوير الأداة.</p>
       <form class="feedback-form" id="feedbackForm">
@@ -1527,6 +1540,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   aboutBtn.addEventListener("click", () => switchTab('about'));
   feedBtn.addEventListener("click", () => switchTab('feedback'));
+  document.getElementById("aboutCloseBtn").addEventListener("click", () => {
+    switchTab('main');
+    aboutBtn.focus();
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  });
+  document.getElementById("feedbackCloseBtn").addEventListener("click", () => {
+    switchTab('main');
+    feedBtn.focus();
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  });
 
   document.getElementById("feedbackForm").addEventListener("submit", (e) => {
     e.preventDefault();
