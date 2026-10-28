@@ -1,2239 +1,250 @@
-<!doctype html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Canned Tool</title>
-<link rel="icon" type="image/png" href="./logo.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-<!-- Google tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-HSD4C2YLLV"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-HSD4C2YLLV');
-</script>
-
-<style>
-*{box-sizing:border-box;}
-
-:root{
-  --font-arabic:'IBM Plex Sans Arabic', sans-serif;
-  --font-mono:'IBM Plex Mono', monospace;
-
-  --acc-violet:#b18cff;
-  --acc-cyan:#6fe3d9;
-  --acc-amber:#ffb454;
-  --acc-rose:#ff8fab;
-  --acc-blue:#7aa2f7;
-
-  --header-h:46px;
-  --footer-h:32px;
-  --sidebar-w:272px;
-  --radius:10px;
-}
-
-[data-theme="dark"]{
-  --bg:#0d0e17;
-  --bg-grid:rgba(177,140,255,.05);
-  --panel:#12141f;
-  --panel-2:#171a29;
-  --inset:#0a0b12;
-  --line:#262a3d;
-  --line-soft:rgba(255,255,255,.06);
-  --ink:#e9eaf7;
-  --ink-dim:#8a8fac;
-  --ink-faint:#585d78;
-  --success:#8fdc9a;
-  --danger:#ff8095;
-  --shadow:0 18px 40px -18px rgba(0,0,0,.65);
-  --glow:0 0 0 1px rgba(177,140,255,.16), 0 14px 34px -14px rgba(177,140,255,.22);
-}
-[data-theme="light"]{
-  --bg:#eef0f8;
-  --bg-grid:rgba(109,63,214,.05);
-  --panel:#ffffff;
-  --panel-2:#f7f8fd;
-  --inset:#eef0f8;
-  --line:#dbdfef;
-  --line-soft:rgba(20,20,50,.06);
-  --ink:#171a2b;
-  --ink-dim:#5b6082;
-  --ink-faint:#9296b3;
-  --success:#1f8f4c;
-  --danger:#c22c46;
-  --shadow:0 18px 40px -20px rgba(30,30,70,.25);
-  --glow:0 0 0 1px rgba(109,63,214,.14), 0 14px 30px -16px rgba(109,63,214,.20);
-}
-
-html,body{height:100%;margin:0;}
-body{
-  font-family:var(--font-arabic);
-  background:var(--bg);
-  color:var(--ink-dim);
-  -webkit-font-smoothing:antialiased;
-  transition:background .25s ease,color .25s ease;
-  background-image:
-    linear-gradient(var(--bg-grid) 1px,transparent 1px),
-    linear-gradient(90deg,var(--bg-grid) 1px,transparent 1px);
-  background-size:34px 34px;
-  background-position:-1px -1px;
-}
-[data-theme="dark"] body::before{
-  content:"";
-  position:fixed;inset:0;pointer-events:none;z-index:0;
-  background-image:radial-gradient(circle at 82% 6%,rgba(177,140,255,.09),transparent 40%),
-                    radial-gradient(circle at 4% 96%,rgba(111,227,217,.07),transparent 38%);
-}
-::selection{background:var(--acc-violet);color:#100c1c;}
-
-*{scrollbar-width:thin;scrollbar-color:var(--line) transparent;}
-*::-webkit-scrollbar{width:8px;height:8px;}
-*::-webkit-scrollbar-track{background:transparent;}
-*::-webkit-scrollbar-thumb{background:var(--line);border-radius:20px;}
-*::-webkit-scrollbar-thumb:hover{background:var(--ink-faint);}
-
-button{font-family:inherit;}
-
-#loginOverlay{
-  position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:#0d0e17;
-  padding:20px;
-  animation:fadeIn .35s ease both;
-}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-
-.login-card{
-  position:relative;
-  width:min(92vw,400px);
-  background:#12141f;
-  border:1px solid #262a3d;
-  border-radius:24px;
-  padding:32px 24px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
-  box-shadow:0 20px 50px rgba(0,0,0,0.7);
-  animation:riseIn .5s cubic-bezier(.19,1,.22,1) both;
-}
-@keyframes riseIn{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
-
-.login-inner{
-  width:100%;display:flex;flex-direction:column;align-items:center;gap:12px;
-  transition:opacity .25s ease, transform .25s ease;
-}
-.login-inner.hide{opacity:0;transform:scale(.96);pointer-events:none;}
-
-.login-mark{
-  width:48px;height:48px;border-radius:14px;display:grid;place-items:center;margin-bottom:2px;
-  font-family:var(--font-mono);font-weight:700;font-size:20px;color:#0c0d16;
-  background:linear-gradient(135deg,#6fe3d9,#b18cff);
-  box-shadow:0 8px 20px rgba(111,227,217,.2);
-}
-.login-card h3{margin:0;font-size:18px;font-weight:700;color:#e9eaf7;font-family:var(--font-arabic);}
-.login-sub{margin:0;font-size:12px;color:#8a8fac;font-family:var(--font-arabic);margin-bottom:6px;}
-
-.auth-tabs{display:flex;gap:6px;width:100%;background:#171a29;padding:4px;border-radius:12px;margin-bottom:6px;border:1px solid #262a3d;}
-.auth-tab{flex:1;border:0;background:transparent;color:#8a8fac;border-radius:9px;padding:8px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;transition:all .2s ease;}
-.auth-tab.active{background:rgba(111,227,217,.15);color:#6fe3d9;}
-
-.neu-input{
-  width:100%;border:1px solid #262a3d;outline:none;border-radius:12px;
-  padding:12px 16px;background:#171a29;color:#e9eaf7;
-  font-family:var(--font-arabic);font-size:13px;font-weight:600;
-  direction:ltr !important;text-align:left !important;unicode-bidi:normal !important;
-  transition:border-color .2s ease, box-shadow .2s ease;
-  margin-bottom:10px;
-}
-.neu-input:focus{border-color:#6fe3d9;box-shadow:0 0 0 3px rgba(111,227,217,.12);}
-.neu-input::placeholder{color:#585d78;font-weight:500;}
-
-.neu-btn{
-  width:100%;border:none;border-radius:12px;padding:13px;cursor:pointer;margin-top:4px;
-  font-family:var(--font-arabic);font-weight:800;font-size:14px;color:#0c0d16;
-  background:linear-gradient(135deg,#6fe3d9,#b18cff);
-  box-shadow:0 8px 20px rgba(111,227,217,.25);
-  transition:filter .15s ease, transform .1s ease;
-}
-.neu-btn:hover{filter:brightness(1.06);}
-.neu-btn:active{transform:translateY(1px);}
-
-.auth-link{display:block;width:100%;margin-top:6px;border:0;background:transparent;color:#b18cff;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;}
-.auth-link:hover{text-decoration:underline;}
-
-.auth-note{font-size:11.5px;line-height:1.5;color:#8a8fac;margin-top:8px;text-align:center;}
-.auth-note b{color:#6fe3d9;}
-
-#loginMsg{min-height:16px;font-size:12px;color:var(--danger);font-family:var(--font-arabic);font-weight:600;margin-top:4px;}
-
-.login-success{
-  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
-  opacity:0;transform:scale(.95);pointer-events:none;
-  transition:opacity .3s ease, transform .3s ease;
-  background:#12141f;border-radius:24px;
-}
-.login-success.show{opacity:1;transform:scale(1);pointer-events:auto;}
-.success-check{
-  width:54px;height:54px;border-radius:50%;display:grid;place-items:center;margin-bottom:2px;
-  background:linear-gradient(135deg,#8fdc9a,#1f8f4c);color:#0c1f12;font-size:24px;font-weight:900;
-  box-shadow:0 8px 20px rgba(143,220,154,.25);
-}
-.login-footnote{font-size:11px;color:#585d78;font-family:var(--font-arabic);margin-top:16px;}
-
-#profileNameOverlay{
-  position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;
-  padding:20px;background:rgba(7,8,15,.82);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
-}
-#profileNameOverlay.show{display:flex;}
-.profile-name-card{
-  width:min(92vw,420px);background:#12141f;border:1px solid #2b3047;border-radius:20px;
-  padding:26px 24px;box-shadow:0 24px 60px rgba(0,0,0,.55);text-align:center;direction:rtl;
-}
-.profile-name-icon{
-  width:50px;height:50px;margin:0 auto 12px;border-radius:14px;display:grid;place-items:center;
-  background:linear-gradient(135deg,#6fe3d9,#b18cff);color:#0c0d16;font-size:22px;font-weight:900;
-}
-.profile-name-card h3{margin:0 0 8px;color:#e9eaf7;font-size:18px;font-weight:800;}
-.profile-name-card p{margin:0 0 18px;color:#9aa0bc;font-size:12.5px;line-height:1.8;}
-.profile-name-input{
-  width:100%;border:1px solid #2b3047;outline:none;border-radius:11px;padding:12px 14px;
-  background:#171a29;color:#e9eaf7;font-family:var(--font-arabic);font-size:14px;font-weight:600;
-  text-align:right;direction:rtl;transition:border-color .2s ease,box-shadow .2s ease;
-}
-.profile-name-input:focus{border-color:#6fe3d9;box-shadow:0 0 0 3px rgba(111,227,217,.12);}
-.profile-name-msg{min-height:18px;margin:8px 0 2px;font-size:12px;font-weight:600;color:#ff8095;}
-.profile-name-btn{
-  width:100%;border:0;border-radius:11px;padding:12px 14px;cursor:pointer;margin-top:4px;
-  font-family:var(--font-arabic);font-size:14px;font-weight:800;color:#0c0d16;
-  background:linear-gradient(135deg,#6fe3d9,#b18cff);transition:filter .15s ease,transform .1s ease;
-}
-.profile-name-btn:hover{filter:brightness(1.06);}
-.profile-name-btn:active{transform:translateY(1px);}
-.profile-name-btn:disabled{opacity:.65;cursor:not-allowed;}
-
-#protectedApp{display:none;opacity:0;transition:opacity .5s ease;}
-
-.splash{
-  position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;
-  background:var(--bg);transition:opacity .4s ease;
-}
-.splash-box{
-  font-family:var(--font-arabic);font-weight:600;color:var(--ink-dim);font-size:14px;
-  display:flex;flex-direction:column;gap:7px;direction:rtl;text-align:right;min-width:230px;
-}
-.splash-box .ok{color:var(--acc-cyan);}
-
-.header-wrap{
-  position:fixed;top:0;left:0;right:0;height:var(--header-h);z-index:200;
-  display:flex;align-items:center;justify-content:space-between;gap:16px;
-  padding:0 18px;
-  background:var(--panel);border-bottom:1px solid var(--line);
-}
-.brand{display:flex;align-items:center;gap:10px;}
-.brand .mark{
-  width:28px;height:28px;border-radius:7px;display:grid;place-items:center;
-  font-family:var(--font-mono);font-weight:700;font-size:13px;color:#0c0d16;
-  background:linear-gradient(135deg,var(--acc-cyan),var(--acc-violet));
-}
-.brand .name{font-family:var(--font-mono);font-size:14px;font-weight:600;color:var(--ink);letter-spacing:-.01em;}
-.brand .name em{font-style:normal;color:var(--acc-violet);}
-
-.ticker{flex:1;min-width:0;overflow:hidden;position:relative;height:var(--header-h);display:flex;align-items:center;}
-.ticker-track{
-  display:inline-block;white-space:nowrap;width:max-content;
-  font-family:var(--font-arabic);font-weight:600;font-size:12px;color:var(--acc-amber);
-  animation:tickerOnce 15s linear 1 forwards;
-}
-@keyframes tickerOnce{from{transform:translateX(100%)}to{transform:translateX(-100%)}}
-
-.header-actions { display: flex; align-items: center; gap: 8px; }
-
-.link-btn, .about-btn, .feed-btn{
-  background:var(--panel-2); border:1px solid var(--line); color:var(--ink);
-  font-family:var(--font-arabic); font-size:12px; font-weight:600; padding:5px 12px;
-  border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:6px;
-  text-decoration:none; transition:border-color .2s ease, transform .2s ease;
-}
-.agent-icon{
-  width:14px;
-  height:14px;
-  object-fit:contain;
-  border-radius:3px;
-  flex-shrink:0;
-}
-.link-btn:hover, .about-btn:hover, .feed-btn:hover{border-color:var(--acc-violet); transform:translateY(-1px);}
-
-.theme-toggle{
-  flex:0 0 auto;width:30px;height:30px;border-radius:8px;
-  border:1px solid var(--line);background:var(--panel-2);color:var(--ink);
-  cursor:pointer;font-size:14px;display:grid;place-items:center;
-  transition:background .2s ease, border-color .2s ease, transform .2s ease;
-}
-.theme-toggle:hover{border-color:var(--acc-violet);transform:translateY(-1px);}
-
-.app{
-  display:grid;
-  grid-template-columns:var(--sidebar-w) 1fr;
-  gap:18px;
-  max-width:1560px;margin:0 auto;
-  padding:calc(var(--header-h) + 16px) 20px calc(var(--footer-h) + 20px);
-  position:relative;z-index:1;
-  align-items:start;
-}
-
-.sidebar{
-  position:sticky;top:calc(var(--header-h) + 16px);
-  height:calc(100vh - var(--header-h) - var(--footer-h) - 32px);
-  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
-  display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow);
-}
-.sidebar-top{padding:14px 14px 10px;border-bottom:1px solid var(--line-soft);}
-.sidebar-title{display:flex;align-items:center;justify-content:space-between;}
-.sidebar-title .label{font-family:var(--font-arabic);font-weight:700;font-size:12px;color:var(--ink-dim);}
-.tool-count{
-  font-family:var(--font-mono);font-size:10.5px;color:var(--acc-violet);
-  background:rgba(177,140,255,.12);border:1px solid rgba(177,140,255,.25);
-  padding:2px 8px;border-radius:20px;
-}
-.search-box{
-  margin:12px 12px 4px;display:flex;align-items:center;gap:8px;
-  background:var(--inset);border:1px solid var(--line);border-radius:8px;padding:0 10px;
-  transition:border-color .2s ease, box-shadow .2s ease;
-}
-.search-box:focus-within{border-color:var(--acc-cyan);box-shadow:0 0 0 3px rgba(111,227,217,.12);}
-.search-icon{font-size:14px;color:var(--acc-cyan);opacity:.9;font-family:var(--font-mono);}
-.search-box input{
-  flex:1;border:0;outline:0;background:transparent;color:var(--ink);
-  font-size:13.5px;font-weight:600;padding:11px 2px;font-family:var(--font-arabic);
-}
-.search-box input::placeholder{color:var(--ink-faint);font-weight:500;}
-
-.sheet-list{flex:1;overflow-y:auto;padding:8px 10px 16px;display:flex;flex-direction:column;gap:3px;}
-.sheet-item{
-  --accent:var(--acc-violet);
-  display:flex;align-items:center;gap:9px;
-  padding:9px 10px;border-radius:8px;cursor:pointer;
-  color:var(--ink);font-size:13.5px;font-weight:600;
-  border:1px solid transparent;
-  transition:background .15s ease, border-color .15s ease;
-}
-.sheet-item .chip{
-  width:6px;height:6px;border-radius:50%;flex:0 0 auto;background:var(--accent);
-  box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
-}
-.sheet-item .label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.sheet-item:hover{background:var(--panel-2);}
-.sheet-item.active{
-  background:color-mix(in srgb, var(--accent) 12%, var(--panel));
-  border-color:color-mix(in srgb, var(--accent) 35%, transparent);
-}
-.sheet-item.active .label{color:var(--accent);}
-
-.main{min-width:0;}
-.main-head{
-  display:flex;align-items:center;justify-content:space-between;gap:14px;
-  margin-bottom:16px;padding:0 2px;
-}
-.main-head-copy{display:flex;align-items:baseline;gap:10px;min-width:0;}
-.main-head-copy .hash{font-family:var(--font-mono);color:var(--acc-cyan);font-size:16px;}
-.main-head-copy h1{
-  margin:0;font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.01em;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-}
-.main-badge{
-  flex:0 0 auto;font-family:var(--font-arabic);font-weight:600;font-size:12px;color:var(--ink-dim);
-  border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:7px 11px;
-}
-.main-badge b{color:var(--ink);font-size:13px;}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(248px,1fr));
-  gap:14px;
-}
-
-.card{
-  --accent:var(--acc-violet);
-  background:var(--panel);border:1px solid var(--line);border-radius:11px;
-  display:flex;flex-direction:column;overflow:hidden;cursor:pointer;
-  min-height:206px;
-  opacity:0;transform:translateY(8px);
-  transition:opacity .35s ease, transform .35s ease, border-color .2s ease, box-shadow .2s ease;
-}
-.card.visible{opacity:1;transform:translateY(0);}
-.card:hover{border-color:color-mix(in srgb, var(--accent) 45%, var(--line));box-shadow:var(--glow);}
-
-.card-title{
-  display:flex;align-items:center;gap:8px;
-  padding:11px 13px;border-bottom:1px solid var(--line-soft);
-}
-.card-title .ext{
-  font-family:var(--font-arabic);font-size:10.5px;font-weight:700;
-  color:var(--accent);background:color-mix(in srgb, var(--accent) 14%, transparent);
-  border:1px solid color-mix(in srgb, var(--accent) 30%, transparent);
-  border-radius:5px;padding:2px 6px;flex:0 0 auto;
-}
-.card-title .t{
-  font-weight:700;font-size:14.5px;color:var(--ink);
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;
-}
-
-.card-content{flex:1;display:flex;padding:11px;overflow:hidden;}
-.frame{
-  flex:1;min-width:0;background:var(--inset);border:1px solid var(--line-soft);border-radius:7px;
-  padding:11px 12px;color:var(--ink);font-size:13.5px;line-height:1.9;overflow:hidden;
-  display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;text-overflow:ellipsis;
-}
-
-.card-footer{
-  display:flex;align-items:center;justify-content:space-between;gap:8px;
-  padding:9px 13px;border-top:1px solid var(--line-soft);
-  font-family:var(--font-arabic);font-weight:600;font-size:11.5px;color:var(--ink-faint);
-}
-.card-footer .path{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.card-footer .cmd{color:var(--accent);flex:0 0 auto;}
-.card-footer.copied{
-  background:color-mix(in srgb, var(--success) 14%, transparent);
-  color:var(--success);justify-content:center;font-weight:700;
-}
-.card-footer.copied .cmd{display:none;}
-
-.empty{
-  grid-column:1/-1;text-align:center;padding:54px 24px;
-  background:var(--panel);border:1px dashed var(--line);border-radius:var(--radius);
-  color:var(--ink-dim);font-size:14px;
-}
-.empty b{color:var(--ink);}
-
-.about-view, .feedback-view{
-  display:none; width:100%; animation:fadeIn .25s ease;
-}
-.about-view.show, .feedback-view.show{display:block;}
-
-.about-box-card, .feedback-box-card{
-  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
-  padding:30px; max-width:720px; margin:20px auto; width:100%;
-  box-shadow:var(--shadow); text-align:center; position:relative; overflow:hidden;
-}
-.about-box-card::before, .feedback-box-card::before{
-  content:''; position:absolute; top:0; left:0; right:0; height:3px;
-  background:linear-gradient(90deg,var(--acc-cyan),var(--acc-violet));
-}
-.info-view-close{
-  position:absolute;top:12px;left:12px;z-index:2;
-  width:35px;height:35px;display:grid;place-items:center;
-  border:1px solid var(--line);border-radius:9px;
-  background:var(--panel-2);color:var(--ink);
-  font-size:23px;line-height:1;cursor:pointer;
-  transition:background .18s,border-color .18s,color .18s,transform .18s;
-}
-.info-view-close:hover{border-color:var(--acc-rose);color:var(--acc-rose);transform:scale(1.05);}
-.info-view-close:focus-visible{outline:2px solid var(--acc-cyan);outline-offset:2px;}
-
-.about-box-card h2, .feedback-box-card h2{font-size:21px; font-weight:800; color:var(--ink); margin-bottom:6px;}
-.about-box-card p, .feedback-box-card p{font-size:13px; color:var(--ink-dim); margin-bottom:20px;}
-
-.contact-footer-box{
-  border-top:1px solid var(--line-soft); padding-top:16px; font-size:13px; color:var(--ink-faint);
-  display:flex; flex-direction:column; align-items:center; gap:4px; direction:ltr;
-}
-.contact-footer-box a{
-  color:var(--acc-cyan); text-decoration:none; font-weight:700; font-size:14.5px;
-}
-.contact-footer-box a:hover{text-decoration:underline; color:var(--acc-violet);}
-
-.feedback-form{display:flex; flex-direction:column; gap:14px; text-align:right;}
-.form-group{display:flex; flex-direction:column; gap:6px;}
-.form-group label{font-size:13px; font-weight:700; color:var(--ink);}
-.form-group input, .form-group select, .form-group textarea{
-  background:var(--inset); border:1px solid var(--line); border-radius:8px;
-  padding:11px 14px; color:var(--ink); font-family:var(--font-arabic); font-size:13.5px; outline:none;
-  transition:border-color .2s ease;
-}
-.form-group input:focus, .form-group select:focus, .form-group textarea:focus{
-  border-color:var(--acc-cyan);
-}
-.form-group textarea{resize:vertical; min-height:100px;}
-
-.submit-btn{
-  background:linear-gradient(135deg,var(--acc-cyan),var(--acc-violet));
-  border:none; border-radius:999px; padding:12px; cursor:pointer;
-  font-family:var(--font-arabic); font-weight:700; font-size:14px; color:#0c0d16;
-  transition:filter .15s ease, transform .1s ease; margin-top:6px;
-}
-.submit-btn:hover{filter:brightness(1.08);}
-
-
-/* Admin messages */
-#adminNoticeStack{
-  position:fixed;top:calc(var(--header-h) + 12px);left:18px;right:auto;z-index:420;
-  width:min(440px,calc(100vw - 36px));max-height:calc(100vh - var(--header-h) - var(--footer-h) - 34px);
-  overflow:auto;display:flex;flex-direction:column;gap:10px;pointer-events:none;
-}
-.admin-notice{
-  --notice-accent:var(--acc-violet);
-  position:relative;pointer-events:auto;overflow:hidden;
-  background:linear-gradient(145deg,color-mix(in srgb,var(--panel) 95%,var(--notice-accent) 5%),var(--panel));
-  border:1px solid color-mix(in srgb,var(--notice-accent) 35%,var(--line));border-radius:14px;
-  box-shadow:0 18px 42px -18px rgba(0,0,0,.75),0 0 0 1px rgba(177,140,255,.06);
-  padding:14px 46px 13px 15px;direction:rtl;text-align:right;
-  animation:adminNoticeIn .28s cubic-bezier(.2,.8,.2,1) both;
-}
-.admin-notice::before{content:"";position:absolute;top:0;left:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--acc-cyan),var(--acc-violet));}
-.admin-notice-title{font-size:13.5px;font-weight:800;color:var(--ink);margin-bottom:5px;line-height:1.5;}
-.admin-notice-body{font-size:13px;line-height:1.8;color:var(--ink-dim);white-space:pre-wrap;overflow-wrap:anywhere;}
-.admin-notice-meta{font-family:var(--font-arabic);font-size:10.5px;color:var(--ink-faint);margin-top:8px;}
-.admin-notice-close{
-  position:absolute;top:9px;left:9px;width:28px;height:28px;border:1px solid var(--line);border-radius:8px;
-  background:var(--panel-2);color:var(--ink-dim);cursor:pointer;font-size:19px;line-height:1;display:grid;place-items:center;
-  transition:transform .15s ease,border-color .15s ease,color .15s ease,background .15s ease;
-}
-.admin-notice-close:hover{transform:scale(1.05);border-color:var(--acc-rose);color:var(--acc-rose);}
-.admin-reply-history{display:flex;flex-direction:column;gap:7px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft)}
-.admin-reply-history-item{background:var(--inset);border:1px solid var(--line-soft);border-radius:9px;padding:8px 10px}
-.admin-reply-history-label{font-size:10.5px;font-weight:800;color:var(--acc-cyan);margin-bottom:3px}
-.admin-reply-history-text{font-size:12px;line-height:1.65;color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere}
-.admin-reply-history-meta{font-size:9.5px;color:var(--ink-faint);margin-top:4px}
-.admin-reply-box{margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);display:flex;flex-direction:column;gap:7px}
-.admin-reply-input{width:100%;min-height:58px;max-height:120px;resize:vertical;border:1px solid var(--line);outline:none;border-radius:9px;background:var(--inset);color:var(--ink);padding:9px 10px;font-family:var(--font-arabic);font-size:12.5px;line-height:1.6;direction:rtl;text-align:right}
-.admin-reply-input:focus{border-color:var(--acc-cyan);box-shadow:0 0 0 3px rgba(111,227,217,.10)}
-.admin-reply-actions{display:flex;align-items:center;gap:8px}
-.admin-reply-send{border:0;border-radius:8px;padding:7px 12px;cursor:pointer;background:linear-gradient(135deg,var(--acc-cyan),var(--acc-violet));color:#0c0d16;font-family:var(--font-arabic);font-size:11.5px;font-weight:800}
-.admin-reply-send:disabled{opacity:.6;cursor:not-allowed}
-.admin-reply-status{flex:1;min-height:16px;font-size:10.5px;color:var(--ink-faint)}
-.admin-reply-closed{margin-top:10px;padding:8px 10px;border-radius:9px;background:color-mix(in srgb,var(--success) 12%,transparent);border:1px solid color-mix(in srgb,var(--success) 28%,var(--line));font-size:11px;font-weight:700;color:var(--success)}
-.admin-notice.removing{animation:adminNoticeOut .22s ease forwards;}
-@keyframes adminNoticeIn{from{opacity:0;transform:translateY(-8px) scale(.985)}to{opacity:1;transform:none}}
-@keyframes adminNoticeOut{to{opacity:0;transform:translateX(-18px) scale(.98)}}
-@media(max-width:620px){#adminNoticeStack{top:calc(var(--header-h) + 8px);left:10px;right:auto;width:calc(100vw - 20px)}.admin-notice{padding:13px 44px 12px 13px}}
-
-.footer-wrapper{
-  position:fixed;left:0;right:0;bottom:0;z-index:100;height:var(--footer-h);
-  background:linear-gradient(90deg,#5b32b8,#3f6fce);
-  display:flex;align-items:center;justify-content:center;
-  gap:12px;
-  padding:0 16px;font-family:var(--font-arabic);font-weight:600;font-size:11px;color:#fff;
-  box-shadow:0 -8px 20px rgba(0,0,0,.18);
-}
-.footer-wrapper .fseg{display:flex;align-items:center;gap:6px;}
-.footer-wrapper .dot{width:6px;height:6px;border-radius:50%;background:#7ee2a8;box-shadow:0 0 0 3px rgba(126,226,168,.25);}
-.footer-wrapper .sep{opacity:.5;}
-.footer-wrapper a{color:#fff; text-decoration:none;}
-.footer-wrapper a:hover{text-decoration:underline;}
-
-/* ===== OneHome Packages: scoped interactive canned picker ===== */
-.onehome-launch{
-  display:inline-flex;align-items:center;gap:7px;white-space:nowrap;
-  border:1px solid color-mix(in srgb,var(--acc-cyan) 48%,var(--line));
-  color:var(--acc-cyan);background:color-mix(in srgb,var(--acc-cyan) 9%,var(--panel));
-  border-radius:8px;padding:5px 12px;font-family:var(--font-arabic);font-size:12px;
-  font-weight:800;cursor:pointer;transition:filter .18s,border-color .18s,transform .18s;
-}
-.onehome-launch:hover{filter:brightness(1.1);border-color:var(--acc-cyan);transform:translateY(-1px)}
-.onehome-launch:focus-visible,.onehome-dialog button:focus-visible,.onehome-dialog select:focus-visible{
-  outline:2px solid var(--acc-cyan);outline-offset:2px;
-}
-.onehome-modal{
-  position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;
-  padding:16px;background:rgba(5,7,18,.8);backdrop-filter:blur(6px);
-  -webkit-backdrop-filter:blur(6px);direction:rtl;
-}
-.onehome-modal.is-open{display:flex;animation:fadeIn .18s ease both}
-.onehome-dialog{
-  width:min(880px,100%);max-height:calc(100dvh - 32px);display:flex;flex-direction:column;
-  position:relative;min-width:0;overflow:hidden;background:var(--panel);
-  border:1px solid var(--line);border-radius:18px;color:var(--ink);
-  box-shadow:0 28px 85px rgba(0,0,0,.48);
-}
-.onehome-dialog:before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--acc-cyan),var(--acc-violet));}
-.onehome-head{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid var(--line-soft)}
-.onehome-heading{margin:0;font-size:20px;font-weight:800;letter-spacing:-.02em;color:var(--ink)}
-.onehome-sub{color:var(--ink-dim);font-size:12px;margin:4px 0 0}
-.onehome-close{flex:0 0 auto;width:35px;height:35px;border:1px solid var(--line);border-radius:10px;background:var(--panel-2);color:var(--ink);cursor:pointer;font-size:23px;line-height:1;display:grid;place-items:center}
-.onehome-close:hover{border-color:var(--acc-rose);color:var(--acc-rose)}
-.onehome-body{padding:20px 22px;overflow:auto;min-height:0}
-.onehome-top{display:grid;grid-template-columns:1.1fr 1fr;gap:14px;align-items:end}
-.onehome-field{display:flex;flex-direction:column;gap:9px;min-width:0}
-.onehome-label{font-size:12px;font-weight:800;color:var(--ink-dim)}
-.onehome-families{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
-.onehome-family{padding:10px 5px;min-width:0;background:var(--panel-2);color:var(--ink-dim);border:1px solid var(--line);border-radius:9px;font-size:12px;font-family:var(--font-mono);font-weight:600;cursor:pointer}
-.onehome-family[aria-pressed="true"]{border-color:var(--acc-cyan);color:var(--acc-cyan);background:color-mix(in srgb,var(--acc-cyan) 12%,var(--panel))}
-.onehome-select{width:100%;padding:10px 13px;background:var(--inset);color:var(--ink);border:1px solid var(--line);border-radius:9px;font:600 13px var(--font-arabic);outline:none;min-width:0;min-height:41px;cursor:pointer}
-.onehome-select option{background:var(--panel);color:var(--ink)}
-.onehome-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:15px}
-.onehome-stat{padding:12px 11px;background:var(--panel-2);border:1px solid var(--line);border-radius:11px;min-width:0}
-.onehome-stat .label{display:block;color:var(--ink-dim);font-size:11px;margin-bottom:6px}
-.onehome-stat .value{display:block;font:700 17px var(--font-arabic);color:var(--ink);direction:rtl;white-space:nowrap}
-.onehome-stat .unit{font-size:11px;font-weight:600;color:var(--ink-dim)}
-.onehome-stat.is-price{border-color:color-mix(in srgb,var(--acc-cyan) 40%,var(--line));background:color-mix(in srgb,var(--acc-cyan) 8%,var(--panel));}
-.onehome-stat.is-price .value{color:var(--acc-cyan)}
-.onehome-variants{display:flex;gap:7px;padding:4px;background:var(--inset);border:1px solid var(--line);border-radius:10px;width:max-content;max-width:100%;margin-top:17px}
-.onehome-variant{cursor:pointer;font:700 12px var(--font-arabic);padding:8px 20px;background:none;color:var(--ink-dim);border:0;border-radius:7px}
-.onehome-variant[aria-pressed="true"]{color:var(--ink);background:var(--panel-2);box-shadow:0 1px 4px rgba(0,0,0,.1)}
-.onehome-preview-card{border:1px solid var(--line);border-radius:11px;margin-top:12px;background:var(--inset);overflow:hidden}
-.onehome-preview-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line-soft);background:var(--panel-2)}
-.onehome-preview-top strong{color:var(--ink);font-size:12px}
-.onehome-preview-note{font-size:10px;color:var(--ink-dim);text-align:left;line-height:1.6}
-.onehome-preview-note code{font:10px var(--font-mono);color:var(--acc-cyan);direction:ltr;unicode-bidi:embed}
-.onehome-preview{padding:12px 16px;line-height:1.9;font-size:13px;color:var(--ink);text-align:right;white-space:normal;word-break:break-word}
-.onehome-preview p{margin:0;padding:6px 0}
-.onehome-preview p+p{border-top:1px dashed var(--line)}
-.onehome-foot{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:13px 22px;border-top:1px solid var(--line-soft);background:var(--panel)}
-.onehome-copy-feedback{font-size:11.5px;color:var(--ink-dim);line-height:1.6;min-height:19px}
-.onehome-copy{display:flex;align-items:center;justify-content:center;gap:8px;min-width:175px;border:0;border-radius:10px;padding:11px 17px;color:#0c0d16;background:linear-gradient(135deg,var(--acc-cyan),var(--acc-violet));font:800 13px var(--font-arabic);cursor:pointer;transition:filter .2s}
-.onehome-copy:hover{filter:brightness(1.1)}
-.onehome-copy:disabled{opacity:.65;cursor:wait}
-@media(max-width:720px){
-  .ticker{display:none}
-  .header-wrap{padding:0 7px;gap:6px}
-  .brand .name{display:none}
-  .header-actions{min-width:0;gap:4px;overflow-x:auto;scrollbar-width:none}
-  .header-actions::-webkit-scrollbar{display:none}
-  .header-actions>.link-btn,.header-actions>button:not(.theme-toggle){flex:0 0 auto;padding:5px 8px;font-size:10.5px;white-space:nowrap}
-  .header-actions>.theme-toggle{flex:0 0 auto}
-  .onehome-head{padding:14px 15px 12px}
-  .onehome-heading{font-size:17px}
-  .onehome-body{padding:13px 15px}
-  .onehome-top{grid-template-columns:1fr}
-  .onehome-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
-  .onehome-foot{padding:12px 15px}
-}
-@media(max-width:450px){
-  .onehome-modal{padding:7px}
-  .onehome-dialog{max-height:calc(100dvh - 14px);border-radius:13px}
-  .onehome-family{font-size:10px;padding:9px 2px}
-  .onehome-preview-top{align-items:start;flex-direction:column}
-  .onehome-foot{align-items:stretch;flex-direction:column-reverse;gap:7px}
-  .onehome-copy{width:100%}
-}
-
-
-/* OneHome multi-category selector - retains the parent theme tokens */
-.onehome-category-block{padding:14px;border:1px solid color-mix(in srgb,var(--acc-violet) 33%,var(--line));border-radius:13px;background:color-mix(in srgb,var(--acc-violet) 5%,var(--panel));display:flex;flex-direction:column;gap:9px;margin-bottom:17px}
-.onehome-category-block .onehome-select{font-weight:700;font-size:13px;line-height:1.5;height:44px}
-.onehome-category-meta{color:var(--acc-cyan);font-size:11.5px;font-weight:650;min-height:18px}
-.onehome-families{grid-template-columns:repeat(var(--onehome-family-count,4),minmax(0,1fr))}
-.onehome-top{align-items:stretch}
-.onehome-top .onehome-field{justify-content:end}
-.onehome-extra[hidden]{display:none!important}
-.onehome-extras{margin-top:13px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
-.onehome-extra{padding:11px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;display:flex;flex-direction:column;gap:5px;min-width:0;line-height:1.7}
-.onehome-extra>span{font-size:11px;color:var(--ink-dim);font-weight:750}
-.onehome-extra strong{font-size:12px;color:var(--ink);font-weight:650;white-space:normal;overflow-wrap:anywhere}
-.onehome-notes{grid-column:1 / -1;border-color:color-mix(in srgb,var(--acc-amber) 33%,var(--line))}
-@media(max-width:720px){.onehome-extras{grid-template-columns:1fr}.onehome-category-block{padding:11px}.onehome-families{gap:5px}}
-
-/* Relative FTTH images are stored separately to keep GitHub's HTML viewer responsive. */
-.ftth-image-load-error { display:block; padding:28px 14px; color:#f7b955; font-weight:700; text-align:center; direction:rtl; }
-/* FBB FTTH Migration reference — standalone visual steps, no database changes */
-.header-actions .ftth-nav-btn {
-  background: var(--panel-2);border:1px solid var(--line);color:var(--ink);
-  font-family:var(--font-arabic);font-size:12px;font-weight:700;
-  padding:5px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;
-  transition:border-color .2s ease,transform .2s ease;
-}
-.header-actions .ftth-nav-btn:hover,.header-actions .ftth-nav-btn:focus-visible{
-  border-color:var(--acc-cyan);transform:translateY(-1px);
-}
-.ftth-view {grid-column:1 / -1; min-width:0; width:100%; max-width:1090px; margin:4px auto 18px; direction:rtl;}
-.ftth-panel {background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
-.ftth-top {position:relative;padding:23px 64px 20px 25px;border-bottom:1px solid var(--line);background:var(--panel);}
-.ftth-top h2 {font-family:var(--font-mono);font-size:21px;font-weight:800;color:var(--ink);line-height:1.4;margin:0 0 8px;direction:ltr;text-align:right;}
-.ftth-top p {color:var(--ink-dim);line-height:1.8;font-size:13px;margin:0;}
-.ftth-top .info-view-close{left:15px;top:15px;}
-.ftth-links{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 22px 4px;}
-.ftth-links a,.ftth-links button{font-family:var(--font-arabic);font-size:12px;font-weight:700;border:1px solid var(--line);color:var(--ink);background:var(--panel-2);padding:9px 12px;border-radius:9px;cursor:pointer;text-decoration:none;line-height:1.35;}
-.ftth-links a:hover,.ftth-links button:hover,.ftth-links a:focus-visible,.ftth-links button:focus-visible{border-color:var(--acc-cyan);color:var(--acc-cyan)}
-.ftth-advisory{border:1px solid var(--line);background:var(--inset);margin:10px 22px 18px;border-radius:10px;color:var(--ink-dim);padding:11px 14px;font-size:12px;line-height:1.8;}
-.ftth-gallery{display:flex;flex-direction:column;gap:20px;padding:0 22px 25px;}
-.ftth-phase-title{margin:12px 0 -5px;padding:13px 17px;border:1px solid var(--line);border-right:4px solid var(--acc-cyan);border-radius:9px;background:var(--panel-2);font-size:15px;font-weight:750;color:var(--ink);scroll-margin-top:calc(var(--header-h) + 18px);}
-.ftth-page {border:1px solid var(--line);border-radius:11px;background:var(--panel-2);overflow:hidden;scroll-margin-top:calc(var(--header-h) + 18px);}
-.ftth-page-heading {display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 15px;direction:rtl;border-bottom:1px solid var(--line-soft);font-size:12px;color:var(--ink-dim);}
-.ftth-page-heading b{color:var(--ink);font-weight:750;}
-.ftth-image-button{display:block;width:100%;padding:0;border:0;background:#fff;cursor:zoom-in;line-height:0;text-align:center;}
-.ftth-image-button img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:contain;}
-.ftth-image-button:focus-visible{outline:3px solid var(--acc-cyan);outline-offset:-3px;}
-.ftth-note{font-size:11px;padding:10px 15px;color:var(--ink-faint);text-align:center;border-top:1px solid var(--line-soft);}
-.ftth-gallery-end{display:flex;justify-content:center;padding:0 20px 22px;}
-.ftth-return-btn{padding:12px 24px;background:var(--panel-2);border:1px solid var(--line);color:var(--ink);border-radius:9px;font-family:var(--font-arabic);font-size:13px;cursor:pointer;font-weight:700;}
-.ftth-return-btn:hover{border-color:var(--acc-cyan)}
-.ftth-zoom{position:fixed;inset:0;z-index:2147483645;background:rgba(6,8,15,.92);display:none;align-items:center;justify-content:center;flex-direction:column;padding:16px 18px 20px;gap:12px;}
-.ftth-zoom.open{display:flex;}
-.ftth-zoom-head{width:100%;display:flex;justify-content:space-between;align-items:center;gap:14px;color:#fff;font-weight:700;font-size:13px;direction:rtl;max-width:1700px;}
-.ftth-zoom-close{border:1px solid #5f677b;background:#24283c;border-radius:9px;color:#fff;font-size:25px;width:39px;height:39px;cursor:pointer;}
-.ftth-zoom-viewport{width:100%;height:calc(100dvh - 110px);overflow:auto;text-align:center;border-radius:10px;overscroll-behavior:contain;}
-.ftth-zoom-viewport img{display:block;width:auto;height:auto;min-width:min(100%,950px);max-width:none;max-height:none;margin:auto;background:#fff;box-shadow:0 18px 50px #0006;}
-.ftth-zoom-tip{color:#d0d4e3;font-size:11px;}
-@media(max-width:720px){
-  .ftth-view{margin-top:0}.ftth-top{padding:18px 48px 17px 15px}.ftth-top h2{font-size:17px}
-  .ftth-links{padding:10px 12px 4px}.ftth-gallery{padding:0 9px 18px;gap:12px}
-  .ftth-advisory{margin:8px 12px 14px}.ftth-phase-title{font-size:13px}
-  .ftth-page-heading{font-size:11px;padding:9px 10px}.ftth-zoom{padding:7px}.ftth-zoom-viewport{height:calc(100dvh - 95px)}
-}
-
-</style>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body data-theme="dark" oncontextmenu="return false;">
-
-<div id="loginOverlay">
-  <div class="login-card" id="loginCircle">
-    <div class="login-inner" id="loginFormContent">
-      <div class="login-mark">C</div>
-      <h3>Canned Tool</h3>
-      <p class="login-sub" id="authSubtitle">Secure Access</p>
-
-      <div class="auth-tabs" id="authTabsContainer">
-        <button type="button" class="auth-tab active" id="loginTab">Login</button>
-        <button type="button" class="auth-tab" id="registerTab">Register</button>
-      </div>
-
-      <div id="loginPanel" style="width:100%;">
-        <input id="loginEmail" class="neu-input" type="email" placeholder="Email address" autocomplete="username" dir="ltr">
-        <input id="loginPwd" class="neu-input" type="password" placeholder="Password" autocomplete="current-password" dir="ltr">
-        <button id="loginBtn" class="neu-btn">Login</button>
-        <button type="button" id="forgotBtn" class="auth-link">Forgot password?</button>
-      </div>
-
-      <div id="registerPanel" style="display:none; width:100%;">
-        <input id="registerName" class="neu-input" type="text" placeholder="Full Name" autocomplete="name" dir="ltr">
-        <input id="registerEmail" class="neu-input" type="email" placeholder="Write Email (@te.eg)" autocomplete="email" dir="ltr">
-        <input id="registerPwd" class="neu-input" type="password" placeholder="Password (8+ characters)" autocomplete="new-password" dir="ltr">
-        <input id="registerPwd2" class="neu-input" type="password" placeholder="Confirm password" autocomplete="new-password" dir="ltr">
-        <button id="registerBtn" class="neu-btn">Create account</button>
-        <div class="auth-note">مسموح بالتسجيل بإيميل الشركة <b>@te.eg</b> فقط.</div>
-      </div>
-
-      <!-- شاشة تعيين كلمة المرور الجديدة -->
-      <div id="resetPanel" style="display:none; width:100%;">
-        <input id="newPwd" class="neu-input" type="password" placeholder="New password (8+ characters)" autocomplete="new-password" dir="ltr">
-        <input id="newPwd2" class="neu-input" type="password" placeholder="Confirm new password" autocomplete="new-password" dir="ltr">
-        <button id="updatePwdBtn" class="neu-btn">Update Password</button>
-      </div>
-
-      <div id="loginMsg"></div>
-    </div>
-
-    <div class="login-success" id="loginSuccess">
-      <div class="success-check">✓</div>
-      <h3 style="direction:ltr; unicode-bidi:embed; margin:0;">Welcome Back!</h3>
-      <p class="login-sub">Login Successful</p>
-    </div>
-  </div>
-  <div class="login-footnote">For internal use only — Digital Chat Team</div>
-</div>
-
-<div id="profileNameOverlay" aria-hidden="true">
-  <div class="profile-name-card" role="dialog" aria-modal="true" aria-labelledby="profileNameTitle">
-    <div class="profile-name-icon">👤</div>
-    <h3 id="profileNameTitle">استكمال بيانات الحساب</h3>
-    <p>من فضلك اكتب اسمك علي الاقل ثنائي لاستكمال بيانات حسابك, لن تظهر هذه الرسالة مرة أخرى بعد الحفظ.</p>
-    <input id="profileNameInput" class="profile-name-input" type="text" maxlength="80" placeholder="اكتب الاسم ثنائي" autocomplete="name">
-    <div id="profileNameMsg" class="profile-name-msg"></div>
-    <button id="saveProfileNameBtn" class="profile-name-btn" type="button">حفظ ومتابعة</button>
-  </div>
-</div>
-
-<div id="protectedApp">
-<div class="splash" id="splash">
-  <div class="splash-box">
-    <div class="load-line"><span class="ok">✓</span> جارٍ تجهيز الأداة</div>
-    <div class="load-line"><span class="ok">✓</span> جارٍ تحميل الردود بدقة</div>
-    <div class="load-line"><span class="ok">✓</span> لحظات...</div>
-  </div>
-</div>
-
-<div class="header-wrap">
-  <div class="brand">
-    <span class="mark">C</span>
-    <span class="name">canned<em>.</em>tool</span>
-  </div>
-  <div class="ticker" aria-label="تنبيه">
-    <div class="ticker-track">⚠️ تذكر دائماً: استخدامك لهذه الأداة على مسؤوليتك الشخصية، ويجب التأكد من الويكي.</div>
-  </div>
-  <div class="header-actions">
-    <a href="https://agent.cand-chat.info/" target="_blank" class="link-btn" title="Agent Lite"><img src="https://cdn-icons-png.flaticon.com/512/4017/4017991.png" alt="" class="agent-icon"> Agent Lite</a>
-    <button type="button" class="onehome-launch" id="onehomeOpenBtn" aria-haspopup="dialog" aria-controls="onehomeModal">📦 OneHome Packages</button>
-    <button type="button" class="ftth-nav-btn" id="ftthOpenBtn" aria-controls="ftthViewContainer">📡 FBB FTTH Migration</button>
-    <button class="about-btn" id="aboutBtn">About and Contact ℹ️</button>
-    <button class="feed-btn" id="feedBtn">💡 Suggestions & Feedback</button>
-    <button class="theme-toggle" id="themeToggle" title="تغيير المظهر">🌙</button>
-  </div>
-</div>
-
-<div id="adminNoticeStack" aria-live="polite" aria-label="رسائل الإدارة"></div>
-
-<div class="app" id="appGridContainer">
-  <aside class="sidebar">
-    <div class="sidebar-top">
-      <div class="sidebar-title">
-        <span class="label">القائمة</span>
-        <span class="tool-count" id="toolCount">0</span>
-      </div>
-      <div class="search-box">
-        <span class="search-icon">⌕</span>
-        <input type="text" id="searchInput" placeholder="ابحث عن كاند..." autocomplete="off">
-      </div>
-    </div>
-    <div class="sheet-list" id="sheetList"></div>
-  </aside>
-
-  <main class="main">
-    <div class="main-head">
-      <div class="main-head-copy">
-        <span class="hash">#</span>
-        <h1 id="sectionTitle">اختر شيت للبدء</h1>
-      </div>
-      <div class="main-badge"><b id="resultCount">0</b> كاند</div>
-    </div>
-    <div class="grid" id="cardsGrid"><div class="empty">جارٍ تحميل البيانات... ⏳</div></div>
-  </main>
-</div>
-
-
-<!-- OneHome Packages: قسم باقات الإنترنت، لا يحتاج أي تعديل بقاعدة البيانات -->
-<div id="onehomeModal" class="onehome-modal" aria-hidden="true">
-  <section class="onehome-dialog" role="dialog" aria-modal="true" aria-labelledby="onehomeHeading" tabindex="-1">
-    <div class="onehome-head">
-      <div>
-        <h2 id="onehomeHeading" class="onehome-heading">📦 OneHome Packages</h2>
-        <p class="onehome-sub">حدد التصنيف أولًا، ثم فئة الباقة وسعتها، وانسخ الكاند المناسب للعميل.</p>
-      </div>
-      <button type="button" id="onehomeCloseBtn" class="onehome-close" aria-label="إغلاق نافذة الباقات" title="إغلاق">×</button>
-    </div>
-    <div class="onehome-body">
-      <div class="onehome-category-block">
-        <label class="onehome-label" for="onehomeCategorySelect">① اختر تصنيف الباقات</label>
-        <select id="onehomeCategorySelect" class="onehome-select" aria-label="تصنيف باقات OneHome">
-          <option value="m600">الباقات الشهرية مع باقة صوت 600 دقيقة</option>
-          <option value="m3750">الباقات الشهرية مع باقة الصوت 3750 دقيقة</option>
-          <option value="g600">باقات PLUS / GAMERZ / STREAMERZ الشهرية مع باقة الصوت 600 دقيقة</option>
-          <option value="g3750">باقات STREAMERS / GAMERS / PLUS الشهرية مع باقة صوت 3750 دقيقة</option>
-          <option value="a7200">الباقات السنوية مع باقة صوت 7200 دقيقة</option>
-          <option value="a45000">الباقات السنوية مع باقة صوت 45000 دقيقة</option>
-          <option value="sahel">باقات الساحل السنوية</option>
-        </select>
-        <div id="onehomeCategoryMeta" class="onehome-category-meta"></div>
-      </div>
-      <div class="onehome-top">
-        <div class="onehome-field">
-          <span class="onehome-label">② فئة الباقة</span>
-          <div id="onehomeFamilies" class="onehome-families" role="group" aria-label="فئة الباقة"></div>
-        </div>
-        <div class="onehome-field">
-          <label class="onehome-label" for="onehomePlanSelect">③ اختر الباقة والسعة</label>
-          <select id="onehomePlanSelect" class="onehome-select" aria-label="اختيار باقة OneHome"></select>
-        </div>
-      </div>
-      <div class="onehome-stats" aria-live="polite">
-        <div class="onehome-stat"><span class="label">سعة الإنترنت</span><span id="onehomeStatGB" class="value">150 <span class="unit">GB</span></span></div>
-        <div class="onehome-stat"><span class="label">السرعة حتى</span><span id="onehomeStatSpeed" class="value">30 <span class="unit">Mbps</span></span></div>
-        <div class="onehome-stat"><span class="label">قبل الضريبة</span><span id="onehomeStatBefore" class="value">300 <span class="unit">جنيه</span></span></div>
-        <div class="onehome-stat is-price"><span class="label">شامل الضريبة</span><span id="onehomeStatAfter" class="value">342 <span class="unit">جنيه</span></span></div>
-      </div>
-      <div class="onehome-extras" aria-live="polite">
-        <div class="onehome-extra"><span>📞 تفاصيل المكالمات</span><strong id="onehomeVoiceDetail"></strong></div>
-        <div class="onehome-extra"><span>🧾 تفاصيل السعر</span><strong id="onehomeBreakdown"></strong></div>
-        <div id="onehomeNotesRow" class="onehome-extra onehome-notes" hidden><span>ℹ️ توزيع سعة الإنترنت</span><strong id="onehomeNotes"></strong></div>
-        <div id="onehomeDiscountRow" class="onehome-extra" hidden><span>🏷️ الخصم المذكور في الجدول</span><strong id="onehomeDiscount"></strong></div>
-      </div>
-      <div class="onehome-variants" role="group" aria-label="نوع الرد">
-        <button type="button" class="onehome-variant" data-onehome-format="detailed" aria-pressed="true">الرد التفصيلي</button>
-        <button type="button" class="onehome-variant" data-onehome-format="short" aria-pressed="false">الرد المختصر</button>
-      </div>
-      <div class="onehome-preview-card">
-        <div class="onehome-preview-top">
-          <strong>معاينة الكاند قبل النسخ</strong>
-          <span id="onehomeSeparatorNote" class="onehome-preview-note"></span>
-        </div>
-        <div id="onehomePreview" class="onehome-preview" aria-live="polite"></div>
-      </div>
-    </div>
-    <div class="onehome-foot">
-      <span id="onehomeCopyFeedback" class="onehome-copy-feedback" role="status" aria-live="polite">الأسعار بالجنيه المصري حسب الصور — يُرجى مراجعة الويكي قبل الإرسال</span>
-      <button type="button" id="onehomeCopyBtn" class="onehome-copy">⧉ نسخ الكاند</button>
-    </div>
-  </section>
-</div>
-
-
-<!-- FBB FTTH Migration: original PDF screenshots embedded in source order -->
-<div class="app" id="ftthViewContainer" style="display:none;">
-  <section class="ftth-view" aria-labelledby="ftthGuideTitle">
-    <div class="ftth-panel">
-      <div class="ftth-top">
-        <button type="button" id="ftthCloseBtn" class="info-view-close" aria-label="إغلاق دليل FTTH والعودة إلى الكندات" title="العودة إلى التول">×</button>
-        <h2 id="ftthGuideTitle">FBB FTTH Migration</h2>
-        <p>دليل خطوات تحويل الخدمة إلى FTTH — صور المصدر الأصلية بالترتيب (18 صفحة). اضغط على أي صورة لتكبيرها.</p>
-      </div>
-      <div class="ftth-links">
-        <button type="button" data-ftth-jump="ftth-phase-fv">① خطوات الأرضي (FV)</button>
-        <button type="button" data-ftth-jump="ftth-phase-fbb">② خطوات الإنترنت (FBB)</button>
-        <a href="https://sp-wiki.te.eg:5443/Pages/Customer%20Service%20Dept/Contact%20Center%20Division/Sales%20Contact%20Center/WIKI%20BSS/FTTH%20Migration/Fixed%20Voice%20FTTH%20Migration.aspx#Fv_Migration" target="_blank" rel="noopener noreferrer">FV Wiki ↗</a>
-        <a href="https://sp-wiki.te.eg:5443/Pages/Customer%20Service%20Dept/Contact%20Center%20Division/Sales%20Contact%20Center/WIKI%20BSS/FTTH%20Migration/FTTH-Migration.aspx#Migration_Action_Steps" target="_blank" rel="noopener noreferrer">FBB Wiki ↗</a>
-      </div>
-      <div class="ftth-advisory">⚠️ هذا الدليل مرجع مصوّر من الملف المرفق، وليس بديلًا عن الويكي. برجاء مراجعة الخطوات والتعليمات المعتمدة على الويكي قبل تنفيذ أي إجراء.</div>
-      <div class="ftth-gallery" id="ftthGallery">
-        <article class="ftth-page" id="ftth-page-1">
-          <div class="ftth-page-heading"><b>الغلاف — خطوات FTTH Migration</b><span>الصفحة 1 من 18</span></div>
-          <button type="button" class="ftth-image-button" data-ftth-zoom="1" aria-label="تكبير الصورة — الصفحة 1">
-            <img loading="lazy" decoding="async" src="ftth-migration/page-01.webp" alt="FBB FTTH Migration — صفحة 1 من ملف الخطوات الأصلي" width="1920" height="1080">
-          </button>
-        </article>
-        <article class="ftth-page" id="ftth-page-2">
-          <div class="ftth-page-heading"><b>التنبيه وروابط الويكي</b><span>الصفحة 2 من 18</span></div>
-          <button type="button" class="ftth-image-button" data-ftth-zoom="2" aria-label="تكبير الصورة — الصفحة 2">
-            <img loading="lazy" decoding="async" src="ftth-migration/page-02.webp" alt="FBB FTTH Migration — صفحة 2 من ملف الخطوات الأصلي" width="1920" height="1080">
-          </button>
-        </article>
-        <h3 class="ftth-phase-title" id="ftth-phase-fv">المرحلة الأولى — إجراءات الخط الأرضي (FV) | صفحات 3–7</h3>
-        <article class="ftth-page" id="ftth-page-3">
-          <div class="ftth-page-heading"><b>إجراءات الخط الأرضي (FV)</b><span>الصفحة 3 من 18</span></div>
-          <button type="button" class="ftth-image-button" data-ftth-zoom="3" aria-label="تكبير الصورة — الصفحة 3">
-            <img loading="lazy" decoding="async" src="ftth-migration/page-03.webp" alt="FBB FTTH Migration — صفحة 3 من ملف الخطوات الأصلي" width="1920" height="1080">
-          </button>
-        </article>
-        <article class="ftth-page" id="ftth-page-4">
-          <div class="ftth-page-heading"><b>الخط الأرضي (FV)</b><span>الصفحة 4 من 18</span></div>
-          <button type="button" class="ftth-image-button" data-ftth-zoom="4" aria-label="تكبير الصورة — الصفحة 4">
-            <img loading="lazy" decoding="async" src="ftth-migration/page-04.webp" alt="FBB FTTH Migration — صفحة 4 من ملف الخطوات الأصلي" width="1920" height="1080">
-          </button>
-        </article>
-        <article class="ftth-page" id="ftth-page-5">
-          <div class="ftth-page-heading"><b>الخط الأرضي (FV)</b><span>الصفحة 5 من 18</span></div>
-          <button type="button" class="ftth-image-button" data-ftth-zoom="5" aria-label="تكبير الصورة — الصفحة 5">
-            <img loading="lazy" decoding="async" src="ftth-migration/page-05.webp" alt="FBB FTTH Migration — صفحة 5 من ملف الخطوات الأصلي" width="1920" height="1080">
-          </button>
-        </article>
-        <article class="ftth-page" id="ftth-page-6">
-          <div class="ftth-page-heading"><b>الخط الأرضي (FV)</b><span>الصفحة 6 من 18</span></div>
-          <button type="button" class="ftth-image-button" data-ftth-zoom="6" aria-label="تكبير الصورة — الصفحة 6">
-            <img loading="lazy" decoding="async" src="ftth-migration/page-06.webp" alt="FBB FTTH Migration — صفحة 6 من ملف الخطوات الأصلي" width="1920" height="1080">
-          </button>
-        </article>
-        <article class="ftth-page" id="ftth-page-7">
-          <div class="ftth-page-heading"><b>الخط الأرضي (FV)</b><span>الصفحة 7 من 18</span></div>
-          <button type="button" class="ftth-image-button" data-ftth-zoom="7" aria-label="تكبير الصورة — الصفحة 7">
-            <img loading="lazy" decoding="async" src="ftth-migration/page-07.webp" alt="FBB FTTH Migration — صفحة 7 من ملف الخطوات الأصلي" width="1920" height="1080">
-          </button>
-        </article>
-        <h3 class="ftth-phase-title" id="ftth-phase-fbb">المرحلة الثانية — حساب الإنترنت (FBB) | صفحات 8–17</h3>
-        <article class="ftth-page" id="ftth-page-8">
-          <div class="ftth-page-heading"><b>إجراءات حساب الإنترنت (FBB)</b><span>الصفحة 8 من 18</span></div>
-          <button type="button" class="ftth-image-button" data-ftth-zoom="8" aria-label="تكبير الصورة — الصفحة 8">
-            <img loading="lazy" decoding="async" src="ftth-migration/page-08.webp" alt="FBB FTTH Migration — صفحة 8 من ملف الخطوات الأصلي" width="1920" height="1080">
-          </button>
-        </article>
-        <article class="ftth-page" id="ftth-page-9">
-          <div class="ftth-page-heading"><b>حساب الإنترنت (FBB)</b><span>الصفحة 9 من 18</span></div>
-          <button type="button" class="ftth-image-button" data-ftth-zoom="9" aria-label="تكبير الصورة — الصفحة 9">
-            <img loading="lazy" decoding="async" src="ftth-migration/page-09.webp" alt="FBB FTTH Migration — صفحة 9 من ملف الخطوات الأصلي" width="1920" height="1080">
-          </button>
-        </article>
-        <article class="ftth-page" id="ftth-page-10">
-          <div class="ftth-page-heading"><b>حساب الإنترنت (FBB)</b><span>الصفحة 10 من 18</span></div>
-          <button type="button" class="ftth-image-button" data-ftth-zoom="10" aria-label="تكبير الصورة — الصفحة 10">
-            <img loading="lazy" decoding="async" src="ftth-migration/page-10.webp" alt="FBB FTTH Migration — صفحة 10 من ملف الخطوات الأصلي" width="1920" height="1080">
-          </button>
-        </article>
-        <article class="ftth-page" id="ftth-page-11">
-          <div class="ftth-page-heading"><b>حساب الإنترنت (FBB)</b><span>الصفحة 11 من 18</span></div>
-          <button type="button" class="ftth-image-button" data-ftth-zoom="11" aria-label="تكبير الصورة — الصفحة 11">
-            <img loading="lazy" decoding="async" src="ftth-migration/page-11.webp" alt="FBB FTTH Migration — صفحة 11 من ملف الخطوات الأصلي" width="1920" height="1080">
-          </button>
-        </article>
-        <article class="ftth-page" id="ftth-page-12">
-          <div class="ftth-page-heading"><b>حساب الإنترنت (FBB)</b><span>الصفحة 12 من 18</span></div>
-          <button type="button" class="ftth-image-button" data-ftth-zoom="12" aria-label="تكبير الصورة — الصفحة 12">
-            <img loading="lazy" decoding="async" src="ftth-migration/page-12.webp" alt="FBB FTTH Migration — صفحة 12 من ملف الخطوات الأصلي" width="1920" height="1080">
-          </button>
-        </article>
-        <article class="ftth-page" id="ftth-page-13">
-          <div class="ftth-page-heading"><b>حساب الإنترنت (FBB)</b><span>الصفحة 13 من 18</span></div>
-          <button type="button" class="ftth-image-button" data-ftth-zoom="13" aria-label="تكبير الصورة — الصفحة 13">
-            <img loading="lazy" decoding="async" src="ftth-migration/page-13.webp" alt="FBB FTTH Migration — صفحة 13 من ملف الخطوات الأصلي" width="1920" height="1080">
-          </button>
-        </article>
-        <article class="ftth-page" id="ftth-page-14">
-          <div class="ftth-page-heading"><b>حساب الإنترنت (FBB)</b><span>الصفحة 14 من 18</span></div>
-          <button type="button" class="ftth-image-button" data-ftth-zoom="14" aria-label="تكبير الصورة — الصفحة 14">
-            <img loading="lazy" decoding="async" src="ftth-migration/page-14.webp" alt="FBB FTTH Migration — صفحة 14 من ملف الخطوات الأصلي" width="1920" height="1080">
-          </button>
-        </article>
-        <article class="ftth-page" id="ftth-page-15">
-          <div class="ftth-page-heading"><b>حساب الإنترنت (FBB)</b><span>الصفحة 15 من 18</span></div>
-          <button type="button" class="ftth-image-button" data-ftth-zoom="15" aria-label="تكبير الصورة — الصفحة 15">
-            <img loading="lazy" decoding="async" src="ftth-migration/page-15.webp" alt="FBB FTTH Migration — صفحة 15 من ملف الخطوات الأصلي" width="1920" height="1080">
-          </button>
-        </article>
-        <article class="ftth-page" id="ftth-page-16">
-          <div class="ftth-page-heading"><b>حساب الإنترنت (FBB)</b><span>الصفحة 16 من 18</span></div>
-          <button type="button" class="ftth-image-button" data-ftth-zoom="16" aria-label="تكبير الصورة — الصفحة 16">
-            <img loading="lazy" decoding="async" src="ftth-migration/page-16.webp" alt="FBB FTTH Migration — صفحة 16 من ملف الخطوات الأصلي" width="1920" height="1080">
-          </button>
-        </article>
-        <article class="ftth-page" id="ftth-page-17">
-          <div class="ftth-page-heading"><b>حساب الإنترنت (FBB)</b><span>الصفحة 17 من 18</span></div>
-          <button type="button" class="ftth-image-button" data-ftth-zoom="17" aria-label="تكبير الصورة — الصفحة 17">
-            <img loading="lazy" decoding="async" src="ftth-migration/page-17.webp" alt="FBB FTTH Migration — صفحة 17 من ملف الخطوات الأصلي" width="1920" height="1080">
-          </button>
-        </article>
-        <article class="ftth-page" id="ftth-page-18">
-          <div class="ftth-page-heading"><b>ختام الدليل</b><span>الصفحة 18 من 18</span></div>
-          <button type="button" class="ftth-image-button" data-ftth-zoom="18" aria-label="تكبير الصورة — الصفحة 18">
-            <img loading="lazy" decoding="async" src="ftth-migration/page-18.webp" alt="FBB FTTH Migration — صفحة 18 من ملف الخطوات الأصلي" width="1920" height="1080">
-          </button>
-        </article>
-      </div>
-      <p class="ftth-note">الصفحات معروضة دون تغيير في المحتوى أو الترتيب. آخر تحديث للمعلومات يُراجع من الويكي.</p>
-      <div class="ftth-gallery-end"><button type="button" class="ftth-return-btn" id="ftthReturnBtn">× العودة إلى الكندات</button></div>
-    </div>
-  </section>
-</div>
-<div id="ftthZoom" class="ftth-zoom" role="dialog" aria-modal="true" aria-label="تكبير الصورة" aria-hidden="true">
-  <div class="ftth-zoom-head"><span id="ftthZoomPage">FTTH Migration</span><button type="button" id="ftthZoomClose" class="ftth-zoom-close" aria-label="إغلاق الصورة">×</button></div>
-  <div class="ftth-zoom-viewport" id="ftthZoomViewport"><img id="ftthZoomImage" alt="الصورة المكبرة"></div>
-  <p class="ftth-zoom-tip">اضغط Esc أو × للإغلاق — يمكنك التمرير داخل الصورة</p>
-</div>
-
-<!-- صفحة About -->
-<div class="app" id="aboutViewContainer" style="display:none;">
-  <div class="about-view show" style="grid-column: 1 / -1;">
-    <div class="about-box-card">
-      <button type="button" id="aboutCloseBtn" class="info-view-close" aria-label="Close About and return to Canned Tool" title="العودة إلى التول">×</button>
-      <h2>About Canned Tool</h2>
-      <p>نظام ذكي متكامل لمساعدة وكلاء الدعم الفني في الوصول للردود الجاهزة وإدارتها بدقة تامة.</p>
-      <div class="contact-footer-box">
-        <span>Contact us at:</span>
-        <a href="mailto:contact@cand-chat.info">contact@cand-chat.info</a>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- صفحة Feedback -->
-<div class="app" id="feedbackViewContainer" style="display:none;">
-  <div class="feedback-view show" style="grid-column: 1 / -1;">
-    <div class="feedback-box-card">
-      <button type="button" id="feedbackCloseBtn" class="info-view-close" aria-label="Close Feedback and return to Canned Tool" title="العودة إلى التول">×</button>
-      <h2>Suggestions & Feedback</h2>
-      <p>شاركنا باقتراحاتك لتطوير الأداة.</p>
-      <form class="feedback-form" id="feedbackForm">
-        <div class="form-group">
-          <label for="empName">اسم الموظف</label>
-          <input type="text" id="empName" placeholder="اكتب اسمك أو اتركه فارغاً">
-        </div>
-        <div class="form-group">
-          <label for="suggType">نوع المشاركة</label>
-          <select id="suggType">
-            <option value="اقتراح تطوير أداة">اقتراح تطوير أداة</option>
-            <option value="تعديل / اضافه كاند">تعديل / اضافه كاند</option>
-            <option value="مشكلة تقنية">مشكلة تقنية</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="suggText">تفاصيل الاقتراح أو الملاحظة *</label>
-          <textarea id="suggText" placeholder="اكتب تفاصيل مقترحك هنا..." required></textarea>
-        </div>
-        <button type="submit" class="submit-btn">إرسال الاقتراح 🚀</button>
-      </form>
-    </div>
-  </div>
-</div>
-
-<div class="footer-wrapper">
-  <span class="fseg"><span class="dot"></span> Ready</span>
-  <span class="sep">·</span>
-  <span class="fseg">version 9</span>
-  <span class="sep">·</span>
-  <span class="fseg">Developed By : Geek</span>
-</div>
-
-<audio id="clickSound" preload="auto">
-  <source src="data:audio/mp3;base64,//uQZAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCA..." type="audio/mp3">
-</audio>
-
-<script>
-  document.addEventListener('keydown', function(e) {
-    if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S' || e.keyCode === 83)) {
-      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); return false;
-    }
-  }, true);
-
-document.addEventListener("DOMContentLoaded", () => {
-  const voiceModal=document.getElementById('cannedVoiceModal');
-  const voiceStatus=document.getElementById('cannedVoiceStatus');
-  const voiceSave=document.getElementById('cannedVoiceSave');
-  function showVoiceSelection(){
-    voiceModal.classList.add('open');voiceModal.setAttribute('aria-hidden','false');
-    document.body.style.overflow='hidden';voiceStatus.textContent='';
-  }
-  function hideVoiceSelection(){
-    voiceModal.classList.remove('open');voiceModal.setAttribute('aria-hidden','true');
-    document.body.style.overflow='';
-  }
-  voiceSave.addEventListener('click',async()=>{
-    const voice=document.querySelector('input[name="canned-voice"]:checked')?.value;
-    if(!voice){voiceStatus.textContent='اختر الصيغة أولًا.';return;}
-    if(!confirm('هيتم حفظ الاختيار مرة واحدة، والتعديل بعد كده من خلال الأدمن فقط. تأكيد؟'))return;
-    voiceSave.disabled=true;voiceStatus.textContent='جارٍ حفظ الاختيار...';
-    try{
-      const {error}=await supabaseClient.rpc('cand_voice_choose',{p_voice:voice});
-      if(error)throw error;
-      hideVoiceSelection();await loadCannedData();
-    }catch(e){voiceStatus.textContent='تعذر حفظ الاختيار: '+e.message;}
-    finally{voiceSave.disabled=false;}
-  });
-
-  const SUPABASE_URL = 'https://jdvkzdorjthljhwqmvmn.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_6WQHg-zL775jpFaErofLog_1kd5X6bI';
-  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  let onlinePresenceChannel = null;
-  let presenceStartedFor = null;
-  let adminMessageChannel = null;
-  let adminMessagesStartedFor = null;
-
-  const overlay = document.getElementById('loginOverlay');
-  const btn = document.getElementById('loginBtn');
-  const pwd = document.getElementById('loginPwd');
-  const email = document.getElementById('loginEmail');
-  const msg = document.getElementById('loginMsg');
-  const app = document.getElementById('protectedApp');
-  const formContent = document.getElementById('loginFormContent');
-  const successMsg = document.getElementById('loginSuccess');
-  const loginTab = document.getElementById('loginTab');
-  const registerTab = document.getElementById('registerTab');
-  const loginPanel = document.getElementById('loginPanel');
-  const registerPanel = document.getElementById('registerPanel');
-  const resetPanel = document.getElementById('resetPanel');
-  const authTabsContainer = document.getElementById('authTabsContainer');
-  const registerName = document.getElementById('registerName');
-  const registerEmail = document.getElementById('registerEmail');
-  const registerPwd = document.getElementById('registerPwd');
-  const registerPwd2 = document.getElementById('registerPwd2');
-  const registerBtn = document.getElementById('registerBtn');
-  const forgotBtn = document.getElementById('forgotBtn');
-  const updatePwdBtn = document.getElementById('updatePwdBtn');
-  const subtitle = document.getElementById('authSubtitle');
-  const profileNameOverlay = document.getElementById('profileNameOverlay');
-  const profileNameInput = document.getElementById('profileNameInput');
-  const profileNameMsg = document.getElementById('profileNameMsg');
-  const saveProfileNameBtn = document.getElementById('saveProfileNameBtn');
-  let pendingProfileAfterName = null;
-  let enteringTool = false;
-
-  function authMessage(text, type='error'){
-    msg.textContent = text || '';
-    msg.style.color = type === 'ok' ? '#7ee2a8' : '#ff9b9b';
-  }
-
-  loginTab.addEventListener('click', () => {
-    loginTab.classList.add('active'); registerTab.classList.remove('active');
-    loginPanel.style.display='block'; registerPanel.style.display='none'; resetPanel.style.display='none';
-    subtitle.textContent='Secure Access';
-  });
-  registerTab.addEventListener('click', () => {
-    registerTab.classList.add('active'); loginTab.classList.remove('active');
-    loginPanel.style.display='none'; registerPanel.style.display='block'; resetPanel.style.display='none';
-    subtitle.textContent='Create Your Account';
-  });
-
-  // طلب استعادة كلمة المرور
-  forgotBtn.addEventListener('click', async () => {
-    const e = email.value.trim();
-    if (!e) {
-      return authMessage('من فضلك اكتب بريدك الإلكتروني في حقل البريد أولاً.');
-    }
-    
-    authMessage('جارٍ إرسال رابط استعادة كلمة المرور...', 'ok');
-    
-    const { error } = await supabaseClient.auth.resetPasswordForEmail(e, {
-      redirectTo: window.location.origin + window.location.pathname + '?reset=true',
-    });
-
-    if (error) {
-      authMessage('تعذر إرسال رابط الاستعادة: ' + error.message);
-    } else {
-      authMessage('تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني بنجاح! ✉️ تحقق من رسائلك.', 'ok');
-    }
-  });
-
-  // تحديث كلمة المرور الجديدة مع فحص الجلسة والرمز
-  updatePwdBtn.addEventListener('click', async () => {
-    const p1 = document.getElementById('newPwd').value;
-    const p2 = document.getElementById('newPwd2').value;
-    if (!p1 || p1.length < 8) return authMessage('كلمة المرور يجب أن تكون 8 أحرف على الأقل.');
-    if (p1 !== p2) return authMessage('كلمة المرور غير متطابقة.');
-
-    updatePwdBtn.disabled = true;
-    authMessage('جارٍ تحديث كلمة المرور...', 'ok');
-
-    const { error } = await supabaseClient.auth.updateUser({ password: p1 });
-    if (error) {
-      updatePwdBtn.disabled = false;
-      return authMessage('فشل التحديث: ' + error.message);
-    }
-
-    authMessage('تم تحديث كلمة المرور بنجاح! جاري الدخول...', 'ok');
-    window.history.replaceState({}, document.title, window.location.pathname);
-    setTimeout(() => {
-      enterTool();
-    }, 1500);
-  });
-
-  async function startOnlinePresence(){
-    try {
-      const { data:{ session } } = await supabaseClient.auth.getSession();
-      const userId = session?.user?.id;
-      if(!userId || presenceStartedFor === userId) return;
-
-      if(onlinePresenceChannel){
-        try { await onlinePresenceChannel.untrack(); } catch(e) {}
-        try { await supabaseClient.removeChannel(onlinePresenceChannel); } catch(e) {}
-      }
-
-      presenceStartedFor = userId;
-      onlinePresenceChannel = supabaseClient.channel('cand-online-users', {
-        config: { presence: { key: userId } }
-      });
-
-      onlinePresenceChannel.subscribe(async status => {
-        if(status !== 'SUBSCRIBED') return;
-        try {
-          await onlinePresenceChannel.track({
-            user_id: userId,
-            online_at: new Date().toISOString(),
-            source: 'canned-tool'
-          });
-        } catch(e) { console.error('Presence track failed', e); }
-      });
-    } catch(e) {
-      console.error('Presence unavailable', e);
-    }
-  }
-
-  async function loadAdminMessages(){
-    const stack = document.getElementById('adminNoticeStack');
-    if(!stack) return;
-
-    try {
-      const { data:{ session }, error: sessionError } = await supabaseClient.auth.getSession();
-      if(sessionError) throw sessionError;
-      const userId = session?.user?.id;
-      if(!userId) return;
-
-      // Admin accounts manage messages from the Admin Panel and should never
-      // receive employee-facing notices inside the Canned Tool itself.
-      const currentProfile = await getProfile(userId);
-      if(currentProfile?.role === 'admin'){
-        stack.innerHTML = '';
-        return;
-      }
-
-      const [{ data: messages, error: messagesError }, { data: dismissals, error: dismissalsError }] = await Promise.all([
-        supabaseClient
-          .from('admin_messages')
-          .select('id,title,message,target_type,target_user_id,created_at,active')
-          .eq('active', true)
-          // Defense in depth: even if RLS grants broader access in the future,
-          // the employee client only requests broadcast messages or its own messages.
-          .or(`target_type.eq.all,target_user_id.eq.${userId}`)
-          .order('created_at', { ascending: true })
-          .limit(30),
-        supabaseClient
-          .from('admin_message_dismissals')
-          .select('message_id')
-          .eq('user_id', userId)
-      ]);
-
-      if(messagesError) throw messagesError;
-      if(dismissalsError) throw dismissalsError;
-
-      const dismissed = new Set((dismissals || []).map(x => String(x.message_id)));
-      const visible = (messages || []).filter(m => !dismissed.has(String(m.id)));
-
-      let replies = [];
-      if(visible.length){
-        try {
-          const messageIds = visible.map(m => String(m.id));
-          const { data: replyRows, error: repliesError } = await supabaseClient
-            .from('admin_message_replies')
-            .select('id,message_id,reply,created_at,closed')
-            .eq('user_id', userId)
-            .in('message_id', messageIds)
-            .order('created_at', { ascending: true });
-          if(repliesError) throw repliesError;
-          replies = replyRows || [];
-        } catch(replyError) {
-          // Keep admin notices working even before the optional replies table is installed.
-          console.warn('Admin reply history unavailable', replyError);
-        }
-      }
-
-      renderAdminMessages(visible, replies);
-    } catch(e) {
-      // Messaging is non-blocking: the main tool must remain usable if the table is unavailable.
-      console.error('Admin messages unavailable', e);
-    }
-  }
-
-  function renderAdminMessages(messages, replies = []){
-    const stack = document.getElementById('adminNoticeStack');
-    if(!stack) return;
-    stack.innerHTML = '';
-
-    const repliesByMessage = new Map();
-    (replies || []).forEach(r => {
-      const key = String(r.message_id);
-      if(!repliesByMessage.has(key)) repliesByMessage.set(key, []);
-      repliesByMessage.get(key).push(r);
-    });
-
-    (messages || []).forEach(m => {
-      const box = document.createElement('section');
-      box.className = 'admin-notice';
-      box.dataset.messageId = m.id;
-
-      const created = m.created_at ? new Date(m.created_at) : null;
-      const when = created && !Number.isNaN(created.getTime())
-        ? created.toLocaleString('ar-EG', { dateStyle:'medium', timeStyle:'short' })
-        : '';
-
-      const messageReplies = repliesByMessage.get(String(m.id)) || [];
-      const threadClosed = messageReplies.length > 0 && messageReplies.every(r => r.closed === true);
-      const historyHtml = messageReplies.length ? `
-        <div class="admin-reply-history">
-          ${messageReplies.map(r => {
-            const rt = r.created_at ? new Date(r.created_at) : null;
-            const rwhen = rt && !Number.isNaN(rt.getTime()) ? rt.toLocaleString('ar-EG', { dateStyle:'short', timeStyle:'short' }) : '';
-            return `<div class="admin-reply-history-item">
-              <div class="admin-reply-history-label">ردك</div>
-              <div class="admin-reply-history-text">${escapeHtml(r.reply || '')}</div>
-              ${rwhen ? `<div class="admin-reply-history-meta">${escapeHtml(rwhen)}</div>` : ''}
-            </div>`;
-          }).join('')}
-        </div>` : '';
-
-      box.innerHTML = `
-        <button type="button" class="admin-notice-close" aria-label="إغلاق الرسالة" title="إغلاق">×</button>
-        <div class="admin-notice-title">${escapeHtml(m.title || 'رسالة من الإدارة')}</div>
-        <div class="admin-notice-body">${escapeHtml(m.message || '')}</div>
-        ${when ? `<div class="admin-notice-meta">${escapeHtml(when)}</div>` : ''}
-        ${historyHtml}
-        ${threadClosed ? `<div class="admin-reply-closed">✓ تمت مراجعة المحادثة وإغلاقها من الإدارة</div>` : `
-          <div class="admin-reply-box">
-            <textarea class="admin-reply-input" maxlength="1500" placeholder="اكتب ردك للإدارة هنا..."></textarea>
-            <div class="admin-reply-actions">
-              <button type="button" class="admin-reply-send">إرسال الرد</button>
-              <div class="admin-reply-status" aria-live="polite"></div>
-            </div>
-          </div>`}
-      `;
-
-      const closeBtn = box.querySelector('.admin-notice-close');
-      closeBtn.addEventListener('click', () => dismissAdminMessage(m.id, box, closeBtn));
-
-      const replyBtn = box.querySelector('.admin-reply-send');
-      const replyInput = box.querySelector('.admin-reply-input');
-      const replyStatus = box.querySelector('.admin-reply-status');
-      if(replyBtn && replyInput){
-        replyBtn.addEventListener('click', () => sendAdminReply(m, replyInput, replyBtn, replyStatus));
-        replyInput.addEventListener('keydown', e => {
-          if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){
-            e.preventDefault();
-            sendAdminReply(m, replyInput, replyBtn, replyStatus);
-          }
-        });
-      }
-      stack.appendChild(box);
-    });
-  }
-
-  async function sendAdminReply(message, input, sendBtn, statusEl){
-    const reply = (input.value || '').trim();
-    if(!reply){
-      statusEl.textContent = 'اكتب الرد أولاً.';
-      statusEl.style.color = 'var(--danger)';
-      input.focus();
-      return;
-    }
-
-    sendBtn.disabled = true;
-    input.disabled = true;
-    statusEl.textContent = 'جارٍ إرسال الرد...';
-    statusEl.style.color = 'var(--ink-faint)';
-
-    try {
-      const { data:{ session }, error: sessionError } = await supabaseClient.auth.getSession();
-      if(sessionError) throw sessionError;
-      const userId = session?.user?.id;
-      if(!userId) throw new Error('No active session');
-
-      const profile = await getProfile(userId);
-      const { error } = await supabaseClient
-        .from('admin_message_replies')
-        .insert([{
-          message_id: String(message.id),
-          user_id: userId,
-          employee_name: profile?.name || null,
-          employee_email: profile?.email || session?.user?.email || null,
-          message_title: message.title || 'رسالة من الإدارة',
-          admin_message: message.message || '',
-          reply
-        }]);
-      if(error) throw error;
-
-      input.value = '';
-      statusEl.textContent = 'تم إرسال ردك للإدارة ✓';
-      statusEl.style.color = 'var(--success)';
-      await loadAdminMessages();
-    } catch(e) {
-      console.error('Failed to send admin reply', e);
-      statusEl.textContent = 'تعذر إرسال الرد. حاول مرة أخرى.';
-      statusEl.style.color = 'var(--danger)';
-      sendBtn.disabled = false;
-      input.disabled = false;
-    }
-  }
-
-  async function dismissAdminMessage(messageId, box, closeBtn){
-    closeBtn.disabled = true;
-    try {
-      const { data:{ session } } = await supabaseClient.auth.getSession();
-      const userId = session?.user?.id;
-      if(!userId) throw new Error('No active session');
-
-      const { error } = await supabaseClient
-        .from('admin_message_dismissals')
-        .insert([{ message_id: messageId, user_id: userId }]);
-
-      if(error && error.code !== '23505') throw error;
-      box.classList.add('removing');
-      setTimeout(() => box.remove(), 220);
-    } catch(e) {
-      console.error('Failed to dismiss admin message', e);
-      closeBtn.disabled = false;
-    }
-  }
-
-  async function startAdminMessaging(){
-    try {
-      const { data:{ session } } = await supabaseClient.auth.getSession();
-      const userId = session?.user?.id;
-      if(!userId) return;
-
-      const currentProfile = await getProfile(userId);
-      if(currentProfile?.role === 'admin'){
-        const stack = document.getElementById('adminNoticeStack');
-        if(stack) stack.innerHTML = '';
-        if(adminMessageChannel){
-          try { await supabaseClient.removeChannel(adminMessageChannel); } catch(e) {}
-          adminMessageChannel = null;
-        }
-        adminMessagesStartedFor = userId;
-        return;
-      }
-
-      await loadAdminMessages();
-      if(adminMessagesStartedFor === userId && adminMessageChannel) return;
-
-      if(adminMessageChannel){
-        try { await supabaseClient.removeChannel(adminMessageChannel); } catch(e) {}
-      }
-
-      adminMessagesStartedFor = userId;
-      adminMessageChannel = supabaseClient
-        .channel(`cand-admin-messages-${userId}`)
-        .on('postgres_changes', { event:'INSERT', schema:'public', table:'admin_messages' }, () => loadAdminMessages())
-        .on('postgres_changes', { event:'UPDATE', schema:'public', table:'admin_messages' }, () => loadAdminMessages())
-        .on('postgres_changes', { event:'INSERT', schema:'public', table:'admin_message_replies' }, payload => {
-          if(String(payload.new?.user_id || '') === String(userId)) loadAdminMessages();
-        })
-        .on('postgres_changes', { event:'UPDATE', schema:'public', table:'admin_message_replies' }, payload => {
-          if(String(payload.new?.user_id || '') === String(userId)) loadAdminMessages();
-        })
-        .subscribe();
-    } catch(e) {
-      console.error('Admin messaging start failed', e);
-    }
-  }
-
-  function hasProfileName(profile){
-    return !!(profile && typeof profile.name === 'string' && profile.name.trim().length >= 3);
-  }
-
-  function showProfileNamePrompt(profile){
-    pendingProfileAfterName = profile || null;
-    profileNameMsg.textContent = '';
-    profileNameInput.value = '';
-    profileNameOverlay.classList.add('show');
-    profileNameOverlay.setAttribute('aria-hidden','false');
-    setTimeout(() => profileNameInput.focus(), 50);
-  }
-
-  function hideProfileNamePrompt(){
-    profileNameOverlay.classList.remove('show');
-    profileNameOverlay.setAttribute('aria-hidden','true');
-    profileNameMsg.textContent = '';
-  }
-
-  async function resolveProfileForEntry(profile){
-    if(profile) return profile;
-    const { data:{ session } } = await supabaseClient.auth.getSession();
-    if(!session?.user?.id) throw new Error('No active session');
-    return await getProfile(session.user.id);
-  }
-
-  async function enterTool(profile = null){
-    if(enteringTool) return;
-
-    try {
-      const resolvedProfile = await resolveProfileForEntry(profile);
-      if(!hasProfileName(resolvedProfile)){
-        showProfileNamePrompt(resolvedProfile);
-        return;
-      }
-    } catch(e) {
-      console.error('Profile name check failed', e);
-      authMessage('تعذر التحقق من بيانات الحساب. حاول مرة أخرى.');
-      return;
-    }
-
-    enteringTool = true;
-    hideProfileNamePrompt();
-    formContent.classList.add('hide');
-    successMsg.classList.add('show');
-    
-    loadCannedData();
-
-    setTimeout(() => {
-      overlay.style.transition = 'opacity 0.4s ease';
-      overlay.style.opacity = '0';
-      setTimeout(() => {
-        overlay.style.display = 'none';
-        app.style.display = 'block';
-        setTimeout(() => {
-          app.style.opacity = '1';
-          try {
-            supabaseClient.rpc('update_last_seen');
-          } catch(e) {}
-          startHeartbeat();
-          startOnlinePresence();
-          startAdminMessaging();
-        }, 50);
-      }, 400);
-    }, 700);
-  }
-
-  function startHeartbeat() {
-    const ping = () => {
-      try {
-        supabaseClient.rpc('update_last_seen').catch(e => console.error(e));
-      } catch (e) {}
-    };
-
-    setInterval(ping, 25000);
-
-    let lastActivityPing = 0;
-    ['click', 'keydown', 'mousemove', 'scroll'].forEach(evt => {
-      window.addEventListener(evt, () => {
-        const now = Date.now();
-        if (now - lastActivityPing > 15000) {
-          lastActivityPing = now;
-          ping();
-        }
-      }, { passive: true });
-    });
-
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
-        ping();
-      }
-    });
-  }
-
-  async function getProfile(userId){
-    const { data, error } = await supabaseClient.from('profiles').select('id,name,email,status,role,last_seen').eq('id', userId).single();
-    if(error) throw error;
-    return data;
-  }
-
-  async function checkSession(){
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-
-    // إذا وجدنا كود PKCE قادماً من رابط الاستعادة، نبادله بجلسة نشطة فوراً
-    if (code) {
-      const { error } = await supabaseClient.auth.exchangeCodeForSession(code);
-      if (!error) {
-        overlay.style.display = 'flex';
-        formContent.classList.remove('hide');
-        authTabsContainer.style.display = 'none';
-        loginPanel.style.display = 'none';
-        registerPanel.style.display = 'none';
-        resetPanel.style.display = 'block';
-        subtitle.textContent = 'Set New Password';
-        return;
-      }
-    }
-
-    const isResetFlow = urlParams.get('reset') === 'true';
-
-    if (isResetFlow || window.location.hash.includes('type=recovery')) {
-      overlay.style.display = 'flex';
-      formContent.classList.remove('hide');
-      authTabsContainer.style.display = 'none';
-      loginPanel.style.display = 'none';
-      registerPanel.style.display = 'none';
-      resetPanel.style.display = 'block';
-      subtitle.textContent = 'Set New Password';
-      return;
-    }
-
-    const { data:{session} } = await supabaseClient.auth.getSession();
-    if(!session) return;
-
-    try{
-      const profile = await getProfile(session.user.id);
-      if(profile.status === 'approved' || profile.role === 'admin') {
-        enterTool(profile);
-      }
-      else if(profile.status === 'pending') authMessage('حسابك قيد المراجعة من الإدارة.');
-      else authMessage('هذا الحساب غير مفعل.');
-    }catch(e){console.error(e);}
-  }
-
-  async function login(){
-    const e = email.value.trim(), p = pwd.value;
-    if(!e || !p) return authMessage('اكتب البريد وكلمة المرور.');
-    btn.disabled = true; authMessage('');
-    
-    const { data, error } = await supabaseClient.auth.signInWithPassword({email:e,password:p});
-    if(error) {
-      btn.disabled = false;
-      return authMessage('بيانات الدخول غير صحيحة أو الحساب غير متاح.');
-    }
-
-    try{
-      const profile = await getProfile(data.user.id);
-
-      if (profile.last_seen && profile.role !== 'admin') {
-        const diffSec = (Date.now() - new Date(profile.last_seen).getTime()) / 1000;
-        if (diffSec < 35) {
-          await supabaseClient.auth.signOut();
-          btn.disabled = false;
-          return authMessage('⚠️ الحساب مستخدم بالفعل علي جهاز أخر ولا يمكن تسجيل الدخول.');
-        }
-      }
-
-      if(profile.status === 'approved' || profile.role === 'admin') {
-        btn.disabled = false;
-        enterTool(profile);
-      } else {
-        await supabaseClient.auth.signOut();
-        btn.disabled = false;
-        authMessage('حسابك قيد المراجعة أو غير مفعل.');
-      }
-    }catch(err){
-      await supabaseClient.auth.signOut();
-      btn.disabled = false;
-      authMessage('تعذر قراءة حالة الحساب.');
-    }
-  }
-
-  async function register(){
-    const nameVal = registerName.value.trim();
-    const e = registerEmail.value.trim().toLowerCase(), p = registerPwd.value, p2 = registerPwd2.value;
-    if(!nameVal || !e || !p || !p2) return authMessage('اكمل كل البيانات.');
-    
-    if(!e.endsWith('@te.eg')){
-      return authMessage('عذراً، مسموح بالتسجيل باستخدام البريد الإلكتروني للشركة (@te.eg) فقط.');
-    }
-
-    if(p.length < 8) return authMessage('كلمة المرور يجب أن تكون 8 أحرف على الأقل.');
-    if(p !== p2) return authMessage('تأكيد كلمة المرور غير مطابق.');
-    
-    registerBtn.disabled = true; authMessage('');
-    const { data, error } = await supabaseClient.auth.signUp({email:e,password:p});
-    
-    if(error) {
-      registerBtn.disabled = false;
-      return authMessage(error.message);
-    }
-
-    if(data.user){
-      await supabaseClient.from('profiles').update({ name: nameVal }).eq('id', data.user.id);
-      registerBtn.disabled = false;
-      authMessage('تم تسجيل حسابك بنجاح. سيتم تفعيله فور الموافقة عليه من ادارة الموقع.', 'ok');
-      registerName.value=''; registerEmail.value=''; registerPwd.value=''; registerPwd2.value='';
-    }
-  }
-
-  async function saveMissingProfileName(){
-    const cleanName = profileNameInput.value.trim().replace(/\s+/g, ' ');
-    if(cleanName.length < 3){
-      profileNameMsg.textContent = 'من فضلك اكتب اسمك الكامل بشكل صحيح.';
-      profileNameInput.focus();
-      return;
-    }
-
-    saveProfileNameBtn.disabled = true;
-    profileNameMsg.style.color = '#7ee2a8';
-    profileNameMsg.textContent = 'جارٍ حفظ الاسم...';
-
-    try {
-      const { data:{ session }, error: sessionError } = await supabaseClient.auth.getSession();
-      if(sessionError) throw sessionError;
-      if(!session?.user?.id) throw new Error('No active session');
-
-      const { error: updateError } = await supabaseClient
-        .from('profiles')
-        .update({ name: cleanName })
-        .eq('id', session.user.id);
-
-      if(updateError) throw updateError;
-
-      const updatedProfile = await getProfile(session.user.id);
-      if(!hasProfileName(updatedProfile)) throw new Error('Name was not saved');
-
-      pendingProfileAfterName = updatedProfile;
-      profileNameMsg.textContent = 'تم حفظ الاسم بنجاح ✓';
-      setTimeout(() => enterTool(updatedProfile), 250);
-    } catch(e) {
-      console.error('Profile name save failed', e);
-      profileNameMsg.style.color = '#ff8095';
-      profileNameMsg.textContent = 'تعذر حفظ الاسم. حاول مرة أخرى.';
-    } finally {
-      saveProfileNameBtn.disabled = false;
-    }
-  }
-
-  saveProfileNameBtn.addEventListener('click', saveMissingProfileName);
-  profileNameInput.addEventListener('keydown', e => {
-    if(e.key === 'Enter') saveMissingProfileName();
-  });
-
-  btn.addEventListener('click', login);
-  pwd.addEventListener('keydown', e => { if(e.key === 'Enter') login(); });
-  registerBtn.addEventListener('click', register);
-
-  checkSession();
-
-  const splash = document.getElementById("splash");
-  const sheetList = document.getElementById("sheetList");
-  const cardsGrid = document.getElementById("cardsGrid");
-  const searchInput = document.getElementById("searchInput");
-  const clickSound = document.getElementById("clickSound");
-  const themeToggle = document.getElementById("themeToggle");
-  const toolCount = document.getElementById("toolCount");
-  const sectionTitle = document.getElementById("sectionTitle");
-  const resultCount = document.getElementById("resultCount");
-  
-  const aboutBtn = document.getElementById("aboutBtn");
-  const feedBtn = document.getElementById("feedBtn");
-  const appGridContainer = document.getElementById("appGridContainer");
-  const aboutViewContainer = document.getElementById("aboutViewContainer");
-  const feedbackViewContainer = document.getElementById("feedbackViewContainer");
-  const ftthViewContainer = document.getElementById("ftthViewContainer");
-  const ftthOpenBtn = document.getElementById("ftthOpenBtn");
-
-  let activeTab = 'main', workbookData = {}, currentSheet = null;
-
-  function switchTab(tab) {
-    const nextTab = (tab === activeTab && tab !== 'main') ? 'main' : tab;
-    appGridContainer.style.display = nextTab === 'main' ? 'grid' : 'none';
-    aboutViewContainer.style.display = nextTab === 'about' ? 'block' : 'none';
-    feedbackViewContainer.style.display = nextTab === 'feedback' ? 'block' : 'none';
-    ftthViewContainer.style.display = nextTab === 'ftth' ? 'grid' : 'none';
-    activeTab = nextTab;
-    if (nextTab !== 'main') window.scrollTo({top:0,behavior:'auto'});
-  }
-
-  aboutBtn.addEventListener("click", () => switchTab('about'));
-  feedBtn.addEventListener("click", () => switchTab('feedback'));
-  ftthOpenBtn.addEventListener("click", () => switchTab('ftth'));
-  function closeFtthGuide(){ switchTab('main'); ftthOpenBtn.focus(); window.scrollTo({top:0,behavior:'smooth'}); }
-  document.getElementById("ftthCloseBtn").addEventListener("click", closeFtthGuide);
-  document.getElementById("ftthReturnBtn").addEventListener("click", closeFtthGuide);
-
-  document.querySelectorAll('[data-ftth-jump]').forEach(btn => btn.addEventListener('click', () => {
-    document.getElementById(btn.dataset.ftthJump)?.scrollIntoView({behavior:'smooth',block:'start'});
-  }));
-
-  const ftthZoom = document.getElementById('ftthZoom');
-  const ftthZoomImage = document.getElementById('ftthZoomImage');
-  const ftthZoomPage = document.getElementById('ftthZoomPage');
-  const ftthZoomViewport = document.getElementById('ftthZoomViewport');
-  const ftthZoomClose = document.getElementById('ftthZoomClose');
-  let ftthPrevFocus = null;
-  document.querySelectorAll('#ftthGallery .ftth-image-button img').forEach(img => {
-    img.addEventListener('error', () => {
-      const alert = document.createElement('span');
-      alert.className = 'ftth-image-load-error';
-      alert.textContent = 'تعذر تحميل الصورة — تأكد من رفع مجلد ftth-migration بجوار ملف HTML على GitHub Pages.';
-      img.replaceWith(alert);
-    });
-  });
-  document.querySelectorAll('[data-ftth-zoom]').forEach(btn => btn.addEventListener('click', () => {
-    const img = btn.querySelector('img');
-    if (!img) return;
-    ftthPrevFocus = document.activeElement;
-    ftthZoomImage.src = img.src;
-    ftthZoomImage.alt = img.alt;
-    ftthZoomPage.textContent = 'FBB FTTH Migration — صفحة ' + btn.dataset.ftthZoom + ' من 18';
-    ftthZoom.classList.add('open');
-    ftthZoom.setAttribute('aria-hidden','false');
-    document.body.style.overflow = 'hidden';
-    ftthZoomViewport.scrollTop = 0;
-    ftthZoomViewport.scrollLeft = 0;
-    ftthZoomClose.focus();
-  }));
-  function closeFtthZoom(){
-    if (!ftthZoom.classList.contains('open')) return;
-    ftthZoom.classList.remove('open');
-    ftthZoom.setAttribute('aria-hidden','true');
-    document.body.style.overflow = '';
-    ftthZoomImage.removeAttribute('src');
-    if (ftthPrevFocus && typeof ftthPrevFocus.focus === 'function') ftthPrevFocus.focus();
-  }
-  ftthZoomClose.addEventListener('click',closeFtthZoom);
-  ftthZoom.addEventListener('click',event=>{if(event.target === ftthZoom) closeFtthZoom();});
-  document.addEventListener('keydown',event=>{if(event.key==='Escape' && ftthZoom.classList.contains('open')) closeFtthZoom();});
-  document.getElementById("aboutCloseBtn").addEventListener("click", () => {
-    switchTab('main');
-    aboutBtn.focus();
-    window.scrollTo({top: 0, behavior: 'smooth'});
-  });
-  document.getElementById("feedbackCloseBtn").addEventListener("click", () => {
-    switchTab('main');
-    feedBtn.focus();
-    window.scrollTo({top: 0, behavior: 'smooth'});
-  });
-
-  document.getElementById("feedbackForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    alert("تم إرسال اقتراحك بنجاح ، شكراً لك! 🌟");
-    e.target.reset(); switchTab('main');
-  });
-
-
-  // OneHome packages. Static tariff data transcribed from 7 supplied screenshots.
-  // These data are separated from Supabase, account approval and existing canned items.
-  const onehomePlans = [{"id":"s150","family":"super","name":"OneHome Super","gb":150,"speed":30,"internet":260,"before":300,"after":342,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"s200","family":"super","name":"OneHome Super","gb":200,"speed":30,"internet":330,"before":370,"after":422,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"s250","family":"super","name":"OneHome Super","gb":250,"speed":30,"internet":395,"before":435,"after":496,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"s300","family":"super","name":"OneHome Super","gb":300,"speed":30,"internet":460,"before":500,"after":570,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"s400","family":"super","name":"OneHome Super","gb":400,"speed":30,"internet":580,"before":620,"after":707,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"s500","family":"super","name":"OneHome Super","gb":500,"speed":30,"internet":660,"before":700,"after":798,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"s750","family":"super","name":"OneHome Super","gb":750,"speed":30,"internet":925,"before":965,"after":1101,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"s1500","family":"super","name":"OneHome Super","gb":1500,"speed":30,"internet":1650,"before":1690,"after":1927,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"m250","family":"mega","name":"OneHome Mega","gb":250,"speed":70,"internet":590,"before":630,"after":719,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"m500","family":"mega","name":"OneHome Mega","gb":500,"speed":70,"internet":900,"before":940,"after":1072,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"m750","family":"mega","name":"OneHome Mega","gb":750,"speed":70,"internet":1175,"before":1215,"after":1386,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"m1500","family":"mega","name":"OneHome Mega","gb":1500,"speed":70,"internet":2000,"before":2040,"after":2326,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"u250","family":"ultra","name":"OneHome Ultra","gb":250,"speed":100,"internet":785,"before":825,"after":941,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"u500","family":"ultra","name":"OneHome Ultra","gb":500,"speed":100,"internet":1150,"before":1190,"after":1357,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"u750","family":"ultra","name":"OneHome Ultra","gb":750,"speed":100,"internet":1425,"before":1465,"after":1671,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"sv1500","family":"max","name":"OneHome Max SV","gb":1500,"speed":200,"internet":2350,"before":2390,"after":2725,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"x1500","family":"max","name":"OneHome Max+","gb":1500,"speed":500,"internet":2700,"before":2740,"after":3124,"category":"m600","sound":40,"minutes":600,"period":"monthly","discount":null},{"id":"m3750-super-0","category":"m3750","family":"super","name":"OneHome Super","gb":150,"speed":30,"internet":260,"sound":50,"before":310,"after":354,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-super-1","category":"m3750","family":"super","name":"OneHome Super","gb":200,"speed":30,"internet":330,"sound":50,"before":380,"after":434,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-super-2","category":"m3750","family":"super","name":"OneHome Super","gb":250,"speed":30,"internet":395,"sound":50,"before":445,"after":508,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-super-3","category":"m3750","family":"super","name":"OneHome Super","gb":300,"speed":30,"internet":460,"sound":50,"before":510,"after":582,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-super-4","category":"m3750","family":"super","name":"OneHome Super","gb":400,"speed":30,"internet":580,"sound":50,"before":630,"after":719,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-super-5","category":"m3750","family":"super","name":"OneHome Super","gb":500,"speed":30,"internet":660,"sound":50,"before":710,"after":810,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-super-6","category":"m3750","family":"super","name":"OneHome Super","gb":750,"speed":30,"internet":925,"sound":50,"before":975,"after":1112,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-super-7","category":"m3750","family":"super","name":"OneHome Super","gb":1500,"speed":30,"internet":1650,"sound":50,"before":1700,"after":1939,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-mega-0","category":"m3750","family":"mega","name":"OneHome Mega","gb":250,"speed":70,"internet":590,"sound":50,"before":640,"after":731,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-mega-1","category":"m3750","family":"mega","name":"OneHome Mega","gb":500,"speed":70,"internet":900,"sound":50,"before":950,"after":1084,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-mega-2","category":"m3750","family":"mega","name":"OneHome Mega","gb":750,"speed":70,"internet":1175,"sound":50,"before":1225,"after":1397,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-mega-3","category":"m3750","family":"mega","name":"OneHome Mega","gb":1500,"speed":70,"internet":2000,"sound":50,"before":2050,"after":2338,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-ultra-0","category":"m3750","family":"ultra","name":"OneHome Ultra","gb":250,"speed":100,"internet":785,"sound":50,"before":835,"after":953,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-ultra-1","category":"m3750","family":"ultra","name":"OneHome Ultra","gb":500,"speed":100,"internet":1150,"sound":50,"before":1200,"after":1369,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-ultra-2","category":"m3750","family":"ultra","name":"OneHome Ultra","gb":750,"speed":100,"internet":1425,"sound":50,"before":1475,"after":1682,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-max-0","category":"m3750","family":"max","name":"OneHome Max","gb":1500,"speed":200,"internet":2350,"sound":50,"before":2400,"after":2737,"minutes":3750,"period":"monthly","discount":null},{"id":"m3750-max-1","category":"m3750","family":"max","name":"OneHome Max+","gb":1500,"speed":500,"internet":2700,"sound":50,"before":2750,"after":3136,"minutes":3750,"period":"monthly","discount":null},{"id":"g600-streamerz","category":"g600","family":"streaming","name":"STREAMERZ","gb":500,"speed":80,"internet":650,"sound":40,"before":690,"after":787,"minutes":600,"period":"monthly","discount":null,"baseGB":200,"bonusType":"ستريمنج","bonusGB":150,"bonusMaxGB":300,"notes":"سعة أساسية 200 جيجابايت + سعة ستريمنج 150 جيجابايت تصل إلى 300 جيجابايت."},{"id":"g600-gamerz","category":"g600","family":"gaming","name":"GAMERZ","gb":500,"speed":80,"internet":650,"sound":40,"before":690,"after":787,"minutes":600,"period":"monthly","discount":null,"baseGB":250,"bonusType":"جيمنج","bonusGB":125,"bonusMaxGB":250,"notes":"سعة أساسية 250 جيجابايت + سعة جيمنج 125 جيجابايت تصل إلى 250 جيجابايت."},{"id":"g600-plus","category":"g600","family":"mixed","name":"PLUS","gb":1500,"speed":150,"internet":1400,"sound":40,"before":1440,"after":1642,"minutes":600,"period":"monthly","discount":null,"baseGB":500,"bonusType":"جيمنج وستريمنج","bonusGB":500,"bonusMaxGB":1000,"notes":"سعة أساسية 500 جيجابايت + سعة جيمنج وستريمنج 500 جيجابايت تصل إلى 1,000 جيجابايت."},{"id":"g3750-streamerz","category":"g3750","family":"streaming","name":"STREAMERZ","gb":500,"speed":80,"internet":650,"sound":50,"before":700,"after":799,"minutes":3750,"period":"monthly","discount":null,"baseGB":200,"bonusType":"ستريمنج","bonusGB":150,"bonusMaxGB":300,"notes":"سعة أساسية 200 جيجابايت + سعة ستريمنج 150 جيجابايت تصل إلى 300 جيجابايت."},{"id":"g3750-gamerz","category":"g3750","family":"gaming","name":"GAMERZ","gb":500,"speed":80,"internet":650,"sound":50,"before":700,"after":799,"minutes":3750,"period":"monthly","discount":null,"baseGB":250,"bonusType":"جيمنج","bonusGB":125,"bonusMaxGB":250,"notes":"سعة أساسية 250 جيجابايت + سعة جيمنج 125 جيجابايت تصل إلى 250 جيجابايت."},{"id":"g3750-plus","category":"g3750","family":"mixed","name":"PLUS","gb":1500,"speed":150,"internet":1400,"sound":50,"before":1450,"after":1654,"minutes":3750,"period":"monthly","discount":null,"baseGB":500,"bonusType":"جيمنج وستريمنج","bonusGB":500,"bonusMaxGB":1000,"notes":"سعة أساسية 500 جيجابايت + سعة جيمنج وستريمنج 500 جيجابايت تصل إلى 1,000 جيجابايت."},{"id":"a7200-0","category":"a7200","family":"super","name":"OneHome Super","gb":1800,"speed":30,"internet":3120,"sound":480,"before":3600,"after":4104,"minutes":7200,"period":"annual","discount":null},{"id":"a7200-1","category":"a7200","family":"super","name":"OneHome Super","gb":2400,"speed":30,"internet":3960,"sound":480,"before":4440,"after":5062,"minutes":7200,"period":"annual","discount":null},{"id":"a7200-2","category":"a7200","family":"super","name":"OneHome Super","gb":3000,"speed":30,"internet":4345,"sound":440,"before":4785,"after":5455,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-3","category":"a7200","family":"super","name":"OneHome Super","gb":3600,"speed":30,"internet":5060,"sound":440,"before":5500,"after":6270,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-4","category":"a7200","family":"super","name":"OneHome Super","gb":4800,"speed":30,"internet":6380,"sound":440,"before":6820,"after":7775,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-5","category":"a7200","family":"super","name":"OneHome Super","gb":6000,"speed":30,"internet":6930,"sound":440,"before":7370,"after":8402,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-6","category":"a7200","family":"super","name":"OneHome Super","gb":9000,"speed":30,"internet":9715,"sound":440,"before":10155,"after":11577,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-7","category":"a7200","family":"super","name":"OneHome Super","gb":"18TB","speed":30,"internet":16500,"sound":440,"before":16940,"after":19312,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-8","category":"a7200","family":"mega","name":"OneHome Mega","gb":3000,"speed":70,"internet":6490,"sound":440,"before":6930,"after":7901,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-9","category":"a7200","family":"mega","name":"OneHome Mega","gb":6000,"speed":70,"internet":9450,"sound":440,"before":9890,"after":11275,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-10","category":"a7200","family":"mega","name":"OneHome Mega","gb":9000,"speed":70,"internet":12340,"sound":440,"before":12780,"after":14570,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-11","category":"a7200","family":"mega","name":"OneHome Mega","gb":"18TB","speed":70,"internet":20000,"sound":440,"before":20440,"after":23302,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-12","category":"a7200","family":"ultra","name":"OneHome Ultra","gb":3000,"speed":100,"internet":8635,"sound":440,"before":9075,"after":10312,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-13","category":"a7200","family":"ultra","name":"OneHome Ultra","gb":6000,"speed":100,"internet":12075,"sound":440,"before":12515,"after":14268,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-14","category":"a7200","family":"ultra","name":"OneHome Ultra","gb":9000,"speed":100,"internet":14965,"sound":440,"before":15405,"after":17562,"minutes":7200,"period":"annual","discount":40},{"id":"a7200-15","category":"a7200","family":"max","name":"OneHome Max SV","gb":"18TB","speed":200,"internet":23500,"sound":440,"before":23940,"after":27292,"minutes":7200,"period":"annual","discount":40},{"id":"a45000-0","category":"a45000","family":"super","name":"OneHome Super","gb":1800,"speed":30,"internet":3120,"sound":500,"before":3620,"after":4132,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-1","category":"a45000","family":"super","name":"OneHome Super","gb":2400,"speed":30,"internet":3960,"sound":500,"before":4460,"after":5089,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-2","category":"a45000","family":"super","name":"OneHome Super","gb":3000,"speed":30,"internet":4345,"sound":500,"before":4845,"after":5528,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-3","category":"a45000","family":"super","name":"OneHome Super","gb":3600,"speed":30,"internet":5060,"sound":500,"before":5560,"after":6343,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-4","category":"a45000","family":"super","name":"OneHome Super","gb":4800,"speed":30,"internet":6380,"sound":500,"before":6880,"after":7848,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-5","category":"a45000","family":"super","name":"OneHome Super","gb":6000,"speed":30,"internet":6930,"sound":500,"before":7430,"after":8475,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-6","category":"a45000","family":"super","name":"OneHome Super","gb":9000,"speed":30,"internet":9715,"sound":500,"before":10215,"after":11650,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-7","category":"a45000","family":"super","name":"OneHome Super","gb":"18TB","speed":30,"internet":16500,"sound":500,"before":17000,"after":19385,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-8","category":"a45000","family":"mega","name":"OneHome Mega","gb":3000,"speed":70,"internet":6490,"sound":500,"before":6990,"after":7974,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-9","category":"a45000","family":"mega","name":"OneHome Mega","gb":6000,"speed":70,"internet":9450,"sound":500,"before":9950,"after":11348,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-10","category":"a45000","family":"mega","name":"OneHome Mega","gb":9000,"speed":70,"internet":12340,"sound":500,"before":12840,"after":14643,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-11","category":"a45000","family":"mega","name":"OneHome Mega","gb":"18TB","speed":70,"internet":20000,"sound":500,"before":20500,"after":23375,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-12","category":"a45000","family":"ultra","name":"OneHome Ultra","gb":3000,"speed":100,"internet":8635,"sound":500,"before":9135,"after":10419,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-13","category":"a45000","family":"ultra","name":"OneHome Ultra","gb":6000,"speed":100,"internet":12075,"sound":500,"before":12575,"after":14341,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-14","category":"a45000","family":"ultra","name":"OneHome Ultra","gb":9000,"speed":100,"internet":14965,"sound":500,"before":15465,"after":17635,"minutes":45000,"period":"annual","discount":100},{"id":"a45000-15","category":"a45000","family":"max","name":"OneHome Max","gb":"18TB","speed":200,"internet":23500,"sound":500,"before":24000,"after":27365,"minutes":45000,"period":"annual","discount":100},{"id":"asahel","category":"sahel","family":"sahel","name":"OneHome SAHEL","gb":"1TB","speed":30,"internet":1500,"sound":480,"before":1980,"after":2258,"minutes":7200,"period":"annual","discount":null}];
-  const onehomeCategories = {
-    m600: {label:'الباقات الشهرية مع باقة صوت 600 دقيقة', period:'شهري'},
-    m3750:{label:'الباقات الشهرية مع باقة الصوت 3750 دقيقة',period:'شهري'},
-    g600:{label:'باقات PLUS / GAMERZ / STREAMERZ الشهرية مع باقة الصوت 600 دقيقة',period:'شهري'},
-    g3750:{label:'باقات STREAMERS / GAMERS / PLUS الشهرية مع باقة صوت 3750 دقيقة',period:'شهري'},
-    a7200:{label:'الباقات السنوية مع باقة صوت 7200 دقيقة',period:'سنوي'},
-    a45000:{label:'الباقات السنوية مع باقة صوت 45000 دقيقة',period:'سنوي'},
-    sahel:{label:'باقات الساحل السنوية',period:'سنوي'}
-  };
-  const onehomeModal=document.getElementById('onehomeModal');
-  const onehomeOpenBtn=document.getElementById('onehomeOpenBtn');
-  const onehomeCloseBtn=document.getElementById('onehomeCloseBtn');
-  const onehomeCategorySelect=document.getElementById('onehomeCategorySelect');
-  const onehomeFamilyWrap=document.getElementById('onehomeFamilies');
-  const onehomePlanSelect=document.getElementById('onehomePlanSelect');
-  const onehomePreview=document.getElementById('onehomePreview');
-  const onehomeCopyBtn=document.getElementById('onehomeCopyBtn');
-  const onehomeCopyFeedback=document.getElementById('onehomeCopyFeedback');
-  const onehomeSeparatorNote=document.getElementById('onehomeSeparatorNote');
-  const onehomeFormatButtons=Array.from(document.querySelectorAll('[data-onehome-format]'));
-  const formatOnehomeNum=n=>typeof n === 'number'?new Intl.NumberFormat('en-US').format(n):String(n);
-  // Do not use innerHTML for this: the separator must stay LITERAL in copied text.
-  const onehomeSeparator='\n<p>&nbsp;</p>\n';
-  let onehomeCategory='m600';
-  let onehomeFamily='super';
-  let onehomeFormat='detailed';
-  let onehomeSelected='s150';
-  let onehomePreviousOverflow='';
-  let onehomeFeedbackTimer=null;
-  let onehomePreviousFocus=null;
-
-  function onehomeSelectedPlan(){
-    return onehomePlans.find(p=>p.id===onehomeSelected && p.category===onehomeCategory)
-      || onehomePlans.find(p=>p.category===onehomeCategory);
-  }
-  function onehomeCap(plan){
-    return typeof plan.gb==='number'?`${formatOnehomeNum(plan.gb)} جيجابايت`:plan.gb.replace('TB',' تيرابايت');
-  }
-  function onehomeCapLabel(plan){
-    return typeof plan.gb==='number'?`${formatOnehomeNum(plan.gb)} GB`:plan.gb;
-  }
-  function onehomeVoiceText(plan){
-    if(plan.minutes===3750) return '3,750 دقيقة (2,500 دقيقة محلي ومحافظات + 1,250 دقيقة لموبايل WE)';
-    if(plan.minutes===45000) return '45,000 دقيقة (30,000 دقيقة محلي ومحافظات + 15,000 دقيقة لموبايل WE)';
-    return `${formatOnehomeNum(plan.minutes)} دقيقة محلي ومحافظات`;
-  }
-  function onehomeBreakdownText(plan){
-    return `${formatOnehomeNum(plan.internet)} جنيه إنترنت + ${formatOnehomeNum(plan.sound)} جنيه صوت`;
-  }
-  function onehomeCannedLines(plan){
-    const period=plan.period==='annual'?'السنوية':'الشهرية';
-    const lines=[
-      `تفاصيل باقة ${plan.name} ${period} كالتالي:`,
-      `• سعة الإنترنت: ${onehomeCap(plan)}${plan.baseGB?' (إجمالي السعة الموضح بالجدول)':''}.`,
-      `• السرعة: تصل إلى ${formatOnehomeNum(plan.speed)} ميجابت/ثانية.`,
-      `• المكالمات: ${onehomeVoiceText(plan)}.`,
-    ];
-    if(plan.baseGB){
-      lines.push(`• توزيع السعة: ${formatOnehomeNum(plan.baseGB)} جيجابايت أساسية + ${formatOnehomeNum(plan.bonusGB)} جيجابايت ${plan.bonusType} تصل إلى ${formatOnehomeNum(plan.bonusMaxGB)} جيجابايت.`);
-    }
-    lines.push(`• سعر الباقة ${plan.period==='annual'?'السنوي ':''}قبل الضريبة: ${formatOnehomeNum(plan.before)} جنيه (${onehomeBreakdownText(plan)}).`);
-    lines.push(`• سعر الباقة ${plan.period==='annual'?'السنوي ':''}شامل الضريبة: ${formatOnehomeNum(plan.after)} جنيه.`);
-    if(plan.discount!==null && plan.discount!==undefined){
-      lines.push(`• قيمة التخفيض الموضحة في الجدول: ${formatOnehomeNum(plan.discount)} جنيه.`);
-    }
-    return lines;
-  }
-  function onehomeShortText(plan){
-    const period=plan.period==='annual'?'السنوية':'الشهرية';
-    let body=`حضرتك، باقة ${plan.name} ${period} بتوفر ${onehomeCap(plan)} إنترنت بسرعة تصل إلى ${formatOnehomeNum(plan.speed)} ميجابت/ثانية، و${onehomeVoiceText(plan)}`;
-    if(plan.baseGB) body+=`، والسعة موزعة إلى ${formatOnehomeNum(plan.baseGB)} جيجابايت أساسية + سعة ${plan.bonusType} ${formatOnehomeNum(plan.bonusGB)} جيجابايت تصل إلى ${formatOnehomeNum(plan.bonusMaxGB)} جيجابايت`;
-    body+=`، بسعر ${formatOnehomeNum(plan.before)} جنيه قبل الضريبة، و${formatOnehomeNum(plan.after)} جنيه شامل الضريبة${plan.period==='annual'?' سنويًا':''}.`;
-    return body;
-  }
-  function onehomeCanned(){
-    const plan=onehomeSelectedPlan();
-    return onehomeFormat==='detailed'?onehomeCannedLines(plan).join(onehomeSeparator):onehomeShortText(plan);
-  }
-  function onehomePlanOptions(){
-    return onehomePlans.filter(p=>p.category===onehomeCategory && p.family===onehomeFamily);
-  }
-  function onehomeNoticeReset(){
-    if(onehomeFeedbackTimer) clearTimeout(onehomeFeedbackTimer);
-    onehomeCopyBtn.textContent='⧉ نسخ الكاند';
-    onehomeCopyFeedback.style.color='';
-    onehomeCopyFeedback.textContent='يُرجى مراجعة الويكي قبل الرد علي العميل';
-  }
-  function onehomeRefresh(){
-    const plan=onehomeSelectedPlan();
-    if(!plan)return;
-    onehomeCategorySelect.value=onehomeCategory;
-    Array.from(onehomeFamilyWrap.querySelectorAll('[data-onehome-family]')).forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.onehomeFamily===onehomeFamily)));
-    onehomeFormatButtons.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.onehomeFormat===onehomeFormat)));
-    onehomePlanSelect.value=plan.id;
-    document.getElementById('onehomeStatGB').textContent=onehomeCapLabel(plan);
-    document.getElementById('onehomeStatSpeed').textContent=`${plan.speed} Mbps`;
-    document.getElementById('onehomeStatBefore').textContent=`${formatOnehomeNum(plan.before)} جنيه`;
-    document.getElementById('onehomeStatAfter').textContent=`${formatOnehomeNum(plan.after)} جنيه`;
-    document.getElementById('onehomeVoiceDetail').textContent=onehomeVoiceText(plan);
-    document.getElementById('onehomeBreakdown').textContent=onehomeBreakdownText(plan);
-    document.getElementById('onehomeNotesRow').hidden=!plan.notes;
-    document.getElementById('onehomeNotes').textContent=plan.notes||'';
-    document.getElementById('onehomeDiscountRow').hidden=plan.discount==null;
-    document.getElementById('onehomeDiscount').textContent=plan.discount==null?'':`${formatOnehomeNum(plan.discount)} جنيه`;
-    document.getElementById('onehomeSeparatorNote').style.display=onehomeFormat==='detailed'?'':'none';
-    // Category may have annual pricing; label it before presenting the amounts.
-    document.querySelector('#onehomeStatBefore').parentElement.querySelector('.label').textContent=`قبل الضريبة (${onehomeCategories[onehomeCategory].period})`;
-    document.querySelector('#onehomeStatAfter').parentElement.querySelector('.label').textContent=`شامل الضريبة (${onehomeCategories[onehomeCategory].period})`;
-    onehomePreview.replaceChildren();
-    const lines=onehomeFormat==='detailed'?onehomeCannedLines(plan):[onehomeShortText(plan)];
-    for(const line of lines){const elt=document.createElement('p');elt.textContent=line;onehomePreview.appendChild(elt);}
-    onehomeNoticeReset();
-  }
-  function onehomePopulatePlans(){
-    const rows=onehomePlanOptions();
-    onehomePlanSelect.replaceChildren();
-    for(const plan of rows){
-      const opt=document.createElement('option');
-      opt.value=plan.id;
-      opt.textContent=`${plan.name} — ${onehomeCapLabel(plan)} — ${formatOnehomeNum(plan.after)} جنيه`;
-      onehomePlanSelect.appendChild(opt);
-    }
-    if(!rows.some(p=>p.id===onehomeSelected))onehomeSelected=rows[0]?.id;
-    onehomeRefresh();
-  }
-  function onehomeSetCategory(category){
-    if(!onehomeCategories[category])return;
-    onehomeCategory=category;
-    const rows=onehomePlans.filter(p=>p.category===category);
-    const families=[...new Set(rows.map(p=>p.family))];
-    onehomeFamily=families[0];
-    onehomeFamilyWrap.replaceChildren();
-    onehomeFamilyWrap.style.setProperty('--onehome-family-count',String(families.length));
-    const labels={super:'Super',mega:'Mega',ultra:'Ultra',max:'Max',streaming:'STREAMERZ',gaming:'GAMERZ',mixed:'PLUS',sahel:'SAHEL'};
-    for(const family of families){
-      const b=document.createElement('button');
-      b.type='button';b.className='onehome-family';b.dataset.onehomeFamily=family;
-      b.setAttribute('aria-pressed',String(family===onehomeFamily));b.textContent=labels[family]||family;
-      b.addEventListener('click',()=>{onehomeFamily=family;onehomePopulatePlans();});
-      onehomeFamilyWrap.appendChild(b);
-    }
-    document.getElementById('onehomeCategoryMeta').textContent=`${rows.length} باقة متاحة في هذا التصنيف • أسعار ${onehomeCategories[category].period}ة`;
-    onehomeSelected=null;
-    onehomePopulatePlans();
-  }
-  function onehomeOpen(){
-    onehomePreviousFocus=document.activeElement;
-    onehomePreviousOverflow=document.body.style.overflow;
-    document.body.style.overflow='hidden';
-    onehomeModal.classList.add('is-open');
-    onehomeModal.setAttribute('aria-hidden','false');
-    onehomeRefresh();
-    onehomeCategorySelect.focus();
-  }
-  function onehomeClose(){
-    onehomeModal.classList.remove('is-open');
-    onehomeModal.setAttribute('aria-hidden','true');
-    document.body.style.overflow=onehomePreviousOverflow;
-    (onehomePreviousFocus||onehomeOpenBtn).focus();
-  }
-  async function onehomeCopy(){
-    const canned=onehomeCanned();
-    let didCopy=false;
-    onehomeCopyBtn.disabled=true;
-    try{
-      if(navigator.clipboard?.writeText){try{await navigator.clipboard.writeText(canned);didCopy=true;}catch(err){console.warn('Clipboard API blocked',err);}}
-      if(!didCopy){
-        const area=document.createElement('textarea');area.value=canned;area.readOnly=true;
-        area.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0';
-        document.body.appendChild(area);area.focus();area.select();
-        try{didCopy=document.execCommand('copy');}finally{area.remove();}
-      }
-      if(!didCopy)throw new Error('Clipboard copy unavailable');
-      onehomeCopyBtn.textContent='✓ تم النسخ';
-      onehomeCopyFeedback.textContent=onehomeFormat==='detailed'?'تم النسخ بفواصل السطور حرفيًا ✓':'تم نسخ الرد المختصر ✓';
-      onehomeCopyFeedback.style.color='var(--success)';
-      try{playClick();}catch(err){}
-    }catch(err){
-      console.error('OneHome copy error',err);
-      onehomeCopyBtn.textContent='حاول النسخ مرة أخرى';
-      onehomeCopyFeedback.textContent='تعذر النسخ؛ تحقق من أذونات الحافظة في المتصفح.';
-      onehomeCopyFeedback.style.color='var(--danger)';
-    }finally{
-      onehomeCopyBtn.disabled=false;
-      if(onehomeFeedbackTimer)clearTimeout(onehomeFeedbackTimer);
-      onehomeFeedbackTimer=setTimeout(onehomeNoticeReset,2500);
-    }
-  }
-  onehomeCategorySelect.addEventListener('change',()=>onehomeSetCategory(onehomeCategorySelect.value));
-  onehomePlanSelect.addEventListener('change',()=>{onehomeSelected=onehomePlanSelect.value;onehomeRefresh();});
-  onehomeFormatButtons.forEach(b=>b.addEventListener('click',()=>{onehomeFormat=b.dataset.onehomeFormat;onehomeRefresh();}));
-  onehomeOpenBtn.addEventListener('click',onehomeOpen);
-  onehomeCloseBtn.addEventListener('click',onehomeClose);
-  onehomeModal.addEventListener('click',e=>{if(e.target===onehomeModal)onehomeClose();});
-  document.addEventListener('keydown',e=>{
-    if(!onehomeModal.classList.contains('is-open'))return;
-    if(e.key==='Escape'){e.preventDefault();onehomeClose();}
-    if(e.key==='Tab'){
-      const items=Array.from(onehomeModal.querySelectorAll('button:not(:disabled),select:not(:disabled)'));
-      const first=items[0],last=items[items.length-1];
-      if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
-      else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
-    }
-  });
-  onehomeCopyBtn.addEventListener('click',onehomeCopy);
-  onehomeSetCategory('m600');
-
-  const savedTheme = localStorage.getItem('candat_theme') || 'dark';
-  document.body.setAttribute('data-theme', savedTheme);
-  themeToggle.textContent = savedTheme === 'dark' ? '🌙' : '☀️';
-
-  setTimeout(() => splash.style.opacity = "0", 750);
-  setTimeout(() => splash.style.display = "none", 1150);
-
-  themeToggle.addEventListener("click", () => {
-    const next = document.body.getAttribute("data-theme") === "dark" ? "light" : "dark";
-    document.body.setAttribute("data-theme", next);
-    themeToggle.textContent = next === "dark" ? "🌙" : "☀️";
-    localStorage.setItem('candat_theme', next);
-  });
-
-  // CLEAN START: isolated library, server-filtered by auth.uid() (NOT legacy canned_items).
-  // No client-side GSM filter is used: unauthorized GSM text is never sent by the server.
-  async function loadCannedData() {
-    cardsGrid.innerHTML = '<div class="empty">جارٍ تحميل الكاندات المسموح بها...</div>';
-    sheetList.innerHTML = '';
-    toolCount.textContent = '…';
-    try {
-      const { data, error } = await supabaseClient.rpc('cand_fresh_read');
-      if (error) throw error;
-      if (!data || !Array.isArray(data.items)) throw new Error('INVALID_CATALOG_RESPONSE');
-      if(data.requires_voice_selection){
-        showVoiceSelection();
-        cardsGrid.innerHTML='<div class="empty">برجاء اختيار صيغة الكندات لإكمال الإعداد.</div>';
-        return;
-      }
-      hideVoiceSelection();
-
-      workbookData = {};
-      const sheetNames = [];
-      data.items.forEach(item => {
-        const sName = String(item.sheet_name || '').trim();
-        if (!sName) return;
-        if (!Object.prototype.hasOwnProperty.call(workbookData, sName)) {
-          workbookData[sName] = [];
-          sheetNames.push(sName);
-        }
-        workbookData[sName].push({
-          name: item.title,
-          content: item.content,
-          sheet: sName,
-          reference_url: item.reference_url,
-          click_count: item.click_count
-        });
-      });
-
-      toolCount.textContent = String(sheetNames.length);
-      renderSheetList(sheetNames);
-      if (sheetNames.length) {
-        showSheet(sheetNames[0]);
-      } else {
-        sectionTitle.textContent = 'لا توجد كاندات متاحة';
-        resultCount.textContent = '0 نتيجة';
-        cardsGrid.innerHTML = '<div class="empty">تم التحميل لكن لا توجد كاندات مسموحة لحسابك. تواصل مع الأدمن لمراجعة التصنيف.</div>';
-      }
-      console.info('Fresh canned library ready:', {
-        access: data.skill_access, visible: data.visible_count,
-        catalog: data.total_catalog, sheets: sheetNames.length
-      });
-    } catch (err) {
-      console.error('Fresh canned catalog load failed:', err);
-      const reason = String(err?.message || err || 'Unknown error');
-      let label = 'حدث خطأ أثناء تحميل الكاندات. أرسل تفاصيل الخطأ للأدمن.';
-      if (reason.includes('CATALOG_NOT_PUBLISHED'))
-        label = 'مكتبة الكاندات الجديدة لسه ما اترفعتش. الأدمن محتاج يعمل Publish للإكسيل.';
-      else if (reason.includes('ACCOUNT_NOT_APPROVED') || reason.includes('AUTH_REQUIRED'))
-        label = 'حسابك غير معتمد أو انتهت جلسة الدخول. سجّل دخول من جديد.';
-      else if (reason.includes('NO_ALL_ITEMS_FOR_FIXED'))
-        label = 'خطأ في تصنيف الشيت: مفيش كاندات ALL متاحة للـ Fixed. راجع ملف الإكسيل.';
-      else if (reason.includes('DUAL_CATALOG_NOT_PUBLISHED'))
-        label = 'الأدمن محتاج يرفع ملف المذكر والمؤنث معًا قبل استخدام التول.';
-      else if (reason.includes('DUAL_CATALOG_INCOMPLETE'))
-        label = 'نسخة الكندات المؤنثة غير مكتملة. برجاء الرجوع للأدمن لمراجعة رفع النسختين.';
-      else if (reason.includes('Could not find the function') || reason.includes('does not exist'))
-        label = 'إعداد قاعدة البيانات الجديدة غير مكتمل. الأدمن محتاج يشغّل SQL الجديد.';
-      toolCount.textContent = '!';
-      sectionTitle.textContent = 'تعذر تحميل الكاندات';
-      resultCount.textContent = 'خطأ';
-      cardsGrid.innerHTML = '<div class="empty">⚠️ ' + escapeHtml(label) + '<div style="margin-top:12px;font-size:11px;direction:ltr;overflow-wrap:anywhere">' + escapeHtml(reason) + '</div></div>';
-    }
-  }
-
-  function renderSheetList(names) {
-    sheetList.innerHTML = '';
-    names.forEach(name => {
-      const btn = document.createElement('div');
-      btn.className = 'sheet-item';
-      btn.innerHTML = `<span class="chip"></span><span class="label">${escapeHtml(name)}</span>`;
-      btn.addEventListener('click', () => {
-        if(activeTab !== 'main') switchTab('main');
-        showSheet(name);
-      });
-      sheetList.appendChild(btn);
-    });
-  }
-  function showSheet(name) {
-    window.scrollTo({top:0,behavior:'smooth'});
-    currentSheet = name;
-    searchInput.value = '';
-    document.querySelectorAll('.sheet-item').forEach(el => {
-      el.classList.toggle('active', el.querySelector('.label').textContent === name);
-    });
-    sectionTitle.textContent = name;
-    renderCards(workbookData[name] || []);
-  }
-
-  function renderCards(items) {
-    cardsGrid.innerHTML = '';
-    const query = searchInput.value.trim();
-    resultCount.textContent = `${items.length} نتيجة`;
-    if (!items || !items.length) {
-      cardsGrid.innerHTML = `<div class="empty">${query ? `لا توجد نتائج مطابقة لبحثك: <b>"${escapeHtml(query)}"</b>` : 'اختر شيت للبدء'}</div>`;
-      return;
-    }
-    items.forEach((item, index) => {
-      const card = document.createElement('div');
-      card.className = 'card';
-      const displayContent = escapeHtml(item.content).replace(/\n/g,'<br>');
-      card.innerHTML = `
-        <div class="card-title">
-          <span class="ext">رد</span>
-          <span class="t">${escapeHtml(item.name)}</span>
-        </div>
-        <div class="card-content">
-          <div class="frame">${displayContent}</div>
-        </div>
-        <div class="card-footer" data-original-text="${escapeHtml(item.sheet)}">
-          <span class="path">${escapeHtml(item.sheet)}</span>
-          <span class="cmd">انسخ ↗</span>
-        </div>`;
-      card.addEventListener('click', () => {
-        const contentToCopy = item.content.replace(/\n/g, "\n<p>&nbsp;</p>\n");
-        copyText(contentToCopy);
-        playClick();
-        const footer = card.querySelector('.card-footer');
-        const original = footer.getAttribute('data-original-text');
-        footer.innerHTML = ' تم النسخ ✅';
-        footer.classList.add('copied');
-        setTimeout(() => {
-        footer.innerHTML = `<span class="path">${original}</span><span class="cmd">انسخ ↗</span>`;
-        footer.classList.remove('copied');
-        }, 1500);
-      });
-      cardsGrid.appendChild(card);
-      setTimeout(() => card.classList.add('visible'), 35 + index*15);
-    });
-  }
-
-  function escapeHtml(value){ return String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
-  function copyText(text) {
-    navigator.clipboard.writeText(text).catch(() => {
-      const temp = document.createElement('textarea'); temp.value = text; document.body.appendChild(temp); temp.select(); document.execCommand('copy'); temp.remove();
-    });
-  }
-  function playClick(){ clickSound.currentTime=0; clickSound.play().catch(()=>{}); }
-
-  searchInput.addEventListener('input', () => {
-    const q = searchInput.value.trim().toLowerCase();
-    if (activeTab !== 'main') switchTab('main');
-    if (!q) { if (currentSheet) showSheet(currentSheet); return; }
-    document.querySelectorAll('.sheet-item').forEach(el => el.classList.remove('active'));
-    const results = [];
-    Object.keys(workbookData).forEach(sheetName => (workbookData[sheetName] || []).forEach(item => {
-      if ((item.name + ' ' + item.content).toLowerCase().includes(q)) results.push({...item, sheet: sheetName});
-    }));
-    sectionTitle.textContent = 'نتائج البحث';
-    renderCards(results);
-  });
-
-  window.addEventListener('pagehide', () => {
-    if(onlinePresenceChannel){
-      try { onlinePresenceChannel.untrack(); } catch(e) {}
-    }
-    if(adminMessageChannel){
-      try { supabaseClient.removeChannel(adminMessageChannel); } catch(e) {}
-    }
-  });
-});
-</script>
-</div>
-<style>
-#cannedVoiceModal{position:fixed;inset:0;background:rgba(0,0,0,.84);z-index:2147483646;display:none;align-items:center;justify-content:center;padding:16px;direction:rtl;font-family:Arial,sans-serif}
-#cannedVoiceModal.open{display:flex}
-#cannedVoiceModal .voice-dialog{width:min(470px,100%);padding:26px;background:#171b29;border:1px solid #45506a;border-radius:19px;box-shadow:0 20px 60px #0009;color:#fff}
-#cannedVoiceModal h2{font-size:22px;margin:0 0 12px;color:#fff}
-#cannedVoiceModal p{line-height:1.7;color:#ced5e8;font-size:14px;margin:0 0 19px}
-#cannedVoiceModal label{display:block;padding:13px;margin:9px 0;border:1px solid #414b64;border-radius:12px;cursor:pointer;color:#fff;background:#252b3d}
-#cannedVoiceModal label:has(input:checked){border-color:#70dfce;background:#183f41}
-#cannedVoiceModal input{accent-color:#6fe3d9;vertical-align:middle;margin-inline-end:8px}
-#cannedVoiceSave{display:block;width:100%;border:0;background:#6fe3d9;color:#111827;padding:14px;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;margin-top:16px}
-#cannedVoiceSave:disabled{opacity:.55;cursor:wait}
-#cannedVoiceStatus{color:#ffb6b6;min-height:20px;font-size:13px;margin-top:8px}
-</style>
-<div id="cannedVoiceModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="cannedVoiceTitle">
- <section class="voice-dialog">
-  <h2 id="cannedVoiceTitle">اختيار صيغة الكندات</h2>
-  <p>اختار الصيغة اللي هتستخدمها في الرد على العملاء. الاختيار بيتحفظ على حسابك بشكل دائم، وأي تعديل بعد كده بيكون من خلال الأدمن فقط.</p>
-  <label><input type="radio" name="canned-voice" value="male"> صيغة المذكر — أنا متفهم استياء حضرتك</label>
-  <label><input type="radio" name="canned-voice" value="female"> صيغة المؤنث — أنا متفهمة استياء حضرتك</label>
-  <button type="button" id="cannedVoiceSave">تأكيد الاختيار</button>
-  <div id="cannedVoiceStatus" role="status"></div>
- </section>
-</div>
-</body>
-</html>
+-- CANNED TOOL: DUAL VOICE (MALE / FEMALE) -- MIGRATION v2
+-- REQUIREMENTS: Clean Start schema + GSM Default v1.2 installed.
+-- RUN ON A BACKUP/STAGING DATABASE FIRST. Run in Supabase SQL Editor on the SAME project.
+-- This migration does NOT change any existing canned row or user profile.
+-- It adds a female variant and new admin/user RPCs. Old single-variant publish/add are disabled.
+-- Rollout: 1 SQL -> 2 new Admin -> 3 publish both xlsx -> 4 new Tool.
+BEGIN;
+
+DO $preflight$
+BEGIN
+ IF to_regclass('public.cand_fresh_library') IS NULL
+    OR to_regclass('public.cand_fresh_access') IS NULL
+    OR to_regclass('public.profiles') IS NULL THEN
+  RAISE EXCEPTION 'CLEAN_START_REQUIRED: deploy the existing Clean Start schema first';
+ END IF;
+END $preflight$;
+
+ALTER TABLE public.cand_fresh_library ADD COLUMN IF NOT EXISTS content_female text;
+ALTER TABLE public.cand_fresh_library DROP CONSTRAINT IF EXISTS cand_fresh_library_female_nonblank;
+ALTER TABLE public.cand_fresh_library ADD CONSTRAINT cand_fresh_library_female_nonblank
+ CHECK (content_female IS NULL OR length(btrim(content_female)) > 0);
+
+CREATE TABLE IF NOT EXISTS public.cand_voice_preferences (
+ user_id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+ voice text NOT NULL CHECK (voice IN ('male','female')),
+ chosen_at timestamptz NOT NULL DEFAULT now(),
+ updated_at timestamptz NOT NULL DEFAULT now(),
+ updated_by uuid
+);
+CREATE TABLE IF NOT EXISTS public.cand_voice_changes (
+ id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+ user_id uuid NOT NULL,
+ changed_by uuid NOT NULL,
+ old_voice text,
+ new_voice text NOT NULL CHECK (new_voice IN ('male','female')),
+ changed_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.cand_voice_preferences ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.cand_voice_changes ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.cand_voice_preferences FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON public.cand_voice_changes FROM PUBLIC, anon, authenticated;
+
+-- User may choose ONLY ONCE. Admin can correct mistakes using a separate secure function.
+CREATE OR REPLACE FUNCTION public.cand_voice_choose(p_voice text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $fn$
+DECLARE v_uid uuid := auth.uid(); v_role text; v_status text;
+BEGIN
+ IF v_uid IS NULL THEN RAISE EXCEPTION 'AUTH_REQUIRED'; END IF;
+ SELECT p.role,p.status INTO v_role,v_status FROM public.profiles p WHERE p.id=v_uid;
+ IF v_role <> 'user' OR v_status <> 'approved' THEN RAISE EXCEPTION 'APPROVED_AGENT_REQUIRED'; END IF;
+ IF p_voice IS NULL OR p_voice NOT IN ('male','female') THEN RAISE EXCEPTION 'INVALID_VOICE'; END IF;
+ IF EXISTS (SELECT 1 FROM public.cand_fresh_library WHERE content_female IS NULL) THEN
+   RAISE EXCEPTION 'DUAL_CATALOG_NOT_PUBLISHED';
+ END IF;
+ INSERT INTO public.cand_voice_preferences(user_id,voice,updated_by)
+ VALUES(v_uid,p_voice,v_uid)
+ ON CONFLICT (user_id) DO NOTHING;
+ IF NOT FOUND THEN RAISE EXCEPTION 'VOICE_ALREADY_CHOSEN: contact Admin to correct'; END IF;
+ RETURN jsonb_build_object('ok',true,'voice',p_voice);
+END $fn$;
+
+CREATE OR REPLACE FUNCTION public.cand_voice_admin_list()
+RETURNS TABLE(user_id uuid, voice text)
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = '' AS $fn$
+BEGIN
+ IF NOT public.cand_fresh_admin() THEN RAISE EXCEPTION 'ADMIN_REQUIRED'; END IF;
+ RETURN QUERY SELECT p.id, v.voice FROM public.profiles p
+ LEFT JOIN public.cand_voice_preferences v ON v.user_id=p.id WHERE p.role='user';
+END $fn$;
+
+CREATE OR REPLACE FUNCTION public.cand_voice_admin_set(p_user_id uuid,p_voice text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $fn$
+DECLARE v_old text; v_actor uuid := auth.uid();
+BEGIN
+ IF NOT public.cand_fresh_admin() THEN RAISE EXCEPTION 'ADMIN_REQUIRED'; END IF;
+ IF p_voice IS NULL OR p_voice NOT IN ('male','female') THEN RAISE EXCEPTION 'INVALID_VOICE'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM public.profiles WHERE id=p_user_id AND role='user') THEN RAISE EXCEPTION 'AGENT_NOT_FOUND'; END IF;
+ SELECT voice INTO v_old FROM public.cand_voice_preferences WHERE user_id=p_user_id FOR UPDATE;
+ INSERT INTO public.cand_voice_preferences(user_id,voice,updated_by,updated_at)
+ VALUES(p_user_id,p_voice,v_actor,now())
+ ON CONFLICT(user_id) DO UPDATE SET voice=excluded.voice,updated_by=excluded.updated_by,updated_at=now();
+ IF v_old IS DISTINCT FROM p_voice THEN
+  INSERT INTO public.cand_voice_changes(user_id,changed_by,old_voice,new_voice)
+  VALUES(p_user_id,v_actor,v_old,p_voice);
+ END IF;
+ RETURN jsonb_build_object('ok',true,'user_id',p_user_id,'voice',p_voice);
+END $fn$;
+
+-- Atomic dual-file publication. Both variants are *paired* before the browser calls this.
+CREATE OR REPLACE FUNCTION public.cand_voice_publish(p_items jsonb,p_expected_count integer)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $fn$
+DECLARE v_count integer; v_all integer; v_gsm integer; v_distinct integer;
+BEGIN
+ IF NOT public.cand_fresh_admin() THEN RAISE EXCEPTION 'ADMIN_REQUIRED'; END IF;
+ IF p_items IS NULL OR jsonb_typeof(p_items)<>'array' THEN RAISE EXCEPTION 'INVALID_JSON_ARRAY'; END IF;
+ v_count:=jsonb_array_length(p_items);
+ IF v_count<2 OR v_count>10000 OR v_count IS DISTINCT FROM p_expected_count THEN
+  RAISE EXCEPTION 'COUNT_MISMATCH expected=% actual=%',p_expected_count,v_count;
+ END IF;
+ IF EXISTS (SELECT 1 FROM jsonb_to_recordset(p_items) AS x(
+   sheet_name text,title text,content text,content_female text,reference_url text,
+   click_count integer,row_order integer,skills text)
+   WHERE nullif(btrim(x.sheet_name),'') IS NULL OR nullif(btrim(x.title),'') IS NULL
+     OR nullif(btrim(x.content),'') IS NULL OR nullif(btrim(x.content_female),'') IS NULL
+     OR x.skills IS NULL OR x.skills NOT IN ('ALL','GSM')
+     OR x.click_count IS NULL OR x.click_count < 0
+     OR x.row_order IS NULL OR x.row_order < 1
+ ) THEN RAISE EXCEPTION 'INVALID_PAIRED_CANNED_ITEM'; END IF;
+ SELECT count(DISTINCT x.row_order), count(*) FILTER(WHERE skills='ALL'), count(*) FILTER(WHERE skills='GSM')
+ INTO v_distinct,v_all,v_gsm
+ FROM jsonb_to_recordset(p_items) AS x(row_order integer,skills text);
+ IF v_distinct<>v_count OR v_all<1 OR v_gsm<1 THEN RAISE EXCEPTION 'INVALID_ORDER_OR_CLASSIFICATION'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM jsonb_to_recordset(p_items) AS x(row_order integer)
+               WHERE x.row_order=v_count) THEN RAISE EXCEPTION 'NON_CONTIGUOUS_ROW_ORDER'; END IF;
+ PERFORM pg_catalog.pg_advisory_xact_lock(816432101);
+ -- WHERE is necessary for databases with pg_safeupdate enabled.
+ DELETE FROM public.cand_fresh_library WHERE row_order > 0;
+ INSERT INTO public.cand_fresh_library
+  (sheet_name,title,content,content_female,reference_url,click_count,row_order,skills)
+ SELECT x.sheet_name,x.title,x.content,x.content_female,x.reference_url,x.click_count,x.row_order,x.skills
+ FROM jsonb_to_recordset(p_items) AS x(sheet_name text,title text,content text,
+    content_female text,reference_url text,click_count integer,row_order integer,skills text)
+ ORDER BY x.row_order;
+ IF (SELECT count(*) FROM public.cand_fresh_library)<>v_count THEN RAISE EXCEPTION 'INCOMPLETE_DUAL_PUBLISH'; END IF;
+ RETURN jsonb_build_object('ok',true,'total',v_count,'all_items',v_all,'gsm_items',v_gsm);
+END $fn$;
+
+-- Admin creates and edits both variants together; no single-sided edits.
+CREATE OR REPLACE FUNCTION public.cand_voice_add(
+ p_sheet_name text,p_title text,p_content_male text,p_content_female text,p_skills text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $fn$
+DECLARE v_order integer;
+BEGIN
+ IF NOT public.cand_fresh_admin() THEN RAISE EXCEPTION 'ADMIN_REQUIRED'; END IF;
+ IF nullif(btrim(p_sheet_name),'') IS NULL OR nullif(btrim(p_title),'') IS NULL
+ OR nullif(btrim(p_content_male),'') IS NULL OR nullif(btrim(p_content_female),'') IS NULL
+ OR p_skills IS NULL OR p_skills NOT IN('ALL','GSM') THEN RAISE EXCEPTION 'INVALID_CANNED_ITEM'; END IF;
+ PERFORM pg_catalog.pg_advisory_xact_lock(816432101);
+ SELECT coalesce(max(row_order),0)+1 INTO v_order FROM public.cand_fresh_library;
+ INSERT INTO public.cand_fresh_library(sheet_name,title,content,content_female,skills,row_order)
+ VALUES(btrim(p_sheet_name),btrim(p_title),p_content_male,p_content_female,p_skills,v_order);
+ RETURN jsonb_build_object('ok',true,'row_order',v_order);
+END $fn$;
+
+CREATE OR REPLACE FUNCTION public.cand_voice_admin_catalog()
+RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = '' AS $fn$
+BEGIN
+ IF NOT public.cand_fresh_admin() THEN RAISE EXCEPTION 'ADMIN_REQUIRED'; END IF;
+ RETURN (SELECT coalesce(jsonb_agg(jsonb_build_object(
+  'id',id,'sheet_name',sheet_name,'title',title,'content',content,
+  'content_female',content_female,'skills',skills,'reference_url',reference_url,
+  'row_order',row_order,'click_count',click_count) ORDER BY row_order),'[]'::jsonb)
+ FROM public.cand_fresh_library);
+END $fn$;
+
+CREATE OR REPLACE FUNCTION public.cand_voice_update(
+ p_id bigint,p_sheet_name text,p_title text,p_content_male text,p_content_female text,
+ p_skills text,p_reference_url text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $fn$
+BEGIN
+ IF NOT public.cand_fresh_admin() THEN RAISE EXCEPTION 'ADMIN_REQUIRED'; END IF;
+ IF nullif(btrim(p_sheet_name),'') IS NULL OR nullif(btrim(p_title),'') IS NULL
+ OR nullif(btrim(p_content_male),'') IS NULL OR nullif(btrim(p_content_female),'') IS NULL
+ OR p_skills IS NULL OR p_skills NOT IN ('ALL','GSM') THEN RAISE EXCEPTION 'INVALID_CANNED_ITEM'; END IF;
+ PERFORM pg_catalog.pg_advisory_xact_lock(816432101);
+ UPDATE public.cand_fresh_library SET
+  sheet_name=btrim(p_sheet_name),title=btrim(p_title),content=p_content_male,
+  content_female=p_content_female,skills=p_skills,reference_url=nullif(btrim(p_reference_url),'')
+ WHERE id=p_id;
+ IF NOT FOUND THEN RAISE EXCEPTION 'CANNED_NOT_FOUND_OR_REPUBLISHED'; END IF;
+ RETURN jsonb_build_object('ok',true,'id',p_id);
+END $fn$;
+
+-- SERVER-SIDE variant filtering. Clients never receive the other variant's text.
+CREATE OR REPLACE FUNCTION public.cand_fresh_read()
+RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = '' AS $fn$
+DECLARE v_uid uuid:=auth.uid();v_status text;v_role text;
+ v_access text:='universal';v_voice text;v_total integer;v_all integer;
+BEGIN
+ IF v_uid IS NULL THEN RAISE EXCEPTION 'AUTH_REQUIRED'; END IF;
+ SELECT p.status,p.role INTO v_status,v_role FROM public.profiles p WHERE p.id=v_uid;
+ IF v_role IS NULL OR v_status IS DISTINCT FROM 'approved' THEN RAISE EXCEPTION 'ACCOUNT_NOT_APPROVED'; END IF;
+ IF v_role='admin' THEN v_access:='universal';v_voice:='male';
+ ELSIF v_role='user' THEN
+  SELECT coalesce((SELECT a.skill_access FROM public.cand_fresh_access a WHERE a.user_id=v_uid),'universal') INTO v_access;
+  SELECT voice INTO v_voice FROM public.cand_voice_preferences WHERE user_id=v_uid;
+ ELSE RAISE EXCEPTION 'UNSUPPORTED_USER_ROLE'; END IF;
+ SELECT count(*),count(*) FILTER(WHERE skills='ALL') INTO v_total,v_all FROM public.cand_fresh_library;
+ IF v_total=0 THEN RAISE EXCEPTION 'CATALOG_NOT_PUBLISHED'; END IF;
+ IF v_access='fixed' AND v_all=0 THEN RAISE EXCEPTION 'NO_ALL_ITEMS_FOR_FIXED'; END IF;
+ -- Transition-safe: while Admin is preparing the dual workbook, legacy Tool keeps
+ -- serving the existing male library. After dual publish, new Tool enforces selection.
+ IF EXISTS (SELECT 1 FROM public.cand_fresh_library WHERE content_female IS NULL) THEN
+  -- Never give a female-assigned agent male wording if the female catalog becomes incomplete.
+  IF v_voice='female' THEN RAISE EXCEPTION 'DUAL_CATALOG_INCOMPLETE'; END IF;
+  RETURN jsonb_build_object(
+   'requires_voice_selection',false,'voice','male','skill_access',v_access,
+   'total_catalog',v_total,
+   'visible_count',(SELECT count(*) FROM public.cand_fresh_library c WHERE v_access='universal' OR c.skills='ALL'),
+   'items',(SELECT coalesce(jsonb_agg(jsonb_build_object(
+    'sheet_name',c.sheet_name,'title',c.title,'content',c.content,
+    'reference_url',c.reference_url,'click_count',c.click_count,
+    'row_order',c.row_order,'skills',c.skills) ORDER BY c.row_order),'[]'::jsonb)
+    FROM public.cand_fresh_library c WHERE v_access='universal' OR c.skills='ALL')
+  );
+ END IF;
+ IF v_voice IS NULL THEN
+  RETURN jsonb_build_object('requires_voice_selection',true,'items','[]'::jsonb,
+    'skill_access',v_access,'visible_count',0,'total_catalog',v_total);
+ END IF;
+ RETURN jsonb_build_object(
+  'requires_voice_selection',false,'voice',v_voice,'skill_access',v_access,
+  'total_catalog',v_total,
+  'visible_count',(SELECT count(*) FROM public.cand_fresh_library c WHERE v_access='universal' OR c.skills='ALL'),
+  'items',(SELECT coalesce(jsonb_agg(jsonb_build_object(
+   'sheet_name',c.sheet_name,'title',c.title,
+   'content',CASE WHEN v_voice='female' THEN c.content_female ELSE c.content END,
+   'reference_url',c.reference_url,'click_count',c.click_count,
+   'row_order',c.row_order,'skills',c.skills) ORDER BY c.row_order),'[]'::jsonb)
+   FROM public.cand_fresh_library c WHERE v_access='universal' OR c.skills='ALL')
+ );
+END $fn$;
+
+-- Disable obsolete one-file writes (avoid accidental loss of female content).
+REVOKE EXECUTE ON FUNCTION public.cand_fresh_publish(jsonb,integer) FROM PUBLIC,anon,authenticated;
+REVOKE EXECUTE ON FUNCTION public.cand_fresh_add(text,text,text,text) FROM PUBLIC,anon,authenticated;
+
+REVOKE EXECUTE ON FUNCTION public.cand_voice_choose(text) FROM PUBLIC,anon;
+REVOKE EXECUTE ON FUNCTION public.cand_voice_admin_list() FROM PUBLIC,anon;
+REVOKE EXECUTE ON FUNCTION public.cand_voice_admin_set(uuid,text) FROM PUBLIC,anon;
+REVOKE EXECUTE ON FUNCTION public.cand_voice_publish(jsonb,integer) FROM PUBLIC,anon;
+REVOKE EXECUTE ON FUNCTION public.cand_voice_add(text,text,text,text,text) FROM PUBLIC,anon;
+REVOKE EXECUTE ON FUNCTION public.cand_voice_admin_catalog() FROM PUBLIC,anon;
+REVOKE EXECUTE ON FUNCTION public.cand_voice_update(bigint,text,text,text,text,text,text) FROM PUBLIC,anon;
+REVOKE EXECUTE ON FUNCTION public.cand_fresh_read() FROM PUBLIC,anon;
+
+GRANT EXECUTE ON FUNCTION public.cand_voice_choose(text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.cand_voice_admin_list() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.cand_voice_admin_set(uuid,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.cand_voice_publish(jsonb,integer) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.cand_voice_add(text,text,text,text,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.cand_voice_admin_catalog() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.cand_voice_update(bigint,text,text,text,text,text,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.cand_fresh_read() TO authenticated;
+COMMIT;
+
+-- VERIFY only after you publish both Excel files:
+-- SELECT count(*) AS total, count(*) FILTER(WHERE content_female IS NULL) AS missing_female
+-- FROM public.cand_fresh_library;
+-- Expected: 609 and 0 for the two supplied workbooks. Your live database may differ.
