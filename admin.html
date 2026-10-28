@@ -98,6 +98,20 @@ button{border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:po
 .cand-skill-select:disabled{opacity:.5}
 .catalog-stats{background:#111f23;border:1px solid #2b5556;color:#a0ebd9;padding:11px;border-radius:9px;font-size:12px;line-height:1.75;margin-bottom:12px;white-space:pre-wrap}
 .catalog-preview{background:#10111a;border:1px dashed #44546c;color:#c9cce0;padding:12px;border-radius:9px;font-size:12px;line-height:1.8;margin-top:12px;white-space:pre-wrap;overflow-wrap:anywhere}
+
+/* Dual publish confirmation: copyable exact phrase, no native browser prompt */
+.cand-confirm-panel[hidden]{display:none!important}
+.cand-confirm-panel{margin-top:12px;padding:14px;border:1px solid #74613b;border-radius:10px;background:#201b16;box-shadow:0 8px 30px rgba(0,0,0,.15)}
+.cand-confirm-panel h4{margin:0 0 8px;color:#ffcd81;font-size:13px}
+.cand-confirm-panel p{font-size:12px;color:var(--ink);line-height:1.65;margin:7px 0}
+.cand-phrase-row{display:flex;gap:7px;align-items:center;margin:12px 0 10px}
+.cand-phrase-source{flex:1;min-width:0;text-align:center;font-size:15px;font-weight:800;letter-spacing:1px;color:var(--cyan);background:#0d1020;border:1px solid #4f625b;border-radius:7px;padding:10px}
+.cand-phrase-row button{margin:0;flex-shrink:0}
+.cand-confirm-actions{display:flex;gap:8px;margin-top:10px}
+.cand-confirm-actions button{flex:1;margin:0}
+.cand-confirm-actions .primary-btn{margin:0}
+.cand-confirm-status{font-size:11px;min-height:16px;margin-top:9px;color:var(--dim);line-height:1.5}
+@media(max-width:420px){.cand-confirm-actions{flex-direction:column}}
 </style>
 </head>
 <body oncontextmenu="return false;">
@@ -195,13 +209,29 @@ button{border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:po
       </div>
 
       <div class="card" style="border-style:dashed;border-color:#66558f">
-        <h3>📊 Dual Excel Upload — Male & Female (Fixed v2.1)</h3>
+        <h3>📊 Dual Excel Upload — Male & Female (v2.1.1)</h3>
         <div class="hint">Upload BOTH files to publish one unified library. Each file needs A Name · B Content · C Reference URL (optional) · D Click Count · E Skills (ALL/GSM). Matching is done by Sheet + Name + occurrence. No legacy canned_items changes.</div>
         <div id="candCatalogSummary" class="catalog-stats">Checking newly published library...</div>
         <div class="form-group"><label for="excelFile">Male Excel — candat_data_Male.xlsx</label><input type="file" id="excelFile" class="form-control" accept=".xlsx,.xls"></div><div class="form-group"><label for="excelFemaleFile">Female Excel — candat_data_Female.xlsx</label><input type="file" id="excelFemaleFile" class="form-control" accept=".xlsx,.xls"></div>
         <button type="button" id="uploadExcelBtn" class="primary-btn">1 — Validate & Match Both Files</button>
         <div id="candUploadPreview" class="catalog-preview">Choose both Excel files, then click Validate & Match. Empty template rows will be skipped; missing Skills on real canned rows is reported.</div>
         <button type="button" id="candPublishBtn" class="primary-btn" disabled>2 — Publish Both Excel Files (Atomic)</button>
+        <section id="candConfirmPanel" class="cand-confirm-panel" hidden aria-label="Confirm publishing both Excel files">
+          <h4>⚠ Confirm publishing Male &amp; Female</h4>
+          <p id="candConfirmSummary">This will replace the published canned catalog.</p>
+          <p><strong>Type <code>PUBLISH BOTH</code> exactly to confirm.</strong> Do not type only <code>PUBLISH</code>.</p>
+          <div class="cand-phrase-row">
+            <input id="candPhraseSource" class="cand-phrase-source" type="text" readonly value="PUBLISH BOTH" aria-label="Phrase to copy">
+            <button type="button" id="candCopyPhraseBtn" aria-label="Copy PUBLISH BOTH">📋 Copy phrase</button>
+          </div>
+          <label for="candConfirmationInput" style="display:block;font-size:12px;margin-bottom:5px">Paste or type the exact phrase here:</label>
+          <input id="candConfirmationInput" class="form-control" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="PUBLISH BOTH">
+          <div id="candConfirmationStatus" class="cand-confirm-status" role="status" aria-live="polite">Nothing published yet. Confirm the phrase to continue.</div>
+          <div class="cand-confirm-actions">
+            <button type="button" id="candCancelConfirmBtn">Cancel</button>
+            <button type="button" id="candExecutePublishBtn" class="primary-btn" disabled>Confirm &amp; Publish Both</button>
+          </div>
+        </section>
         <button type="button" id="candRefreshStats" style="width:100%;margin-top:10px">Refresh Published Counts</button>
       </div>
 
@@ -847,9 +877,25 @@ const candEditForm=document.getElementById('candEditForm');
 const editPick=document.getElementById('candEditPick');
 const editSearch=document.getElementById('candEditSearch');
 const editStatus=document.getElementById('candEditStatus');
+const candConfirmPanel=document.getElementById('candConfirmPanel');
+const candConfirmSummary=document.getElementById('candConfirmSummary');
+const candPhraseSource=document.getElementById('candPhraseSource');
+const candCopyPhraseBtn=document.getElementById('candCopyPhraseBtn');
+const candConfirmationInput=document.getElementById('candConfirmationInput');
+const candConfirmationStatus=document.getElementById('candConfirmationStatus');
+const candCancelConfirmBtn=document.getElementById('candCancelConfirmBtn');
+const candExecutePublishBtn=document.getElementById('candExecutePublishBtn');
+let candPublishing=false;
+function resetCandConfirmation(){
+  candConfirmPanel.hidden=true;
+  candConfirmationInput.value='';
+  candExecutePublishBtn.disabled=true;
+  candConfirmationStatus.textContent='Nothing published yet. Confirm the phrase to continue.';
+}
 
 function clearCandPreview(){
   candPreviewItems=null;candPreviewFileName='';candPreviewFemaleName='';candPublishBtn.disabled=true;
+  resetCandConfirmation();
   candPreviewPanel.textContent='Files changed. Validate & Match BOTH Excel files again.';
 }
 [candExcelFile,candFemaleFile].forEach(input=>input.addEventListener('change',clearCandPreview));
@@ -985,14 +1031,52 @@ uploadExcelBtn.addEventListener('click',async()=>{
   finally{uploadExcelBtn.disabled=false;}
 });
 
-candPublishBtn.addEventListener('click',async()=>{
+candPublishBtn.addEventListener('click',()=>{
+  if(candPublishing)return;
   if(!candPreviewItems?.length||candExcelFile.files?.[0]?.name!==candPreviewFileName||candFemaleFile.files?.[0]?.name!==candPreviewFemaleName){
     clearCandPreview();return;
   }
+  candConfirmSummary.textContent=`This will REPLACE the live catalog with ${candPreviewItems.length} paired canned items (Male + Female) in ONE transaction. Review any removed keys shown in the validation preview above before confirming.`;
+  candConfirmationInput.value='';
+  candExecutePublishBtn.disabled=true;
+  candConfirmationStatus.textContent='NOTHING PUBLISHED YET. Copy the exact phrase and paste it below.';
+  candConfirmPanel.hidden=false;
+  candConfirmationInput.focus();
+});
+candCopyPhraseBtn.addEventListener('click',async()=>{
+  const phrase='PUBLISH BOTH';
+  let copied=false;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    try{await navigator.clipboard.writeText(phrase);copied=true;}catch(_){}
+  }
+  if(!copied){
+    candPhraseSource.focus();candPhraseSource.select();
+    try{copied=document.execCommand('copy');}catch(_){}
+  }
+  candConfirmationStatus.textContent=copied
+    ? 'Copied: PUBLISH BOTH. Paste it into the confirmation field.'
+    : 'Automatic copy was blocked. The phrase is selected; press Ctrl+C and paste it into the field.';
+});
+candConfirmationInput.addEventListener('input',()=>{
+  const correct=candConfirmationInput.value==='PUBLISH BOTH';
+  candExecutePublishBtn.disabled=!correct;
+  candConfirmationStatus.textContent=correct?'Exact phrase confirmed. You can publish now.':'Type or paste PUBLISH BOTH exactly. No changes have been published.';
+});
+candCancelConfirmBtn.addEventListener('click',()=>{
+  if(candPublishing)return;
+  resetCandConfirmation();
+});
+candExecutePublishBtn.addEventListener('click',async()=>{
+  if(candPublishing||candConfirmPanel.hidden||candConfirmationInput.value!=='PUBLISH BOTH')return;
+  if(!candPreviewItems?.length||candExcelFile.files?.[0]?.name!==candPreviewFileName||candFemaleFile.files?.[0]?.name!==candPreviewFemaleName){
+    clearCandPreview();return;
+  }
+  candPublishing=true;
   const expected=candPreviewItems.length;
-  if(prompt(`Replace the live catalog with ${expected} PAIRED canned items?\nType PUBLISH BOTH to confirm:`)!=='PUBLISH BOTH')return;
-  candPublishBtn.disabled=true;uploadExcelBtn.disabled=true;
+  candPublishBtn.disabled=true;uploadExcelBtn.disabled=true;candExecutePublishBtn.disabled=true;candCancelConfirmBtn.disabled=true;
+  candExcelFile.disabled=true;candFemaleFile.disabled=true;
   candPreviewPanel.textContent='Publishing BOTH versions atomically...';
+  candConfirmationStatus.textContent='Publishing to Supabase...';
   try{
     const {data,error}=await sb.rpc('cand_voice_publish',{p_items:candPreviewItems,p_expected_count:expected});
     if(error)throw error;
@@ -1001,11 +1085,16 @@ candPublishBtn.addEventListener('click',async()=>{
     candPreviewPanel.textContent=`PUBLISHED & VERIFIED — ${data.total} paired canned items · ALL ${data.all_items} · GSM ${data.gsm_items}.`;
     msg.style.color='#7ee2a8';msg.textContent='Male and Female catalogs are live. Agents can refresh.';
     candPreviewItems=null;candExcelFile.value='';candFemaleFile.value='';
+    resetCandConfirmation();
     await Promise.all([refreshCandCatalogStatus(),loadEditorCatalog()]);
   }catch(err){
     msg.style.color='#ff9b9b';msg.textContent='Dual publish failed (transaction rolled back): '+err.message;
     candPreviewPanel.textContent=msg.textContent;candPreviewItems=null;
-  }finally{uploadExcelBtn.disabled=false;}
+  }finally{
+    candPublishing=false;uploadExcelBtn.disabled=false;
+    candCancelConfirmBtn.disabled=false;
+    candExcelFile.disabled=false;candFemaleFile.disabled=false;
+  }
 });
 
 addCannedForm.addEventListener('submit',async e=>{
