@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Canned Tool - Admin</title>
+<title>Canned Tool - Admin | Dual Canned Voice v2</title>
 <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3685/3685367.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -47,17 +47,10 @@ button{border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:po
 .user-management-card .toolbar input.form-control{flex:1 1 220px}
 .user-management-card .toolbar select.form-control{flex:0 1 118px;min-width:102px}
 .user-management-card .count-badge{font-size:10.5px;padding:5px 8px}
-.user-management-card .table-wrap{overflow-x:hidden}
-.user-management-card table{width:100%;min-width:0;table-layout:fixed}
+.user-management-card .table-wrap{overflow-x:auto}
+.user-management-card table{width:100%;min-width:1050px;table-layout:auto}
 .user-management-card th,.user-management-card td{padding:8px 6px;font-size:11.5px}
 .user-management-card th{font-size:9.5px;letter-spacing:.02em}
-.user-management-card th:nth-child(1),.user-management-card td:nth-child(1){width:18%}
-.user-management-card th:nth-child(2),.user-management-card td:nth-child(2){width:24%}
-.user-management-card th:nth-child(3),.user-management-card td:nth-child(3){width:17%}
-.user-management-card th:nth-child(4),.user-management-card td:nth-child(4){width:11%}
-.user-management-card th:nth-child(5),.user-management-card td:nth-child(5){width:8%}
-.user-management-card th:nth-child(6),.user-management-card td:nth-child(6){width:10%}
-.user-management-card th:nth-child(7),.user-management-card td:nth-child(7){width:12%}
 .user-management-card td:nth-child(1),
 .user-management-card td:nth-child(2),
 .user-management-card td:nth-child(5),
@@ -101,14 +94,6 @@ button{border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:po
 /* Clean Start: additional user Skill Access control */
 .user-management-card .table-wrap{overflow-x:auto}
 .user-management-card table{min-width:950px}
-.user-management-card th:nth-child(1),.user-management-card td:nth-child(1){width:15%}
-.user-management-card th:nth-child(2),.user-management-card td:nth-child(2){width:19%}
-.user-management-card th:nth-child(3),.user-management-card td:nth-child(3){width:14%}
-.user-management-card th:nth-child(4),.user-management-card td:nth-child(4){width:9%}
-.user-management-card th:nth-child(5),.user-management-card td:nth-child(5){width:7%}
-.user-management-card th:nth-child(6),.user-management-card td:nth-child(6){width:15%}
-.user-management-card th:nth-child(7),.user-management-card td:nth-child(7){width:8%}
-.user-management-card th:nth-child(8),.user-management-card td:nth-child(8){width:13%}
 .cand-skill-select{font-size:11px;background:#101b22;color:#91e6d7;border:1px solid #355c62;border-radius:6px;padding:7px 4px;max-width:100%;font-weight:700}
 .cand-skill-select:disabled{opacity:.5}
 .catalog-stats{background:#111f23;border:1px solid #2b5556;color:#a0ebd9;padding:11px;border-radius:9px;font-size:12px;line-height:1.75;margin-bottom:12px;white-space:pre-wrap}
@@ -161,8 +146,8 @@ button{border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:po
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Name</th><th>Email</th><th>Activity</th><th>Status</th><th>Role</th><th>Skill Access</th><th>Created</th><th>Actions</th></tr></thead>
-          <tbody id="users"><tr><td colspan="8" class="muted">Loading…</td></tr></tbody>
+          <thead><tr><th>Name</th><th>Email</th><th>Activity</th><th>Status</th><th>Role</th><th>Skill Access</th><th>Canned Voice</th><th>Created</th><th>Actions</th></tr></thead>
+          <tbody id="users"><tr><td colspan="9" class="muted">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -210,13 +195,13 @@ button{border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:po
       </div>
 
       <div class="card" style="border-style:dashed;border-color:#66558f">
-        <h3>📊 Excel Upload</h3>
-        <div class="hint">Fresh isolated library. Required: A Name · B Content · D Click Count · E Skills (ALL or GSM). Column C (Reference URL) is optional. Preview is mandatory. No legacy canned_items changes.</div>
+        <h3>📊 Dual Excel Upload — Male & Female</h3>
+        <div class="hint">Upload BOTH files to publish one unified library. Each file needs A Name · B Content · C Reference URL (optional) · D Click Count · E Skills (ALL/GSM). Matching is done by Sheet + Name + occurrence. No legacy canned_items changes.</div>
         <div id="candCatalogSummary" class="catalog-stats">Checking newly published library...</div>
-        <div class="form-group"><input type="file" id="excelFile" class="form-control" accept=".xlsx, .xls"></div>
-        <button type="button" id="uploadExcelBtn" class="primary-btn">1 — Validate & Preview Excel</button>
-        <div id="candUploadPreview" class="catalog-preview">Choose an Excel file, then click Validate & Preview.</div>
-        <button type="button" id="candPublishBtn" class="primary-btn" disabled>2 — Publish Validated Excel (Atomic)</button>
+        <div class="form-group"><label for="excelFile">Male Excel — candat_data_Male.xlsx</label><input type="file" id="excelFile" class="form-control" accept=".xlsx,.xls"></div><div class="form-group"><label for="excelFemaleFile">Female Excel — candat_data_Female.xlsx</label><input type="file" id="excelFemaleFile" class="form-control" accept=".xlsx,.xls"></div>
+        <button type="button" id="uploadExcelBtn" class="primary-btn">1 — Validate & Match Both Files</button>
+        <div id="candUploadPreview" class="catalog-preview">Choose both Excel files, then click Validate & Match.</div>
+        <button type="button" id="candPublishBtn" class="primary-btn" disabled>2 — Publish Both Excel Files (Atomic)</button>
         <button type="button" id="candRefreshStats" style="width:100%;margin-top:10px">Refresh Published Counts</button>
       </div>
 
@@ -225,9 +210,31 @@ button{border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:po
         <form id="addCannedForm">
           <div class="form-group"><label for="sheetName">Sheet section</label><input type="text" id="sheetName" class="form-control" placeholder="e.g. Sales DSL" required></div>
           <div class="form-group"><label for="cannedTitle">Canned name</label><input type="text" id="cannedTitle" class="form-control" placeholder="e.g. Basic Packages" required></div>
-          <div class="form-group"><label for="cannedContent">Canned content</label><textarea id="cannedContent" class="form-control" placeholder="Type canned content here..." required></textarea></div>
+          <div class="form-group"><label for="cannedContent">Male canned content</label><textarea id="cannedContent" class="form-control" placeholder="Male form..." required></textarea></div><div class="form-group"><label for="cannedFemaleContent">Female canned content</label><textarea id="cannedFemaleContent" class="form-control" placeholder="Female form..." required></textarea></div>
           <div class="form-group"><label for="cannedSkill">Skills</label><select id="cannedSkill" class="form-control"><option value="ALL">ALL — Everyone</option><option value="GSM">GSM — Universal only</option></select></div>
-          <button type="submit" id="addBtn" class="primary-btn">Save to Fresh Library</button>
+          <button type="submit" id="addBtn" class="primary-btn">Add BOTH Versions</button>
+        </form>
+      </div>
+      <div class="card">
+        <h3>✏️ Edit Existing Canned — Both Versions</h3>
+        <div class="hint">Select a canned response. Edit Male and Female together, then save. This updates the live catalog and does not edit the local Excel workbooks.</div>
+        <div class="form-group"><input id="candEditSearch" class="form-control" type="search" placeholder="Search by name or sheet..."></div>
+        <div class="form-group"><select id="candEditPick" class="form-control"><option value="">Load catalog first...</option></select></div>
+        <button type="button" id="candLoadEditor" style="width:100%">Refresh Available Canned Items</button>
+        <div class="hint" style="margin-top:10px">After adding/editing canned responses, download the updated workbooks so your next Excel publish doesn't overwrite those changes.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+          <button type="button" id="exportMaleExcel" style="flex:1;min-width:135px">⬇ Export Male Excel</button>
+          <button type="button" id="exportFemaleExcel" style="flex:1;min-width:135px">⬇ Export Female Excel</button>
+        </div>
+        <form id="candEditForm" style="display:none;margin-top:12px">
+          <div class="form-group"><label>Sheet</label><input class="form-control" id="editSheet" required></div>
+          <div class="form-group"><label>Name</label><input class="form-control" id="editTitle" required></div>
+          <div class="form-group"><label>Male Content</label><textarea class="form-control" id="editMale" required></textarea></div>
+          <div class="form-group"><label>Female Content</label><textarea class="form-control" id="editFemale" required></textarea></div>
+          <div class="form-group"><label>Skills</label><select class="form-control" id="editSkills"><option>ALL</option><option>GSM</option></select></div>
+          <div class="form-group"><label>Reference URL</label><input class="form-control" id="editRef"></div>
+          <button type="submit" class="primary-btn" id="candEditSave">Save Both Versions</button>
+          <div id="candEditStatus" class="hint" aria-live="polite"></div>
         </form>
       </div>
     </div>
@@ -300,8 +307,14 @@ const openReplyCountBadge = document.getElementById('openReplyCountBadge');
 
 let allProfiles = [];
 let candAccessMap = new Map();
+let candAccessLookupFailed = false;
 let candPreviewItems = null;
 let candPreviewFileName = "";
+let candPreviewFemaleName = "";
+let candVoiceMap = new Map();
+let candVoiceLookupFailed = false;
+let candEditCatalog = [];
+let candEditingId = null;
 let currentFilteredProfiles = [];
 let onlineUserIds = new Set();
 let presenceChannel = null;
@@ -403,6 +416,7 @@ async function checkAuthWithRetry() {
     await loadUsers();
     await refreshCandCatalogStatus();
     await loadAdminReplies();
+    await loadEditorCatalog();
     startReplyMonitor();
     msg.textContent = ''; 
     setInterval(loadUsers, 30000);
@@ -421,8 +435,10 @@ async function loadCandAccessMap(){
     msg.style.color='#ff9b9b';
     msg.textContent='Skill Access could not be read. Run clean-start SQL first: '+error.message;
     candAccessMap = new Map();
+    candAccessLookupFailed = true;
     return;
   }
+  candAccessLookupFailed = false;
   candAccessMap = new Map((data||[]).map(v=>[String(v.user_id),v.skill_access]));
 }
 
@@ -448,7 +464,7 @@ async function loadUsers(){
 
   if(error){ msg.style.color='#ff9b9b'; msg.textContent='Failed to load user accounts: ' + error.message; return; }
   allProfiles = data || [];
-  await loadCandAccessMap();
+  await Promise.all([loadCandAccessMap(),loadCandVoiceMap()]);
   renderUsers();
   renderRecipientOptions();
 }
@@ -466,6 +482,18 @@ function formatLastSeen(value){
   const days = Math.floor(hrs/24);
   if(days < 7) return `Last seen ${days}d ago`;
   return 'Last seen ' + new Date(value).toLocaleString();
+}
+
+async function loadCandVoiceMap(){
+  const {data,error} = await sb.rpc('cand_voice_admin_list');
+  if(error){
+    candVoiceLookupFailed=true; candVoiceMap=new Map();
+    console.error('Canned Voice lookup failed',error);
+    msg.style.color='#ff9b9b';msg.textContent='Canned Voice setup is missing: '+error.message;
+    return;
+  }
+  candVoiceLookupFailed=false;
+  candVoiceMap=new Map((data||[]).map(v=>[String(v.user_id),v.voice]));
 }
 
 function renderUsers(){
@@ -512,7 +540,7 @@ function renderUsers(){
   updateMessageAudienceHint();
   users.innerHTML = '';
   if(!filtered.length){
-    users.innerHTML = '<tr><td colspan="8" class="muted" style="text-align:center;padding:24px">No users match the current filters.</td></tr>';
+    users.innerHTML = '<tr><td colspan="9" class="muted" style="text-align:center;padding:24px">No users match the current filters.</td></tr>';
     return;
   }
 
@@ -531,20 +559,29 @@ function renderUsers(){
       (u.status==='pending' ? `<button class="approve" data-id="${u.id}" data-status="approved">Approve</button><button class="reject" data-id="${u.id}" data-status="rejected">Reject</button>` :
        `<button data-id="${u.id}" data-status="${u.status==='approved'?'disabled':'approved'}">${u.status==='approved'?'Disable':'Enable'}</button>`);
 
-    const access = candAccessMap.get(String(u.id)) || 'fixed';
+    const access = candAccessMap.get(String(u.id)) || 'universal';
     const skillControl = u.role === 'admin' ? '<span class="badge">Universal</span>' :
+      candAccessLookupFailed ? '<span class="badge status-disabled" title="Cannot load user access. Check Admin error message.">Access error</span>' :
       `<select class="cand-skill-select" data-user-id="${esc(u.id)}" aria-label="Access for ${esc(u.email)}">
         <option value="fixed" ${access === 'fixed' ? 'selected' : ''}>Fixed · ALL</option>
         <option value="universal" ${access === 'universal' ? 'selected' : ''}>Universal · ALL+GSM</option>
       </select>`;
-    tr.innerHTML = `<td>${displayName}</td><td>${esc(u.email)}</td><td>${onlineStatus}</td><td><span class="badge ${statusClass}">${esc(u.status)}</span></td><td>${esc(u.role)}</td><td>${skillControl}</td><td>${formattedDate}</td><td>${actions}</td>`;
+    const currentVoice=candVoiceMap.get(String(u.id)) || '';
+    const voiceControl = u.role==='admin' ? '<span class="badge">Admin</span>' :
+      candVoiceLookupFailed ? '<span class="badge status-disabled">DB error</span>' :
+      `<select class="cand-voice-select" data-user-id="${esc(u.id)}" aria-label="Canned Voice for ${esc(u.email)}">
+        <option value="" ${!currentVoice?'selected':''}>Not selected</option>
+        <option value="male" ${currentVoice==='male'?'selected':''}>Male</option>
+        <option value="female" ${currentVoice==='female'?'selected':''}>Female</option>
+      </select>`;
+    tr.innerHTML = `<td>${displayName}</td><td>${esc(u.email)}</td><td>${onlineStatus}</td><td><span class="badge ${statusClass}">${esc(u.status)}</span></td><td>${esc(u.role)}</td><td>${skillControl}</td><td>${voiceControl}</td><td>${formattedDate}</td><td>${actions}</td>`;
     users.appendChild(tr);
   });
 
   document.querySelectorAll('.cand-skill-select').forEach(select => select.onchange = async () => {
     const id = select.dataset.userId;
     const next = select.value;
-    const old = candAccessMap.get(String(id)) || 'fixed';
+    const old = candAccessMap.get(String(id)) || 'universal';
     select.disabled = true;
     const {error} = await sb.rpc('cand_fresh_set_access',{p_user_id:id,p_skill_access:next});
     select.disabled = false;
@@ -559,6 +596,21 @@ function renderUsers(){
     msg.textContent = `Skill Access saved as ${next}. Ask this user to refresh the tool.`;
   });
 
+  document.querySelectorAll('.cand-voice-select').forEach(select => select.onchange = async () => {
+    const id=select.dataset.userId;
+    const before=candVoiceMap.get(String(id)) || '';
+    const next=select.value;
+    if(!next){select.value=before;return;}
+    if(!confirm(`Change this agent's Canned Voice to ${next.toUpperCase()}? Only Admin can do this later.`)){
+      select.value=before;return;
+    }
+    select.disabled=true;
+    const {error}=await sb.rpc('cand_voice_admin_set',{p_user_id:id,p_voice:next});
+    select.disabled=false;
+    if(error){select.value=before;msg.style.color='#ff9b9b';msg.textContent='Failed to save Canned Voice: '+error.message;return;}
+    candVoiceMap.set(String(id),next);
+    msg.style.color='#7ee2a8';msg.textContent=`Saved ${next.toUpperCase()} for agent. Ask them to refresh the tool.`;
+  });
   document.querySelectorAll('[data-id]').forEach(b => b.onclick = async() => {
     b.disabled = true;
     const {error} = await sb.rpc('set_user_status',{target_user_id:b.dataset.id,new_status:b.dataset.status});
@@ -786,145 +838,232 @@ statusFilter.addEventListener('change', renderUsers);
 activityFilter.addEventListener('change', renderUsers);
 nameFilter.addEventListener('change', renderUsers);
 
-// CLEAN START: never write to legacy canned_items; preview validates the exact Skills values.
-const candPublishBtn = document.getElementById('candPublishBtn');
-const candPreviewPanel = document.getElementById('candUploadPreview');
-const candExcelFile = document.getElementById('excelFile');
+// DUAL VOICE: validate & pair both Excel workbooks before any database transaction.
+const candPublishBtn=document.getElementById('candPublishBtn');
+const candPreviewPanel=document.getElementById('candUploadPreview');
+const candExcelFile=document.getElementById('excelFile');
+const candFemaleFile=document.getElementById('excelFemaleFile');
+const candEditForm=document.getElementById('candEditForm');
+const editPick=document.getElementById('candEditPick');
+const editSearch=document.getElementById('candEditSearch');
+const editStatus=document.getElementById('candEditStatus');
 
 function clearCandPreview(){
-  candPreviewItems = null;
-  candPreviewFileName = '';
-  candPublishBtn.disabled = true;
-  candPreviewPanel.textContent = 'File changed. Click Validate & Preview again.';
+  candPreviewItems=null;candPreviewFileName='';candPreviewFemaleName='';candPublishBtn.disabled=true;
+  candPreviewPanel.textContent='Files changed. Validate & Match BOTH Excel files again.';
 }
-candExcelFile.addEventListener('change',clearCandPreview);
+[candExcelFile,candFemaleFile].forEach(input=>input.addEventListener('change',clearCandPreview));
 
-uploadExcelBtn.addEventListener('click', async () => {
-  if(!candExcelFile.files?.length){
-    candPreviewPanel.textContent='Please select an Excel file first.';
-    return;
-  }
-  uploadExcelBtn.disabled = true;
-  candPublishBtn.disabled = true;
-  candPreviewItems = null;
-  candPreviewPanel.textContent='Validating all sheets and ALL/GSM classifications...';
-  try {
-    const file = candExcelFile.files[0];
-    const bytes = new Uint8Array(await file.arrayBuffer());
-    const wb = XLSX.read(bytes,{type:'array'});
-    const allItems = [];
-    const problems = [];
-    const ignored = [];
-    let index = 0;
-    for(const name of wb.SheetNames){
-      const rows = XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:'',raw:false});
-      const head = (rows[0]||[]).slice(0,5).map(v=>String(v).trim().toLowerCase());
-      const required = [[0,'name'],[1,'content'],[3,'click count'],[4,'skills']];
-      if(required.some(([i,h])=>head[i]!==h) || (head[2] && head[2]!=='reference url')){
-        problems.push(`Sheet ${name}: expected Name | Content | (optional Reference URL) | Click Count | Skills`);
-        continue;
-      }
-      for(let i=1;i<rows.length;i++){
-        const row = rows[i] || [];
-        const title = String(row[0]??'').trim();
-        const content = String(row[1]??'');
-        const contentOk = !!content.trim();
-        const skill = String(row[4]??'').trim().toUpperCase();
-        if(!title && !contentOk && !skill) continue;
-        if(!title || !contentOk){
-          ignored.push(`${name}: row ${i+1} incomplete and skipped`);
-          continue;
-        }
-        if(skill !== 'ALL' && skill !== 'GSM'){
-          problems.push(`${name}: row ${i+1} ("${title.slice(0,35)}") invalid Skills: ${skill || '(empty)'}`);
-          continue;
-        }
-        const rawClicks = String(row[3]??'').trim();
-        const clicks = rawClicks === '' ? 0 : Number(rawClicks);
-        if(!Number.isInteger(clicks) || clicks<0){
-          problems.push(`${name}: row ${i+1} Click Count must be a nonnegative integer`);
-          continue;
-        }
-        index++;
-        allItems.push({
-          sheet_name:name, title, content, reference_url:String(row[2]??'').trim() || null,
-          click_count:clicks,row_order:index,skills:skill
-        });
-      }
+async function parseCannedWorkbook(file,label){
+  const bytes=new Uint8Array(await file.arrayBuffer());
+  const wb=XLSX.read(bytes,{type:'array'});
+  const errors=[],records=[],seen=new Map();
+  if(!wb.SheetNames.length)errors.push(`${label}: workbook has no sheets`);
+  for(const sheet of wb.SheetNames){
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[sheet],{header:1,defval:'',raw:false});
+    const head=(rows[0]||[]).slice(0,5).map(v=>String(v??'').trim().toLowerCase());
+    if(head[0]!=='name'||head[1]!=='content'||head[3]!=='click count'||head[4]!=='skills'||(head[2]&&head[2]!=='reference url')){
+      errors.push(`${label} / ${sheet}: expected Name | Content | Reference URL | Click Count | Skills`);continue;
     }
-    const all = allItems.filter(x=>x.skills==='ALL').length;
-    const gsm = allItems.length-all;
-    if(allItems.length<2 || all<1 || gsm<1) problems.push('The catalog must contain both ALL and GSM items.');
-    if(problems.length){
-      candPreviewPanel.textContent = `VALIDATION FAILED — nothing uploaded.\n${problems.slice(0,20).join('\n')}${problems.length>20?'\n...more errors':''}\nItems accepted so far: ${allItems.length}`;
+    for(let i=1;i<rows.length;i++){
+      const row=rows[i]||[];
+      const title=String(row[0]??'').trim(),content=String(row[1]??'');
+      const url=String(row[2]??'').trim(),skill=String(row[4]??'').trim().toUpperCase();
+      const rawClicks=String(row[3]??'').trim();
+      if(!row.some(v=>String(v??'').trim()))continue;
+      if(!title||!content.trim()||!['ALL','GSM'].includes(skill)){
+        errors.push(`${label} / ${sheet} row ${i+1}: missing Name/Content or invalid Skills`);continue;
+      }
+      const clicks=rawClicks===''?0:Number(rawClicks);
+      if(!Number.isSafeInteger(clicks)||clicks<0){errors.push(`${label} / ${sheet} row ${i+1}: invalid Click Count`);continue;}
+      const prefix=JSON.stringify([sheet,title]);
+      const occ=(seen.get(prefix)||0)+1;seen.set(prefix,occ);
+      // Occurrence is necessary because many canned titles repeat within the same sheet.
+      const key=JSON.stringify([sheet,title,occ]);
+      records.push({key,sheet_name:sheet,title,content,reference_url:url||null,click_count:clicks,skills:skill,source_row:i+1});
+    }
+  }
+  return {records,errors,sheets:wb.SheetNames};
+}
+
+uploadExcelBtn.addEventListener('click',async()=>{
+  if(!candExcelFile.files?.length||!candFemaleFile.files?.length){
+    candPreviewPanel.textContent='Select BOTH Male and Female Excel files first.';return;
+  }
+  uploadExcelBtn.disabled=true;clearCandPreview();
+  candPreviewPanel.textContent='Validating both workbooks and matching repeated titles...';
+  try{
+    const maleFile=candExcelFile.files[0],femaleFile=candFemaleFile.files[0];
+    if(!/^candat_data_male\.xlsx$/i.test(maleFile.name) || !/^candat_data_female\.xlsx$/i.test(femaleFile.name)){
+      throw new Error('Use exact filenames: candat_data_Male.xlsx and candat_data_Female.xlsx');
+    }
+    const [male,female]=await Promise.all([
+      parseCannedWorkbook(maleFile,'Male'),parseCannedWorkbook(femaleFile,'Female')
+    ]);
+    const errors=[...male.errors,...female.errors];
+    if(male.sheets.length!==female.sheets.length||male.sheets.some((s,i)=>s!==female.sheets[i]))
+      errors.push('Sheet names/order differ between workbooks');
+    const femaleMap=new Map(female.records.map(x=>[x.key,x]));
+    if(female.records.length!==male.records.length)
+      errors.push(`Canned item count differs: Male=${male.records.length} Female=${female.records.length}`);
+    const paired=[];
+    for(const m of male.records){
+      const f=femaleMap.get(m.key);
+      if(!f){errors.push(`Female missing matching canned: ${m.sheet_name} / ${m.title} (row ${m.source_row})`);continue;}
+      if(m.skills!==f.skills)errors.push(`Skills mismatch: ${m.sheet_name} / ${m.title}: ${m.skills} vs ${f.skills}`);
+      if(m.reference_url!==f.reference_url||m.click_count!==f.click_count)
+        errors.push(`Metadata mismatch (Reference URL or Click Count): ${m.sheet_name} / ${m.title}`);
+      paired.push({sheet_name:m.sheet_name,title:m.title,content:m.content,content_female:f.content,
+        reference_url:m.reference_url,click_count:m.click_count,skills:m.skills,row_order:paired.length+1});
+    }
+    const maleKeys=new Set(male.records.map(x=>x.key));
+    for(const f of female.records)if(!maleKeys.has(f.key))errors.push(`Extra Female canned: ${f.sheet_name} / ${f.title}`);
+    const all=paired.filter(x=>x.skills==='ALL').length,gsm=paired.length-all;
+    if(paired.length<2||all===0||gsm===0)errors.push('Catalog must contain at least one ALL and one GSM item');
+    if(errors.length){
+      candPreviewPanel.textContent=`VALIDATION FAILED — NOTHING PUBLISHED\n${errors.slice(0,28).join('\n')}${errors.length>28?`\n... ${errors.length-28} more errors`:''}`;
       return;
     }
-    candPreviewItems = allItems;
-    candPreviewFileName = file.name;
-    candPreviewPanel.textContent = `READY TO PUBLISH (nothing changed yet)\nFile: ${file.name}\nSheets: ${wb.SheetNames.length}\nCanned items: ${allItems.length}\nALL: ${all} · GSM: ${gsm}\nFixed can see: ${all}; Universal can see: ${allItems.length}` +
-      (ignored.length?`\nSkipped incomplete rows (${ignored.length}): ${ignored.slice(0,5).join('; ')}`:'') +
-      '\nPublishing replaces only the new isolated library in one transaction. Legacy canned_items stays intact.';
-    candPublishBtn.disabled = false;
-  } catch(err){
-    console.error(err);
-    candPreviewPanel.textContent='Unable to read/validate Excel: '+err.message;
-  } finally { uploadExcelBtn.disabled = false; }
+    candPreviewItems=paired;candPreviewFileName=maleFile.name;candPreviewFemaleName=femaleFile.name;
+    const different=paired.filter(x=>x.content!==x.content_female).length;
+    // Show what would be removed or added compared with the current live catalog.
+    let diffText='';
+    const {data:liveCatalog,error:liveError}=await sb.rpc('cand_voice_admin_catalog');
+    if(liveError) throw new Error('Cannot check existing live catalog: '+liveError.message);
+    const makeKeyMap=items=>{
+      const seen=new Map(),keys=[];
+      for(const x of items){
+        const prefix=JSON.stringify([x.sheet_name,x.title]);
+        const n=(seen.get(prefix)||0)+1;seen.set(prefix,n);
+        keys.push(JSON.stringify([x.sheet_name,x.title,n]));
+      }
+      return keys;
+    };
+    const liveKeys=makeKeyMap((liveCatalog||[]).slice().sort((a,b)=>a.row_order-b.row_order));
+    const incomingKeys=new Set(makeKeyMap(paired));
+    const liveKeySet=new Set(liveKeys);
+    const removed=liveKeys.filter(k=>!incomingKeys.has(k));
+    const inserted=makeKeyMap(paired).filter(k=>!liveKeySet.has(k));
+    diffText=`\nCurrently published: ${(liveCatalog||[]).length}\nNew canned keys: ${inserted.length}\nMissing from incoming files (will be removed): ${removed.length}`;
+    if(removed.length)diffText+=`\nWARNING: Check removed canned keys: ${removed.slice(0,5).map(k=>JSON.parse(k).slice(0,2).join(' / ')).join(' ; ')}`;
+    candPreviewPanel.textContent=`READY — NOTHING PUBLISHED YET\nMale: ${maleFile.name}\nFemale: ${femaleFile.name}\nSheets: ${male.sheets.length}\nMatched canned pairs: ${paired.length}\nDifferent wording: ${different}\nIdentical wording: ${paired.length-different}\nALL: ${all} · GSM: ${gsm}${diffText}\nBoth versions publish together in ONE transaction.`;
+    candPublishBtn.disabled=false;
+  }catch(err){candPreviewPanel.textContent='Validation error: '+err.message;console.error(err);}
+  finally{uploadExcelBtn.disabled=false;}
 });
 
-candPublishBtn.addEventListener('click', async () => {
-  if(!candPreviewItems?.length || !candExcelFile.files?.length || candPreviewFileName !== candExcelFile.files[0].name){
-    clearCandPreview(); return;
+candPublishBtn.addEventListener('click',async()=>{
+  if(!candPreviewItems?.length||candExcelFile.files?.[0]?.name!==candPreviewFileName||candFemaleFile.files?.[0]?.name!==candPreviewFemaleName){
+    clearCandPreview();return;
   }
-  const expected = candPreviewItems.length;
-  const all = candPreviewItems.filter(x=>x.skills==='ALL').length;
-  const answer = prompt(`CONFIRM: publish ${expected} canned items (${all} ALL / ${expected-all} GSM) to the NEW catalog?\nType PUBLISH to continue:`);
-  if(answer !== 'PUBLISH') return;
-  candPublishBtn.disabled = true;
-  uploadExcelBtn.disabled = true;
-  candPreviewPanel.textContent='Publishing securely in one database transaction...';
+  const expected=candPreviewItems.length;
+  if(prompt(`Replace the live catalog with ${expected} PAIRED canned items?\nType PUBLISH BOTH to confirm:`)!=='PUBLISH BOTH')return;
+  candPublishBtn.disabled=true;uploadExcelBtn.disabled=true;
+  candPreviewPanel.textContent='Publishing BOTH versions atomically...';
   try{
-    const {data,error} = await sb.rpc('cand_fresh_publish',{
-      p_items:candPreviewItems,p_expected_count:expected
-    });
-    if(error) throw error;
-    if(!data?.ok || data.total!==expected || data.all_items!==all)
-      throw new Error('Server returned unexpected publish totals. Check database counts before retrying.');
-    candPreviewPanel.textContent=`PUBLISHED & VERIFIED: ${data.total} items, ALL ${data.all_items}, GSM ${data.gsm_items}.`;
-    msg.style.color='#7ee2a8';
-    msg.textContent='Fresh library published. Ask users to refresh the tool.';
-    candPreviewItems=null;
-    candExcelFile.value='';
-    await refreshCandCatalogStatus();
+    const {data,error}=await sb.rpc('cand_voice_publish',{p_items:candPreviewItems,p_expected_count:expected});
+    if(error)throw error;
+    const all=candPreviewItems.filter(x=>x.skills==='ALL').length;
+    if(!data?.ok||data.total!==expected||data.all_items!==all)throw new Error('Publish count verification failed');
+    candPreviewPanel.textContent=`PUBLISHED & VERIFIED — ${data.total} paired canned items · ALL ${data.all_items} · GSM ${data.gsm_items}.`;
+    msg.style.color='#7ee2a8';msg.textContent='Male and Female catalogs are live. Agents can refresh.';
+    candPreviewItems=null;candExcelFile.value='';candFemaleFile.value='';
+    await Promise.all([refreshCandCatalogStatus(),loadEditorCatalog()]);
   }catch(err){
-    console.error(err);
-    msg.style.color='#ff9b9b';
-    msg.textContent='Publish failed. The database transaction was rolled back: '+err.message;
-    candPreviewPanel.textContent=msg.textContent;
-    // Allow retry only after a new preview, to avoid unnoticed stale payloads.
-    candPreviewItems=null;
+    msg.style.color='#ff9b9b';msg.textContent='Dual publish failed (transaction rolled back): '+err.message;
+    candPreviewPanel.textContent=msg.textContent;candPreviewItems=null;
   }finally{uploadExcelBtn.disabled=false;}
 });
 
-addCannedForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  addBtn.disabled=true;
-  const sheet = document.getElementById('sheetName').value.trim();
-  const title = document.getElementById('cannedTitle').value.trim();
-  const content = document.getElementById('cannedContent').value.trim();
-  const skill = document.getElementById('cannedSkill').value;
-  const {data,error} = await sb.rpc('cand_fresh_add',{
-    p_sheet_name:sheet,p_title:title,p_content:content,p_skills:skill
-  });
-  addBtn.disabled=false;
-  if(error){
-    msg.style.color='#ff9b9b';
-    msg.textContent='Failed adding to Fresh Library: '+error.message;
-  }else{
-    msg.style.color='#7ee2a8';
-    msg.textContent=`Added to Fresh Library — ${skill} — row ${data.row_order}`;
-    addCannedForm.reset();
-    await refreshCandCatalogStatus();
+addCannedForm.addEventListener('submit',async e=>{
+  e.preventDefault();addBtn.disabled=true;
+  const params={p_sheet_name:document.getElementById('sheetName').value.trim(),
+    p_title:document.getElementById('cannedTitle').value.trim(),
+    p_content_male:document.getElementById('cannedContent').value,
+    p_content_female:document.getElementById('cannedFemaleContent').value,
+    p_skills:document.getElementById('cannedSkill').value};
+  try{
+    const {data,error}=await sb.rpc('cand_voice_add',params);
+    if(error)throw error;
+    msg.style.color='#7ee2a8';msg.textContent=`Both versions added — ${params.p_skills} · row ${data.row_order}`;
+    addCannedForm.reset();await Promise.all([refreshCandCatalogStatus(),loadEditorCatalog()]);
+  }catch(err){msg.style.color='#ff9b9b';msg.textContent='Add both versions failed: '+err.message;}
+  finally{addBtn.disabled=false;}
+});
+
+async function loadEditorCatalog(){
+  const {data,error}=await sb.rpc('cand_voice_admin_catalog');
+  if(error){console.error(error);editPick.innerHTML='<option value="">Admin catalog unavailable</option>';return;}
+  candEditCatalog=Array.isArray(data)?data:[];
+  renderEditorOptions();
+}
+function renderEditorOptions(){
+  const q=editSearch.value.trim().toLowerCase();
+  const filtered=candEditCatalog.filter(x=>(x.sheet_name+' '+x.title).toLowerCase().includes(q));
+  editPick.innerHTML='<option value="">Select a canned item...</option>';
+  for(const x of filtered.slice(0,1200)){
+    const opt=document.createElement('option');opt.value=String(x.id);
+    opt.textContent=`${x.row_order}. ${x.sheet_name} / ${x.title}`;
+    editPick.appendChild(opt);
   }
+  candEditingId=null;candEditForm.style.display='none';
+}
+function openEditorItem(){
+  const x=candEditCatalog.find(r=>String(r.id)===editPick.value);
+  if(!x){candEditForm.style.display='none';candEditingId=null;return;}
+  candEditingId=x.id;
+  document.getElementById('editSheet').value=x.sheet_name;
+  document.getElementById('editTitle').value=x.title;
+  document.getElementById('editMale').value=x.content;
+  document.getElementById('editFemale').value=x.content_female||'';
+  document.getElementById('editSkills').value=x.skills;
+  document.getElementById('editRef').value=x.reference_url||'';
+  editStatus.textContent='';candEditForm.style.display='block';
+}
+function exportVoiceWorkbook(voice){
+  if(!candEditCatalog.length){
+    msg.style.color='#ff9b9b';msg.textContent='No published paired catalog to export.';return;
+  }
+  if(candEditCatalog.some(x=>!String(x.content_female||'').trim())){
+    msg.style.color='#ff9b9b';msg.textContent='Cannot export: one or more Female contents are missing.';return;
+  }
+  const wb=XLSX.utils.book_new();
+  const bySheet=new Map();
+  for(const x of [...candEditCatalog].sort((a,b)=>a.row_order-b.row_order)){
+    if(!bySheet.has(x.sheet_name))bySheet.set(x.sheet_name,[['Name','Content','Reference URL','Click Count','Skills']]);
+    bySheet.get(x.sheet_name).push([x.title,voice==='female'?x.content_female:x.content,
+      x.reference_url||'',Number(x.click_count||0),x.skills]);
+  }
+  for(const [name,rows] of bySheet){
+    const ws=XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols']=[{wch:37},{wch:70},{wch:23},{wch:13},{wch:14}];
+    XLSX.utils.book_append_sheet(wb,ws,name);
+  }
+  XLSX.writeFile(wb,`candat_data_${voice==='female'?'Female':'Male'}.xlsx`);
+}
+document.getElementById('exportMaleExcel').addEventListener('click',()=>exportVoiceWorkbook('male'));
+document.getElementById('exportFemaleExcel').addEventListener('click',()=>exportVoiceWorkbook('female'));
+
+editSearch.addEventListener('input',renderEditorOptions);
+editPick.addEventListener('change',openEditorItem);
+document.getElementById('candLoadEditor').addEventListener('click',loadEditorCatalog);
+candEditForm.addEventListener('submit',async e=>{
+  e.preventDefault();if(candEditingId==null)return;
+  const btn=document.getElementById('candEditSave');btn.disabled=true;
+  try{
+    const params={p_id:candEditingId,p_sheet_name:document.getElementById('editSheet').value.trim(),
+      p_title:document.getElementById('editTitle').value.trim(),
+      p_content_male:document.getElementById('editMale').value,
+      p_content_female:document.getElementById('editFemale').value,
+      p_skills:document.getElementById('editSkills').value,
+      p_reference_url:document.getElementById('editRef').value};
+    const {error}=await sb.rpc('cand_voice_update',params);if(error)throw error;
+    await Promise.all([loadEditorCatalog(),refreshCandCatalogStatus()]);
+    editPick.value=String(params.p_id);openEditorItem();
+    editStatus.style.color='#7ee2a8';editStatus.textContent='Saved BOTH versions to live catalog.';
+    msg.style.color='#7ee2a8';msg.textContent='Male & Female canned responses updated successfully.';
+  }catch(err){editStatus.style.color='#ff9b9b';editStatus.textContent='Save failed: '+err.message;}
+  finally{btn.disabled=false;}
 });
 
 function esc(v){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
