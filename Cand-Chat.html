@@ -873,6 +873,30 @@ button{font-family:inherit;}
   }, true);
 
 document.addEventListener("DOMContentLoaded", () => {
+  const voiceModal=document.getElementById('cannedVoiceModal');
+  const voiceStatus=document.getElementById('cannedVoiceStatus');
+  const voiceSave=document.getElementById('cannedVoiceSave');
+  function showVoiceSelection(){
+    voiceModal.classList.add('open');voiceModal.setAttribute('aria-hidden','false');
+    document.body.style.overflow='hidden';voiceStatus.textContent='';
+  }
+  function hideVoiceSelection(){
+    voiceModal.classList.remove('open');voiceModal.setAttribute('aria-hidden','true');
+    document.body.style.overflow='';
+  }
+  voiceSave.addEventListener('click',async()=>{
+    const voice=document.querySelector('input[name="canned-voice"]:checked')?.value;
+    if(!voice){voiceStatus.textContent='اختر الصيغة أولًا.';return;}
+    if(!confirm('هيتم حفظ الاختيار مرة واحدة، والتعديل بعد كده من خلال الأدمن فقط. تأكيد؟'))return;
+    voiceSave.disabled=true;voiceStatus.textContent='جارٍ حفظ الاختيار...';
+    try{
+      const {error}=await supabaseClient.rpc('cand_voice_choose',{p_voice:voice});
+      if(error)throw error;
+      hideVoiceSelection();await loadCannedData();
+    }catch(e){voiceStatus.textContent='تعذر حفظ الاختيار: '+e.message;}
+    finally{voiceSave.disabled=false;}
+  });
+
   const SUPABASE_URL = 'https://jdvkzdorjthljhwqmvmn.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_6WQHg-zL775jpFaErofLog_1kd5X6bI';
   const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -1792,6 +1816,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const { data, error } = await supabaseClient.rpc('cand_fresh_read');
       if (error) throw error;
       if (!data || !Array.isArray(data.items)) throw new Error('INVALID_CATALOG_RESPONSE');
+      if(data.requires_voice_selection){
+        showVoiceSelection();
+        cardsGrid.innerHTML='<div class="empty">برجاء اختيار صيغة الكندات لإكمال الإعداد.</div>';
+        return;
+      }
+      hideVoiceSelection();
 
       workbookData = {};
       const sheetNames = [];
@@ -1834,6 +1864,10 @@ document.addEventListener("DOMContentLoaded", () => {
         label = 'حسابك غير معتمد أو انتهت جلسة الدخول. سجّل دخول من جديد.';
       else if (reason.includes('NO_ALL_ITEMS_FOR_FIXED'))
         label = 'خطأ في تصنيف الشيت: مفيش كاندات ALL متاحة للـ Fixed. راجع ملف الإكسيل.';
+      else if (reason.includes('DUAL_CATALOG_NOT_PUBLISHED'))
+        label = 'الأدمن محتاج يرفع ملف المذكر والمؤنث معًا قبل استخدام التول.';
+      else if (reason.includes('DUAL_CATALOG_INCOMPLETE'))
+        label = 'نسخة الكندات المؤنثة غير مكتملة. برجاء الرجوع للأدمن لمراجعة رفع النسختين.';
       else if (reason.includes('Could not find the function') || reason.includes('does not exist'))
         label = 'إعداد قاعدة البيانات الجديدة غير مكتمل. الأدمن محتاج يشغّل SQL الجديد.';
       toolCount.textContent = '!';
@@ -1940,6 +1974,29 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 </script>
+</div>
+<style>
+#cannedVoiceModal{position:fixed;inset:0;background:rgba(0,0,0,.84);z-index:2147483646;display:none;align-items:center;justify-content:center;padding:16px;direction:rtl;font-family:Arial,sans-serif}
+#cannedVoiceModal.open{display:flex}
+#cannedVoiceModal .voice-dialog{width:min(470px,100%);padding:26px;background:#171b29;border:1px solid #45506a;border-radius:19px;box-shadow:0 20px 60px #0009;color:#fff}
+#cannedVoiceModal h2{font-size:22px;margin:0 0 12px;color:#fff}
+#cannedVoiceModal p{line-height:1.7;color:#ced5e8;font-size:14px;margin:0 0 19px}
+#cannedVoiceModal label{display:block;padding:13px;margin:9px 0;border:1px solid #414b64;border-radius:12px;cursor:pointer;color:#fff;background:#252b3d}
+#cannedVoiceModal label:has(input:checked){border-color:#70dfce;background:#183f41}
+#cannedVoiceModal input{accent-color:#6fe3d9;vertical-align:middle;margin-inline-end:8px}
+#cannedVoiceSave{display:block;width:100%;border:0;background:#6fe3d9;color:#111827;padding:14px;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;margin-top:16px}
+#cannedVoiceSave:disabled{opacity:.55;cursor:wait}
+#cannedVoiceStatus{color:#ffb6b6;min-height:20px;font-size:13px;margin-top:8px}
+</style>
+<div id="cannedVoiceModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="cannedVoiceTitle">
+ <section class="voice-dialog">
+  <h2 id="cannedVoiceTitle">اختيار صيغة الكندات</h2>
+  <p>اختار الصيغة اللي هتستخدمها في الرد على العملاء. الاختيار بيتحفظ على حسابك بشكل دائم، وأي تعديل بعد كده بيكون من خلال الأدمن فقط.</p>
+  <label><input type="radio" name="canned-voice" value="male"> صيغة المذكر — أنا متفهم استياء حضرتك</label>
+  <label><input type="radio" name="canned-voice" value="female"> صيغة المؤنث — أنا متفهمة استياء حضرتك</label>
+  <button type="button" id="cannedVoiceSave">تأكيد الاختيار</button>
+  <div id="cannedVoiceStatus" role="status"></div>
+ </section>
 </div>
 </body>
 </html>
