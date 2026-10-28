@@ -195,12 +195,12 @@ button{border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:po
       </div>
 
       <div class="card" style="border-style:dashed;border-color:#66558f">
-        <h3>📊 Dual Excel Upload — Male & Female</h3>
+        <h3>📊 Dual Excel Upload — Male & Female (Fixed v2.1)</h3>
         <div class="hint">Upload BOTH files to publish one unified library. Each file needs A Name · B Content · C Reference URL (optional) · D Click Count · E Skills (ALL/GSM). Matching is done by Sheet + Name + occurrence. No legacy canned_items changes.</div>
         <div id="candCatalogSummary" class="catalog-stats">Checking newly published library...</div>
         <div class="form-group"><label for="excelFile">Male Excel — candat_data_Male.xlsx</label><input type="file" id="excelFile" class="form-control" accept=".xlsx,.xls"></div><div class="form-group"><label for="excelFemaleFile">Female Excel — candat_data_Female.xlsx</label><input type="file" id="excelFemaleFile" class="form-control" accept=".xlsx,.xls"></div>
         <button type="button" id="uploadExcelBtn" class="primary-btn">1 — Validate & Match Both Files</button>
-        <div id="candUploadPreview" class="catalog-preview">Choose both Excel files, then click Validate & Match.</div>
+        <div id="candUploadPreview" class="catalog-preview">Choose both Excel files, then click Validate & Match. Empty template rows will be skipped; missing Skills on real canned rows is reported.</div>
         <button type="button" id="candPublishBtn" class="primary-btn" disabled>2 — Publish Both Excel Files (Atomic)</button>
         <button type="button" id="candRefreshStats" style="width:100%;margin-top:10px">Refresh Published Counts</button>
       </div>
@@ -857,7 +857,8 @@ function clearCandPreview(){
 async function parseCannedWorkbook(file,label){
   const bytes=new Uint8Array(await file.arrayBuffer());
   const wb=XLSX.read(bytes,{type:'array'});
-  const errors=[],records=[],seen=new Map();
+  const errors=[],records=[],seen=new Map(),inferred=[];
+  let ignoredEmpty=0;
   if(!wb.SheetNames.length)errors.push(`${label}: workbook has no sheets`);
   for(const sheet of wb.SheetNames){
     const rows=XLSX.utils.sheet_to_json(wb.Sheets[sheet],{header:1,defval:'',raw:false});
@@ -865,25 +866,54 @@ async function parseCannedWorkbook(file,label){
     if(head[0]!=='name'||head[1]!=='content'||head[3]!=='click count'||head[4]!=='skills'||(head[2]&&head[2]!=='reference url')){
       errors.push(`${label} / ${sheet}: expected Name | Content | Reference URL | Click Count | Skills`);continue;
     }
+    // Excel templates often pre-fill Skills (ALL/GSM) down blank rows.
+    // Such rows are placeholders, NOT actual canned responses.
+    // Infer a missing skill ONLY when every other populated canned row
+    // in the same sheet has the same valid skill. Never guess on mixed sheets.
+    const usedSkills=new Set();
+    for(let i=1;i<rows.length;i++){
+      const row=rows[i]||[];
+      const title=String(row[0]??'').trim();
+      const content=String(row[1]??'').trim();
+      const skill=String(row[4]??'').trim().toUpperCase();
+      if(title && content && ['ALL','GSM'].includes(skill))usedSkills.add(skill);
+    }
     for(let i=1;i<rows.length;i++){
       const row=rows[i]||[];
       const title=String(row[0]??'').trim(),content=String(row[1]??'');
-      const url=String(row[2]??'').trim(),skill=String(row[4]??'').trim().toUpperCase();
-      const rawClicks=String(row[3]??'').trim();
-      if(!row.some(v=>String(v??'').trim()))continue;
-      if(!title||!content.trim()||!['ALL','GSM'].includes(skill)){
-        errors.push(`${label} / ${sheet} row ${i+1}: missing Name/Content or invalid Skills`);continue;
+      const url=String(row[2]??'').trim(),rawClicks=String(row[3]??'').trim();
+      let skill=String(row[4]??'').trim().toUpperCase();
+      // Do not reject skill-only placeholder rows. Preserve real errors.
+      if(!title && !content.trim()){
+        if(url||rawClicks){
+          errors.push(`${label} / ${sheet} row ${i+1}: metadata without Name/Content`);
+        }else{
+          ignoredEmpty++;
+        }
+        continue;
+      }
+      if(!title||!content.trim()){
+        errors.push(`${label} / ${sheet} row ${i+1}: missing ${!title?'Name':'Content'}`);continue;
+      }
+      if(!skill && usedSkills.size===1){
+        skill=[...usedSkills][0];
+        inferred.push(`${label} / ${sheet} row ${i+1} (${title}): empty Skills inferred as ${skill}`);
+      }
+      if(!['ALL','GSM'].includes(skill)){
+        errors.push(`${label} / ${sheet} row ${i+1} (${title}): invalid Skills ${skill||'(empty)'}`);continue;
       }
       const clicks=rawClicks===''?0:Number(rawClicks);
-      if(!Number.isSafeInteger(clicks)||clicks<0){errors.push(`${label} / ${sheet} row ${i+1}: invalid Click Count`);continue;}
+      if(!Number.isSafeInteger(clicks)||clicks<0){
+        errors.push(`${label} / ${sheet} row ${i+1} (${title}): invalid Click Count`);continue;
+      }
       const prefix=JSON.stringify([sheet,title]);
       const occ=(seen.get(prefix)||0)+1;seen.set(prefix,occ);
-      // Occurrence is necessary because many canned titles repeat within the same sheet.
+      // Match duplicate titles by occurrence in their original sheet.
       const key=JSON.stringify([sheet,title,occ]);
       records.push({key,sheet_name:sheet,title,content,reference_url:url||null,click_count:clicks,skills:skill,source_row:i+1});
     }
   }
-  return {records,errors,sheets:wb.SheetNames};
+  return {records,errors,sheets:wb.SheetNames,ignoredEmpty,inferred};
 }
 
 uploadExcelBtn.addEventListener('click',async()=>{
@@ -926,6 +956,9 @@ uploadExcelBtn.addEventListener('click',async()=>{
     }
     candPreviewItems=paired;candPreviewFileName=maleFile.name;candPreviewFemaleName=femaleFile.name;
     const different=paired.filter(x=>x.content!==x.content_female).length;
+    const cleanupText=`\nIgnored template-only rows: Male=${male.ignoredEmpty}, Female=${female.ignoredEmpty}`+
+      (male.inferred.length||female.inferred.length
+        ? `\nCHECK BEFORE PUBLISH — inferred missing Skills:\n${[...male.inferred,...female.inferred].join('\n')}`:'');
     // Show what would be removed or added compared with the current live catalog.
     let diffText='';
     const {data:liveCatalog,error:liveError}=await sb.rpc('cand_voice_admin_catalog');
@@ -946,7 +979,7 @@ uploadExcelBtn.addEventListener('click',async()=>{
     const inserted=makeKeyMap(paired).filter(k=>!liveKeySet.has(k));
     diffText=`\nCurrently published: ${(liveCatalog||[]).length}\nNew canned keys: ${inserted.length}\nMissing from incoming files (will be removed): ${removed.length}`;
     if(removed.length)diffText+=`\nWARNING: Check removed canned keys: ${removed.slice(0,5).map(k=>JSON.parse(k).slice(0,2).join(' / ')).join(' ; ')}`;
-    candPreviewPanel.textContent=`READY — NOTHING PUBLISHED YET\nMale: ${maleFile.name}\nFemale: ${femaleFile.name}\nSheets: ${male.sheets.length}\nMatched canned pairs: ${paired.length}\nDifferent wording: ${different}\nIdentical wording: ${paired.length-different}\nALL: ${all} · GSM: ${gsm}${diffText}\nBoth versions publish together in ONE transaction.`;
+    candPreviewPanel.textContent=`READY — NOTHING PUBLISHED YET\nMale: ${maleFile.name}\nFemale: ${femaleFile.name}\nSheets: ${male.sheets.length}\nMatched canned pairs: ${paired.length}\nDifferent wording: ${different}\nIdentical wording: ${paired.length-different}\nALL: ${all} · GSM: ${gsm}${cleanupText}${diffText}\nBoth versions publish together in ONE transaction.`;
     candPublishBtn.disabled=false;
   }catch(err){candPreviewPanel.textContent='Validation error: '+err.message;console.error(err);}
   finally{uploadExcelBtn.disabled=false;}
